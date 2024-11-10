@@ -12,6 +12,7 @@
     "headless",
     "medusa"
   ],
+
   "scripts": {
     "clean": "cross-env ./node_modules/.bin/rimraf dist",
     "build": "cross-env npm run clean && npm run build:server && npm run build:admin",
@@ -24,10 +25,11 @@
     "serve": "medusa start",
     "heroku-postbuild": "medusa migrations run",
     "prepare": "npm run build",
-    "build": "babel src -d dist --extensions \".ts,.js\"",
+    "build:dist": "babel src -d dist --extensions \".ts,.js\"",
     "start:custom": "cross-env npm run build && node --preserve-symlinks --trace-warnings index.js",
     "dev": "cross-env npm run build:server && medusa develop"
   },
+
 
   "dependencies": {
     "@medusajs/admin": "^7.1.16",

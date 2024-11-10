@@ -174,8 +174,24 @@ const projectConfig = {
 };
 
 /** @type {import('@medusajs/medusa').ConfigModule} */
+// module.exports = {
+//   projectConfig,
+//   plugins,
+//   modules,
+// };
+
 module.exports = {
-  projectConfig,
+  projectConfig: {
+    redis_url: process.env.REDIS_URL,
+    database_url: process.env.DATABASE_URL,
+    database_type: "postgres",
+    store_cors: process.env.STORE_CORS || "http://localhost:8000",
+    admin_cors: process.env.ADMIN_CORS || "http://localhost:7000,http://localhost:7001",
+    database_extra:
+      process.env.NODE_ENV !== "development"
+        ? { ssl: { rejectUnauthorized: false } }
+        : {},
+  },
   plugins,
   modules,
 };
