@@ -1,12 +1,15 @@
-import logo from './logo.svg';
-import './Main.css';
-import Footer from './components/footer';
+import logo from "./resources/logo.png";
+import "./Main.css";
+
+import Navbar from "./components/navbar/navbar";
+import Footer from "./components/footer";
 
 function Main() {
   return (
     <div className="Main">
+      <Navbar />
       <header className="Main-header">
-        <img src={logo} className="Main-logo" alt="logo" />
+        
         <p>
           Edit <code>src/Main.jsx</code> and save to reload.
         </p>
