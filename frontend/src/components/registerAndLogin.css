@@ -134,6 +134,20 @@ body {
   text-align: center;
 }
 
+.link-button {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #4f7f7c;
+  font-size: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 768px) {
   .login-page {
     padding: 14px;
