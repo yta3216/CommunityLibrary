@@ -85,7 +85,7 @@ export default function Register() {
             </button>
             <button
               type="button"
-              className="action-button admin-button"
+              className="action-button login-admin-button"
               onClick={() => navigate("/login")}
             >
               Back to Login

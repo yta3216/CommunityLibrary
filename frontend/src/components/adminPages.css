@@ -1,0 +1,249 @@
+.admin-page {
+  min-height: 100dvh;
+  width: 100%;
+  background-color: #f1f2f5;
+  font-family: Arial, sans-serif;
+  padding: 18px 26px 30px;
+  color: #111111;
+}
+
+.admin-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.admin-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-logo-placeholder {
+  width: 52px;
+  height: 40px;
+  border: 1px dashed #c2c8d0;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background-color: #ffffff;
+  color: #7b828d;
+  font-size: 12px;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.admin-nav {
+  display: inline-flex;
+  background-color: #ffffff;
+  border: 1px solid #d9dce2;
+  border-radius: 999px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.admin-nav-link {
+  text-decoration: none;
+  color: #333333;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.admin-nav-link.active {
+  background-color: #dce8e8;
+  color: #2b5e5b;
+}
+
+.admin-search {
+  flex: 1;
+  min-width: 220px;
+  border: 1px solid #d9dce2;
+  border-radius: 999px;
+  background-color: #ffffff;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.admin-chip {
+  border: 1px solid #d9dce2;
+  background-color: #ffffff;
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #333333;
+}
+
+.admin-divider {
+  height: 1px;
+  background-color: #d9dce2;
+  margin-bottom: 22px;
+}
+
+.admin-title {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 700;
+}
+
+.admin-subtitle {
+  margin: 10px 0 20px;
+  font-size: 18px;
+  color: #666d77;
+}
+
+.admin-card {
+  background: #ffffff;
+  border: 1px solid #e7eaef;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+}
+
+.admin-card-title {
+  margin: 0;
+  font-size: 20px;
+}
+
+.admin-card-note {
+  margin: 5px 0 0;
+  color: #7b828d;
+  font-size: 13px;
+}
+
+.admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.admin-metric-value {
+  font-size: 36px;
+  font-weight: 700;
+  margin: 10px 0 6px;
+}
+
+.admin-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.admin-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.admin-button {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 14px;
+  background-color: #4f7f7c;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-button.dark {
+  background-color: #222222;
+}
+
+.admin-button.light {
+  background-color: #ffffff;
+  border: 1px solid #d9dce2;
+  color: #333333;
+}
+
+.admin-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.admin-input,
+.admin-select {
+  border: 1px solid #d9dce2;
+  border-radius: 10px;
+  background-color: #ffffff;
+  padding: 10px;
+}
+
+.admin-table-wrap {
+  margin-top: 14px;
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border: 1px solid #e7eaef;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 14px 12px;
+  border-bottom: 1px solid #edf0f4;
+  font-size: 14px;
+}
+
+.admin-table th {
+  font-size: 12px;
+  color: #666d77;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.admin-pill {
+  display: inline-block;
+  border-radius: 999px;
+  border: 1px solid #d9dce2;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background-color: #f6f8fa;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-link {
+  text-decoration: none;
+}
+
+@media (max-width: 980px) {
+  .admin-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-filters {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-topbar {
+    flex-wrap: wrap;
+  }
+
+  .admin-title {
+    font-size: 36px;
+  }
+}

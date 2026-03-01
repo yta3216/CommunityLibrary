@@ -66,9 +66,12 @@ export default function Login() {
             <button type="submit" className="action-button login-button">
               Login
             </button>
-            <button type="button" className="action-button admin-button">
+            <Link
+              to="/admin/home"
+              className="action-button login-admin-button"
+            >
               Login as Admin
-            </button>
+            </Link>
           </div>
         </form>
 
