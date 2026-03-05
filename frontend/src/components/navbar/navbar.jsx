@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import logo from "../../resources/logo.png";
 import avatar_placeholder from "../../resources/avatar_placeholder.png";
-import './NavBar.css';
+import './navbar.css';
 
 function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
