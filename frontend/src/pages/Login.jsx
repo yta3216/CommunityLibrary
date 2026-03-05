@@ -1,6 +1,6 @@
 import React from "react";
 import Login from "../components/login";
-import Sidebar from "../components/sidebar/sidebar";
+import Sidebar from "../components/SideBar/sidebar";
 
 const LoginPage = () => {
   return (
