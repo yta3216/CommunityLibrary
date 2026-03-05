@@ -8,9 +8,11 @@
 }
 
 .book-card-bg {
-  height: 100px;
-  /* background: linear-gradient(135deg, #4f7f7c 40%, #bdb2ff 100%); */
-  background: #4f7f7c;
+  height: 130px;
+  background: linear-gradient(135deg, #7ec8c8 0%, #a8d8a8 50%, #f7d9b5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .book-card-content {
@@ -24,9 +26,10 @@
 
 .genre {
   color: #888;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
 }
 
 .stars {
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
