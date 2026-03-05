@@ -1,6 +1,5 @@
 import React from "react";
-import Login from "../components/login";
-import Sidebar from "../components/SideBar/sidebar";
+import Login from "../components/Login";
 
 const LoginPage = () => {
   return (
@@ -8,6 +7,7 @@ const LoginPage = () => {
       <Sidebar />
       <div style={{ marginLeft: "20px", padding: "20px" }}>
         <Login />
+        <Link to="/">Home</Link>
       </div>
     </div>
   );

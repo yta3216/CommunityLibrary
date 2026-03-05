@@ -36,7 +36,7 @@ function Navbar() {
         ) : (
           <>
             <a href="/login" className="nav-link">Login</a>
-            <a href="/signup" className="nav-link signup-btn">Sign Up</a>
+            <a href="/register" className="nav-link signup-btn">Sign Up</a>
             <img 
               src={avatar_placeholder} 
               alt="Profile" 

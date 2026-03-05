@@ -117,14 +117,20 @@ body {
   font-size: 24px;
   font-weight: 700;
   cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .login-button {
   background-color: #4f7f7c;
 }
 
-.admin-button {
+.action-button.login-admin-button {
   background-color: #6f6f72;
+  color: #ffffff;
+  text-decoration: none;
 }
 
 .footer-text {
