@@ -1,28 +1,20 @@
-import logo from "./resources/logo.png";
 import "./Main.css";
 
-import Navbar from "./components/navbar/navbar";
-import Footer from "./components/footer";
+import Navbar from "./components/navbar/NavBar";
+import Footer from "./components/Footer";
+import Booklist from "./components/SearchBookLayout";
 
 function Main() {
   return (
     <div className="Main">
+      {/*Navbar at the top*/}
       <Navbar />
-      <header className="Main-header">
-        
-        <p>
-          Edit <code>src/Main.jsx</code> and save to reload.
-        </p>
-        <Footer />
-        <a
-          className="Main-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+
+      <div className="main-content">
+        {/*Booklist in the middle*/}
+        <Booklist />
+      </div>
+      
     </div>
   );
 }
