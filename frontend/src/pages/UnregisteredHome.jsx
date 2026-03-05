@@ -1,7 +1,7 @@
 import React from "react";
-import Sidebar from "../components/SideBar/sidebar";
+import Sidebar from "../components/Sidebar/Sidebar";
 import BookCard from "../components/BookCard/BookCard";
-import NavBar from "../components/NavBar/navbar";
+import NavBar from "../components/Navbar/Navbar";
 
 /*Sample books (will be replaced later after backend is implemented)*/
 const popularBooks = [
