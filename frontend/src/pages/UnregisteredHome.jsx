@@ -1,7 +1,7 @@
 import React from "react";
-import Sidebar from "../components/Sidebar/Sidebar";
 import BookCard from "../components/BookCard/BookCard";
-import NavBar from "../components/Navbar/Navbar";
+import Navbar from "../components/Navbar/Navbar";
+import Sidebar from "../components/Sidebar/Sidebar";
 
 /*Sample books (will be replaced later after backend is implemented)*/
 const popularBooks = [
@@ -21,7 +21,7 @@ const newBooks = [
 const Home = () => {
   return (
     <div>
-      <NavBar />
+      <Navbar />
       <div style={styles.page}>
         <Sidebar />
 

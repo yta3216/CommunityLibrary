@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "./registerAndLogin.css";
+import "./RegisterAndLogin.css";
 
 export default function Register() {
   const navigate = useNavigate();
