@@ -63,13 +63,12 @@ export default function Login() {
           </label>
 
           <div className="button-row">
-            <button type="submit" className="action-button login-button">
-              Login
+            <button type="submit" className="action-button login-button" to="/">
+              <Link to="/" className="action-button login-button">
+                Login
+              </Link>
             </button>
-            <Link
-              to="/admin/home"
-              className="action-button login-admin-button"
-            >
+            <Link to="/admin/home" className="action-button login-admin-button">
               Login as Admin
             </Link>
           </div>
