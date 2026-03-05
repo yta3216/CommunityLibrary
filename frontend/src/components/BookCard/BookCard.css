@@ -1,0 +1,35 @@
+.book-card {
+  width: 180px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  overflow: hidden;
+  background: #fff;
+  margin: 16px;
+}
+
+.book-card-bg {
+  height: 130px;
+  background: linear-gradient(135deg, #7ec8c8 0%, #a8d8a8 50%, #f7d9b5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.book-card-content {
+  padding: 16px;
+}
+
+.book-card-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+}
+
+.genre {
+  color: #888;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+.stars {
+  font-size: 1rem;
+}

@@ -1,18 +1,20 @@
 // A container that displays a grid of book cards for the Search Results page.
 // Each individual card will be rendered by the CardLayout component
 
+import BookCard from "./BookCard/BookCard";
+
 function BookList() {
   // Placeholder data — will be replaced with real data later
   const books = [
-    { id: 1 },
-    { id: 2 },
-    { id: 3 },
-    { id: 4 },
-    { id: 5 },
-    { id: 6 },
-    { id: 7 },
-    { id: 8 },
-    { id: 9 },
+    { id: 1, title: 'Book Title', genre: '', rating: 0 },
+    { id: 2, title: 'Book Title', genre: '', rating: 0 },
+    { id: 3, title: 'Book Title', genre: '', rating: 0 },
+    { id: 4, title: 'Book Title', genre: '', rating: 0 },
+    { id: 5, title: 'Book Title', genre: '', rating: 0 },
+    { id: 6, title: 'Book Title', genre: '', rating: 0 },
+    { id: 7, title: 'Book Title', genre: '', rating: 0 },
+    { id: 8, title: 'Book Title', genre: '', rating: 0 },
+    { id: 9, title: 'Book Title', genre: '', rating: 0 },
   ];
 
   //Display on screen
@@ -21,8 +23,12 @@ function BookList() {
       <h2 style={styles.heading}>Search Results</h2>
       <div style={styles.grid}>
         {books.map((book) => (
-            /*for later -> <CardLayout key={book.id} />*/
-          <div key={book.id} style={styles.placeholder}>Card {book.id}</div>
+          <BookCard
+            key={book.id}
+            title={book.title}
+            genre={book.genre}
+            rating={book.rating}
+          />
         ))}
       </div>
     </section>
@@ -32,29 +38,18 @@ function BookList() {
 //Styles for the BookList component
 const styles = {
   section: {
-    padding: '32px 40px',
-
+    padding: '32px 0',
   },
   heading: {
     fontSize: '2rem',
     fontWeight: '700',
     margin: '0 0 28px',
-    color: 'black',
+    color: '#000',
   },
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '24px',
-  },
-  placeholder: {
-    height: '150px',
-    borderRadius: '12px',
-    backgroundColor: '#f0f0f0',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#999',
-    fontSize: '0.9rem',
+    gap: '20px',
   },
 };
 
