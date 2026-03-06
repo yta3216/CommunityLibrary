@@ -55,12 +55,18 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
 	try {
-		const { email, password } = req.body;
-		if (!email || !password) {
-			return res.status(400).json({ message: "email and password are required" });
+		const { email, username, identifier, password } = req.body;
+		const loginId = (identifier || email || username || "").trim().toLowerCase();
+
+		if (!loginId || !password) {
+			return res.status(400).json({
+				message: "identifier (email or username) and password are required",
+			});
 		}
 
-		const user = await User.findOne({ email }).select("+password");
+		const user = await User.findOne({
+			$or: [{ email: loginId }, { username: loginId }],
+		}).select("+password");
 		if (!user) {
 			return res.status(401).json({ message: "invalid credentials" });
 		}
