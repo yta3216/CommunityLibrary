@@ -1,43 +1,35 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const cors = require("cors");
 
-const User = require("./models/User");
-const Book = require("./models/Book");
+const authRouter = require("./routes/auth");
+const usersRouter = require("./routes/users");
+const booksRouter = require("./routes/books");
 
 dotenv.config();
 
 const app = express();
+app.use(cors());
 app.use(express.json());
+
+app.get("/api/health", (_req, res) => {
+  res.json({ message: "ok" });
+});
+
+app.use("/api/auth", authRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/books", booksRouter);
+
+const port = process.env.PORT || 5000;
 
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(async () => {
+  .then(() => {
     console.log("MongoDB connected");
 
-    // creating test data
-    const user = await User.create({
-      username: "kiichiro",
-      name: "Kiichiro",
-      email: "kiichiro@test.com",
-      password: "test1234",
-      numberOfBooks: 1,
-      role: "user",
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
     });
-
-    const book = await Book.create({
-      isbn: "9780000000000",
-      title: "Test Book",
-      author: "Tester",
-      owner: user._id,
-      holder: user._id,
-      status: "with_owner",
-    });
-
-    console.log("User & Book created");
   })
   .catch((err) => console.log(err));
-
-app.listen(5000, () => {
-  console.log("Server running");
-});
