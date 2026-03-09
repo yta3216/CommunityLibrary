@@ -1,8 +1,8 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import BookCard from "../components/BookCard/BookCard";
 import Navbar from "../components/Navbar/Navbar";
 import Sidebar from "../components/Sidebar/Sidebar";
+import { useNavigate } from "react-router-dom";
 
 /*Sample books (will be replaced later after backend is implemented)*/
 const popularBooks = [
@@ -19,21 +19,22 @@ const newBooks = [
   { title: 'Book Title', genre: '', rating: 2 },
 ];
 
-const UnregisteredHome = () => {
-  const navigate = useNavigate();
+const RegisteredHome = () => {
 
-  return (
+    const navigate = useNavigate();
+
+    return (
     <div>
-      <Navbar isLoggedIn={false} />
+      <Navbar isLoggedIn ={true} />
       <div style={styles.page}>
-        <Sidebar isLoggedIn={false} />
-
+        <Sidebar isLoggedIn={true} />
+        
         <main style={styles.main}>
           {/* Most Popular section */}
           <h2 style={styles.sectionTitle}>Most Popular</h2>
           <div style={styles.cardRow}>
             {popularBooks.map((book, i) => (
-              <BookCard key={i} title={book.title} genre={book.genre} rating={book.rating} onClick={() => navigate('/login')} />
+              <BookCard key={i} title={book.title} genre={book.genre} rating={book.rating} onClick={() => navigate('/book')} />
             ))}
           </div>
 
@@ -41,11 +42,14 @@ const UnregisteredHome = () => {
           <h2 style={styles.sectionTitle}>New Additions</h2>
           <div style={styles.cardRow}>
             {newBooks.map((book, i) => (
-              <BookCard key={i} title={book.title} genre={book.genre} rating={book.rating} onClick={() => navigate('/login')} />
+              <BookCard key={i} title={book.title} genre={book.genre} rating={book.rating} onClick={() => navigate('/book')} />
             ))}
           </div>
           
         </main>
+
+        {/* Create New Listing button */}
+        <button style={styles.fab}>Create New Listing</button>
       </div>
     </div>
   );
@@ -92,4 +96,4 @@ page: {
   },
 };
 
-export default UnregisteredHome;
+export default RegisteredHome;
