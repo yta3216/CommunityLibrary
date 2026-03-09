@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate} from "react-router-dom";
 import "./RegisterAndLogin.css";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -10,6 +11,7 @@ export default function Login() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    navigate('/home');
   };
 
   return (
@@ -63,10 +65,8 @@ export default function Login() {
           </label>
 
           <div className="button-row">
-            <button type="submit" className="action-button login-button" to="/">
-              <Link to="/" className="action-button login-button">
+            <button type="submit" className="action-button login-button">
                 Login
-              </Link>
             </button>
             <Link to="/admin/home" className="action-button login-admin-button">
               Login as Admin
