@@ -3,8 +3,7 @@ import logo from "../../resources/logo.png";
 import avatar_placeholder from "../../resources/avatar_placeholder.png";
 import './Navbar.css';
 
-function Navbar() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+function Navbar({ isLoggedIn }) {
 
   return (
     <nav className="navbar">
@@ -23,25 +22,19 @@ function Navbar() {
 
       <div className="navbar-right">
         {isLoggedIn ? (
+          //Registered User View
           <>
-            <a href="/" className="nav-link">Home</a>
-            <a href="/library" className="nav-link">My Library</a>
-            <a href="/community" className="nav-link">Community</a>
-            <img 
+            <img
               src={avatar_placeholder}
-              alt="Profile" 
+              alt="Profile"
               className="profile-pic"
             />
           </>
         ) : (
+          //Unregistered User View
           <>
             <a href="/login" className="nav-link">Login</a>
             <a href="/register" className="nav-link signup-btn">Sign Up</a>
-            <img 
-              src={avatar_placeholder} 
-              alt="Profile" 
-              className="profile-pic"
-            />
           </>
         )}
       </div>
