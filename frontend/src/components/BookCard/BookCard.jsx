@@ -1,9 +1,9 @@
 import React from "react";
 import "./BookCard.css";
 
-const BookCard = ({ title, genre, rating }) => {
+const BookCard = ({ title, genre, rating, onClick }) => {
   return (
-    <div className="book-card">
+    <div className="book-card" onClick={onClick} style = {{cursor: "pointer"}}>
       <div className="book-card-bg"></div>
       <div className="book-card-content">
         <h3>{title}</h3>
