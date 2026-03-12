@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar/Navbar";
 import BookCover from "../components/BookDetail/BookCover";
 import BookActions from "../components/BookDetail/BookTags";
 import SimilarBooks from "../components/BookDetail/SimilarBooks";
+import ReviewSection from "../components/BookDetail/ReviewSection";
 
 function BookDetail() {
   return (
@@ -22,6 +23,10 @@ function BookDetail() {
 
         {/* Similar books row */}
         <SimilarBooks />
+
+        {/*Comments section*/}
+        <ReviewSection currentUser="currentUser" postedBy="bookOwner"/>
+
       </div>
     </div>
   );
