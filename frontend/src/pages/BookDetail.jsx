@@ -4,6 +4,7 @@ import BookCover from "../components/BookDetail/BookCover";
 import BookActions from "../components/BookDetail/BookTags";
 import ChatDrawer from "../components/BookDetail/ChatDrawer";
 import SimilarBooks from "../components/BookDetail/SimilarBooks";
+import ReviewSection from "../components/BookDetail/ReviewSection";
 
 function BookDetail() {
   // Replace this mock listing with the book payload loaded from the backend.
@@ -129,6 +130,10 @@ function BookDetail() {
 
         {/* Similar books row */}
         <SimilarBooks />
+
+        {/*Comments section*/}
+        <ReviewSection currentUser="currentUser" postedBy="bookOwner"/>
+
       </div>
 
       <ChatDrawer
