@@ -6,17 +6,17 @@ import Sidebar from "../components/Sidebar/Sidebar";
 
 /*Sample books (will be replaced later after backend is implemented)*/
 const popularBooks = [
-  { title: 'Book Title', genre: '', rating: 2 },
-  { title: 'Book Title', genre: '', rating: 3 },
-  { title: 'Book Title', genre: '', rating: 3 },
-  { title: 'Book Title', genre: '', rating: 2 },
+  { title: 'Book Title', author: 'Author Name', genre: '', rating: 2 },
+  { title: 'Book Title', author: 'Author Name', genre: '', rating: 3 },
+  { title: 'Book Title', author: 'Author Name', genre: '', rating: 3 },
+  { title: 'Book Title', author: 'Author Name', genre: '', rating: 2 },
 ];
 
 const newBooks = [
-  { title: 'Book Title', genre: '', rating: 2 },
-  { title: 'Book Title', genre: '', rating: 3 },
-  { title: 'Book Title', genre: '', rating: 3 },
-  { title: 'Book Title', genre: '', rating: 2 },
+  { title: 'Book Title', author: 'Author Name', genre: '', rating: 2 },
+  { title: 'Book Title', author: 'Author Name', genre: '', rating: 3 },
+  { title: 'Book Title', author: 'Author Name', genre: '', rating: 3 },
+  { title: 'Book Title', author: 'Author Name', genre: '', rating: 2 },
 ];
 
 const UnregisteredHome = () => {
@@ -33,7 +33,7 @@ const UnregisteredHome = () => {
           <h2 style={styles.sectionTitle}>Most Popular</h2>
           <div style={styles.cardRow}>
             {popularBooks.map((book, i) => (
-              <BookCard key={i} title={book.title} genre={book.genre} rating={book.rating} onClick={() => navigate('/login')} />
+              <BookCard key={i} title={book.title} author={book.author} genre={book.genre} rating={book.rating} onClick={() => navigate('/login')} />
             ))}
           </div>
 
@@ -41,7 +41,7 @@ const UnregisteredHome = () => {
           <h2 style={styles.sectionTitle}>New Additions</h2>
           <div style={styles.cardRow}>
             {newBooks.map((book, i) => (
-              <BookCard key={i} title={book.title} genre={book.genre} rating={book.rating} onClick={() => navigate('/login')} />
+              <BookCard key={i} title={book.title} author={book.author} genre={book.genre} rating={book.rating} onClick={() => navigate('/login')} />
             ))}
           </div>
           

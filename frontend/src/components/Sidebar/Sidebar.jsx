@@ -31,7 +31,7 @@ const Sidebar = ({isLoggedIn}) => {
         <>
           <ul>
             <li>
-              <a href="/login">Home</a>
+              <a href="/">Home</a>
             </li>
             <li>
               <a href="/login">Books</a>

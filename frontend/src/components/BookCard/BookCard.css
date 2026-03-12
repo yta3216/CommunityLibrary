@@ -20,13 +20,20 @@
 }
 
 .book-card-content h3 {
-  margin: 0 0 8px 0;
+  margin: 0;
   font-size: 1.1rem;
+}
+
+.author {
+  color: #555;
+  padding: 0;
+  margin: 0 4px 0 0;
+  font-size: 0.95rem;
 }
 
 .genre {
   color: #888;
-  margin-bottom: 6px;
+  margin: 6px 0;
   font-size: 0.95rem;
 }
 
