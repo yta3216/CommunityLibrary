@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import UnregisteredHome from "./pages/UnregisteredHome";
 import RegisteredHome from "./pages/RegisteredHome";
 import Login from "./components/Form/Login";
@@ -9,6 +14,7 @@ import AdminUsers from "./components/adminUsers";
 import BookDetail from "./pages/BookDetail";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
+import MyMessages from "./pages/myMessages";
 
 function App() {
   return (
@@ -24,6 +30,7 @@ function App() {
         <Route path="/book" element={<BookDetail />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/edit" element={<EditProfile />} />
+        <Route path="/messages" element={<MyMessages />} />
 
         {/*Admin Pages*/}
         <Route path="/admin/home" element={<AdminHome />} />
