@@ -7,6 +7,8 @@ import AdminHome from "./components/adminHome";
 import AdminBooks from "./components/adminBooks";
 import AdminUsers from "./components/adminUsers";
 import BookDetail from "./pages/BookDetail";
+import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
         {/*Registered users pages*/}
         <Route path="/home" element={<RegisteredHome />} />
         <Route path="/book" element={<BookDetail />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/edit" element={<EditProfile />} />
 
         {/*Admin Pages*/}
         <Route path="/admin/home" element={<AdminHome />} />

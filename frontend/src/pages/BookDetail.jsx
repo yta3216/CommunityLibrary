@@ -11,6 +11,7 @@ function BookDetail() {
   const book = {
     id: "book-1",
     title: "Atomic Habits",
+    author: "James Clear",
     ownerId: "owner-1",
     ownerName: "Kiichiro Suganuma",
     genres: ["Self-help", "Habits", "Psychology", "Personal Growth"],
@@ -117,6 +118,7 @@ function BookDetail() {
       <div style={styles.page}>
         {/* Book title */}
         <h1 style={styles.title}>{book.title}</h1>
+        <h3 style={styles.author}>{book.author}</h3>
 
         {/* Cover image + synopsis */}
         <BookCover />
@@ -157,9 +159,15 @@ const styles = {
   title: {
     fontSize: "2rem",
     fontWeight: "700",
-    margin: "0 0 24px",
+    margin: "0 0 4px",
     color: "#000",
   },
+  author: {
+    fontSize: "1.2rem",
+    fontWeight: "500",
+    margin: "0 0 32px",
+    color: "#555",
+  }
 };
 
 export default BookDetail;

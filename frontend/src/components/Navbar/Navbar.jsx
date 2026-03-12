@@ -8,7 +8,9 @@ function Navbar({ isLoggedIn }) {
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        <img src={logo} className="logo" alt="logo" />
+        <a href={isLoggedIn ? "/home" : "/"} className="nav-link">
+          <img src={logo} className="logo" alt="logo" />
+        </a>
       </div>
 
       <div className="navbar-center">
@@ -24,11 +26,13 @@ function Navbar({ isLoggedIn }) {
         {isLoggedIn ? (
           //Registered User View
           <>
-            <img
-              src={avatar_placeholder}
-              alt="Profile"
-              className="profile-pic"
-            />
+            <a href="/profile" className="nav-link">
+              <img
+                src={avatar_placeholder}
+                alt="Profile"
+                className="profile-pic"
+              />
+            </a>
           </>
         ) : (
           //Unregistered User View
