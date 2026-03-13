@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./RegisterAndLogin.css";
 
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
+
 export default function Register() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
@@ -9,9 +12,56 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    if (!username || !email || !password || !confirmPassword) {
+      setErrorMessage("Please fill all required fields.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage("Passwords do not match.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          name: username,
+          email,
+          password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(result.message || "Failed to register.");
+        return;
+      }
+
+      localStorage.setItem("token", result.token);
+      setSuccessMessage("Registration successful. Redirecting to login...");
+      setTimeout(() => navigate("/login"), 900);
+    } catch (_error) {
+      setErrorMessage("Could not reach server. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -80,8 +130,12 @@ export default function Register() {
           />
 
           <div className="button-row">
-            <button type="submit" className="action-button login-button">
-              Register
+            <button
+              type="submit"
+              className="action-button login-button"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Registering..." : "Register"}
             </button>
             <button
               type="button"
@@ -92,6 +146,13 @@ export default function Register() {
             </button>
           </div>
         </form>
+
+        {errorMessage ? (
+          <p className="status-message error">{errorMessage}</p>
+        ) : null}
+        {successMessage ? (
+          <p className="status-message success">{successMessage}</p>
+        ) : null}
 
         <p className="footer-text">
           Already have an account?{" "}
