@@ -63,6 +63,22 @@
   color: #1e1e1e;
 }
 
+.signup-btn {
+  background-color: #4f7f7c;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.signup-btn:hover {
+  background-color: #3d6b68;
+}
+
 .profile-pic {
   width: 40px;
   height: 40px;

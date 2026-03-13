@@ -25,17 +25,21 @@ const Home = () => {
   const loadBooks = useCallback(async () => {
     try {
       setErrorMessage("");
+      setIsLoading(true);
+
       const response = await fetch(`${API_BASE_URL}/api/books`);
       const data = await response.json();
 
       if (!response.ok) {
         setErrorMessage(data.message || "Failed to load books.");
+        setBooks([]);
         return;
       }
 
       setBooks(Array.isArray(data) ? data : []);
     } catch (_error) {
       setErrorMessage("Could not reach server. Please try again later.");
+      setBooks([]);
     } finally {
       setIsLoading(false);
     }
@@ -65,6 +69,7 @@ const Home = () => {
       <BookCard
         key={book._id}
         title={book.title || "Untitled"}
+        author={book.author || "Unknown author"}
         genre={book.genre || "Unknown"}
         rating={typeof book.rating === "number" ? book.rating : 0}
       />
@@ -82,11 +87,12 @@ const Home = () => {
     setCreateSuccessMessage("");
 
     if (!formValues.isbn || !formValues.title || !formValues.genre) {
-      setCreateErrorMessage("isbn, title, genre are required.");
+      setCreateErrorMessage("isbn, title, and genre are required.");
       return;
     }
 
     setIsSubmitting(true);
+
     try {
       const payload = {
         isbn: formValues.isbn.trim(),
@@ -129,9 +135,9 @@ const Home = () => {
 
   return (
     <div>
-      <Navbar />
+      <Navbar isLoggedIn={false} />
       <div style={styles.page}>
-        <Sidebar />
+        <Sidebar isLoggedIn={false} />
 
         <main style={styles.main}>
           <h2 style={styles.sectionTitle}>Most Popular</h2>
@@ -215,7 +221,7 @@ const Home = () => {
                   value={formValues.description}
                   onChange={handleCreateChange}
                   style={styles.textArea}
-                  placeholder="base registration test"
+                  placeholder="Write a short description"
                 />
 
                 <p style={styles.payloadPreviewTitle}>Payload Preview</p>
@@ -229,13 +235,14 @@ const Home = () => {
                       description: formValues.description,
                     },
                     null,
-                    2,
+                    2
                   )}
                 </pre>
 
                 {createErrorMessage ? (
                   <p style={styles.createErrorText}>{createErrorMessage}</p>
                 ) : null}
+
                 {createSuccessMessage ? (
                   <p style={styles.createSuccessText}>{createSuccessMessage}</p>
                 ) : null}
@@ -248,6 +255,7 @@ const Home = () => {
                   >
                     {isSubmitting ? "Posting..." : "Post Book"}
                   </button>
+
                   <button
                     type="button"
                     style={styles.secondaryButton}

@@ -38,6 +38,7 @@ export default function Login() {
     }
 
     setIsSubmitting(true);
+
     try {
       const normalizedId = identifierValue;
       const maybeEmail = normalizedId.includes("@") ? normalizedId : "";
@@ -130,6 +131,7 @@ export default function Login() {
             >
               {isSubmitting ? "Logging in..." : "Login"}
             </button>
+
             <Link to="/admin/home" className="action-button login-admin-button">
               Login as Admin
             </Link>
