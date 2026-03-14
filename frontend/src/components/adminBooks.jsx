@@ -1,51 +1,221 @@
-import { Link, NavLink } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import logo from "../resources/logo.png";
 import "./adminPages.css";
 
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
+
 export default function AdminBooks() {
-  const listings = [
-    {
-      id: "B-1001",
-      title: "Dune",
-      genre: "Sci-fi",
-      owner: "Sam Bueno",
-      status: "Borrowed",
-      holder: "Ava Chen",
-      updated: "2026-02-06",
-    },
-    {
-      id: "B-1002",
-      title: "The Hobbit",
-      genre: "Fantasy",
-      owner: "Leo Martin",
-      status: "Traded",
-      holder: "Leo Martin",
-      updated: "2026-02-05",
-    },
-    {
-      id: "B-1003",
-      title: "Pride & Prejudice",
-      genre: "Romance",
-      owner: "Noah Patel",
-      status: "Available",
-      holder: "Noah Patel",
-      updated: "2026-02-02",
-    },
-    {
-      id: "B-1004",
-      title: "It",
-      genre: "Horror",
-      owner: "Ava Chen",
-      status: "Exchanged",
-      holder: "Mia Silva",
-      updated: "2026-02-01",
-    },
-  ];
+  const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState(null);
+  const [books, setBooks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isActing, setIsActing] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [createErrorMessage, setCreateErrorMessage] = useState("");
+  const [formValues, setFormValues] = useState({
+    isbn: "",
+    title: "",
+    author: "",
+    genre: "",
+    description: "",
+  });
+
+  const loadAdminBooks = async (token, isMountedRef) => {
+    try {
+      setErrorMessage("");
+      setIsLoading(true);
+
+      const [meResponse, booksResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch(`${API_BASE_URL}/api/books`),
+      ]);
+
+      if (!meResponse.ok) {
+        localStorage.removeItem("token");
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      const meData = await meResponse.json();
+      const booksData = booksResponse.ok ? await booksResponse.json() : [];
+
+      if (!isMountedRef()) {
+        return;
+      }
+
+      setCurrentUser(meData);
+      setBooks(Array.isArray(booksData) ? booksData : []);
+
+      if (!booksResponse.ok) {
+        setErrorMessage("Could not load books.");
+      }
+    } catch (_error) {
+      if (isMountedRef()) {
+        setErrorMessage("Could not reach server.");
+      }
+    } finally {
+      if (isMountedRef()) {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    loadAdminBooks(token, () => isMounted);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
+
+  const rows = useMemo(() => {
+    return books.map((book) => {
+      const ownerName =
+        typeof book.owner === "object"
+          ? book.owner?.name || book.owner?.username
+          : "Unknown";
+
+      const holderName =
+        typeof book.holder === "object"
+          ? book.holder?.name || book.holder?.username
+          : "Unknown";
+
+      return {
+        id: book._id,
+        title: book.title || "Untitled",
+        genre: book.genre || "Unknown",
+        owner: ownerName || "Unknown",
+        status: String(book.status || "not_available").toUpperCase(),
+        holder: holderName || "Unknown",
+      };
+    });
+  }, [books]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.assign("/login");
+  };
+
+  const handleCreateChange = (event) => {
+    const { name, value } = event.target;
+    setFormValues((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCreateSubmit = async (event) => {
+    event.preventDefault();
+    setCreateErrorMessage("");
+
+    const isbn = formValues.isbn.trim();
+    const title = formValues.title.trim();
+    const author = formValues.author.trim();
+    const genre = formValues.genre.trim();
+    const description = formValues.description.trim();
+
+    if (!isbn || !title || !author || !genre || !description) {
+      setCreateErrorMessage("All fields are required.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      handleLogout();
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/books`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ isbn, title, author, genre, description }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        setCreateErrorMessage(result.message || "Failed to add listing.");
+        return;
+      }
+
+      setBooks((prev) => [result, ...prev]);
+      setFormValues({
+        isbn: "",
+        title: "",
+        author: "",
+        genre: "",
+        description: "",
+      });
+      setIsCreateOpen(false);
+    } catch (_error) {
+      setCreateErrorMessage("Could not reach server.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleToggleBook = async (bookId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      handleLogout();
+      return;
+    }
+
+    setIsActing(true);
+    setErrorMessage("");
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/books/${bookId}/toggle-status`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const result = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(result.message || "Could not toggle book status.");
+        return;
+      }
+
+      setBooks((prev) =>
+        prev.map((book) => (book._id === bookId ? result : book)),
+      );
+    } catch (_error) {
+      setErrorMessage("Could not reach server.");
+    } finally {
+      setIsActing(false);
+    }
+  };
 
   return (
     <div className="admin-page">
       <div className="admin-shell">
         <header className="admin-topbar">
-          <div className="admin-logo-placeholder">Logo</div>
+          <img
+            src={logo}
+            alt="Community Library logo"
+            style={{ width: 42, height: 42, objectFit: "contain" }}
+          />
           <nav className="admin-nav">
             <NavLink
               to="/admin/home"
@@ -76,34 +246,47 @@ export default function AdminBooks() {
             className="admin-search"
             placeholder="Search listings, owner, borrower..."
           />
-          <span className="admin-chip">Admin name</span>
-          <Link className="admin-chip admin-link" to="/login">
+          <span className="admin-chip">
+            {currentUser?.name || currentUser?.username || "Admin"}
+          </span>
+          <button
+            type="button"
+            className="admin-chip admin-link"
+            onClick={handleLogout}
+          >
             Log Out
-          </Link>
+          </button>
         </header>
 
         <div className="admin-divider" />
 
         <h1 className="admin-title">Manage Books</h1>
         <p className="admin-subtitle">
-          Admin view of listings. See status (available / borrowed / traded /
-          exchanged) and who currently holds the book.
+          Admin view of listings, ownership, and availability.
         </p>
+
+        {errorMessage ? (
+          <p className="admin-card-note">{errorMessage}</p>
+        ) : null}
 
         <section className="admin-card">
           <div className="admin-row">
             <div>
               <h2 className="admin-card-title">Listings</h2>
               <p className="admin-card-note">
-                Front-end demo (swap arrays with DB later)
+                {isLoading ? "Loading books..." : "Live data"}
               </p>
             </div>
             <div className="admin-actions">
-              <button type="button" className="admin-button">
+              <button
+                type="button"
+                className="admin-button"
+                onClick={() => {
+                  setIsCreateOpen(true);
+                  setCreateErrorMessage("");
+                }}
+              >
                 Add Listing
-              </button>
-              <button type="button" className="admin-button light">
-                Export (CSV)
               </button>
             </div>
           </div>
@@ -116,9 +299,7 @@ export default function AdminBooks() {
             <select className="admin-select" defaultValue="All">
               <option>All</option>
               <option>Available</option>
-              <option>Borrowed</option>
-              <option>Traded</option>
-              <option>Exchanged</option>
+              <option>Not Available</option>
             </select>
             <select className="admin-select" defaultValue="All">
               <option>All</option>
@@ -146,12 +327,11 @@ export default function AdminBooks() {
                 <th>Owner</th>
                 <th>Status</th>
                 <th>Held By</th>
-                <th>Last Updated</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {listings.map((book) => (
+              {rows.map((book) => (
                 <tr key={book.id}>
                   <td>
                     <strong>{book.title}</strong>
@@ -166,9 +346,13 @@ export default function AdminBooks() {
                     <span className="admin-pill">{book.status}</span>
                   </td>
                   <td>{book.holder}</td>
-                  <td>{book.updated}</td>
                   <td>
-                    <button type="button" className="admin-button light">
+                    <button
+                      type="button"
+                      className="admin-button light"
+                      disabled={isActing}
+                      onClick={() => handleToggleBook(book.id)}
+                    >
                       Toggle
                     </button>
                   </td>
@@ -178,12 +362,122 @@ export default function AdminBooks() {
           </table>
         </div>
 
-        {/* Pending DB integration:
-						- GET /admin/books for rows
-						- PATCH /admin/books/:id for status changes
-						- POST /admin/books for add listing
-						- Owner changes only through approved swap flow */}
+        {isCreateOpen ? (
+          <div style={styles.modalBackdrop}>
+            <div style={styles.modalCard}>
+              <h3 style={styles.modalTitle}>Add Listing</h3>
+
+              <form onSubmit={handleCreateSubmit} style={styles.formGrid}>
+                <input
+                  name="isbn"
+                  value={formValues.isbn}
+                  onChange={handleCreateChange}
+                  placeholder="ISBN"
+                  style={styles.textInput}
+                />
+                <input
+                  name="title"
+                  value={formValues.title}
+                  onChange={handleCreateChange}
+                  placeholder="Title"
+                  style={styles.textInput}
+                />
+                <input
+                  name="author"
+                  value={formValues.author}
+                  onChange={handleCreateChange}
+                  placeholder="Author"
+                  style={styles.textInput}
+                />
+                <input
+                  name="genre"
+                  value={formValues.genre}
+                  onChange={handleCreateChange}
+                  placeholder="Genre"
+                  style={styles.textInput}
+                />
+                <textarea
+                  name="description"
+                  value={formValues.description}
+                  onChange={handleCreateChange}
+                  placeholder="Description"
+                  style={styles.textArea}
+                />
+
+                {createErrorMessage ? (
+                  <p className="admin-card-note" style={{ color: "#b42318" }}>
+                    {createErrorMessage}
+                  </p>
+                ) : null}
+
+                <div
+                  className="admin-actions"
+                  style={{ justifyContent: "flex-end" }}
+                >
+                  <button
+                    type="button"
+                    className="admin-button light"
+                    onClick={() => setIsCreateOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="admin-button"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Adding..." : "Add Listing"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
+
+const styles = {
+  modalBackdrop: {
+    position: "fixed",
+    inset: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "20px",
+    zIndex: 1000,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: "560px",
+    backgroundColor: "#ffffff",
+    borderRadius: "12px",
+    padding: "20px",
+    boxShadow: "0 14px 32px rgba(0,0,0,0.22)",
+  },
+  modalTitle: {
+    margin: "0 0 14px",
+    fontSize: "24px",
+    fontWeight: 700,
+  },
+  formGrid: {
+    display: "grid",
+    gap: "10px",
+  },
+  textInput: {
+    border: "1px solid #d0d5dd",
+    borderRadius: "8px",
+    padding: "10px 12px",
+    fontSize: "14px",
+  },
+  textArea: {
+    minHeight: "90px",
+    border: "1px solid #d0d5dd",
+    borderRadius: "8px",
+    padding: "10px 12px",
+    fontSize: "14px",
+    resize: "vertical",
+  },
+};

@@ -1,51 +1,239 @@
-import { Link, NavLink } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import logo from "../resources/logo.png";
 import "./adminPages.css";
 
-const users = [
-  {
-    id: "USR-1001",
-    name: "Sophie Carter",
-    email: "sophie.carter@communitylibrary.dev",
-    role: "Admin",
-    status: "Active",
-    borrowed: 1,
-    listings: 0,
-  },
-  {
-    id: "USR-1002",
-    name: "Daniel Kim",
-    email: "daniel.kim@communitylibrary.dev",
-    role: "Verified",
-    status: "Active",
-    borrowed: 3,
-    listings: 2,
-  },
-  {
-    id: "USR-1003",
-    name: "Priya Patel",
-    email: "priya.patel@communitylibrary.dev",
-    role: "User",
-    status: "Suspended",
-    borrowed: 0,
-    listings: 1,
-  },
-  {
-    id: "USR-1004",
-    name: "Miguel Santos",
-    email: "miguel.santos@communitylibrary.dev",
-    role: "User",
-    status: "Active",
-    borrowed: 2,
-    listings: 4,
-  },
-];
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
 
 export default function AdminUsers() {
+  const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [books, setBooks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isActing, setIsActing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const loadAdminUsersPage = async (token, isMountedRef) => {
+    try {
+      setErrorMessage("");
+      setIsLoading(true);
+
+      const [meResponse, usersResponse, booksResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch(`${API_BASE_URL}/api/users`),
+        fetch(`${API_BASE_URL}/api/books`),
+      ]);
+
+      if (!meResponse.ok) {
+        localStorage.removeItem("token");
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      const meData = await meResponse.json();
+      const usersData = usersResponse.ok ? await usersResponse.json() : [];
+      const booksData = booksResponse.ok ? await booksResponse.json() : [];
+
+      if (!isMountedRef()) {
+        return;
+      }
+
+      setCurrentUser(meData);
+      setUsers(Array.isArray(usersData) ? usersData : []);
+      setBooks(Array.isArray(booksData) ? booksData : []);
+
+      if (!usersResponse.ok || !booksResponse.ok) {
+        setErrorMessage("Could not load all admin data.");
+      }
+    } catch (_error) {
+      if (isMountedRef()) {
+        setErrorMessage("Could not reach server.");
+      }
+    } finally {
+      if (isMountedRef()) {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    loadAdminUsersPage(token, () => isMounted);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.assign("/login");
+  };
+
+  const handleCycleRole = async (userId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      handleLogout();
+      return;
+    }
+
+    setIsActing(true);
+    setErrorMessage("");
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/users/${userId}/cycle-role`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const result = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(result.message || "Could not cycle role.");
+        return;
+      }
+
+      setUsers((prev) =>
+        prev.map((user) => (user._id === userId ? result : user)),
+      );
+    } catch (_error) {
+      setErrorMessage("Could not reach server.");
+    } finally {
+      setIsActing(false);
+    }
+  };
+
+  const handleToggleStatus = async (userId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      handleLogout();
+      return;
+    }
+
+    setIsActing(true);
+    setErrorMessage("");
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/users/${userId}/toggle-status`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const result = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(result.message || "Could not toggle status.");
+        return;
+      }
+
+      setUsers((prev) =>
+        prev.map((user) => (user._id === userId ? result : user)),
+      );
+    } catch (_error) {
+      setErrorMessage("Could not reach server.");
+    } finally {
+      setIsActing(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      handleLogout();
+      return;
+    }
+
+    setIsActing(true);
+    setErrorMessage("");
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(result.message || "Could not delete user.");
+        return;
+      }
+
+      setUsers((prev) => prev.filter((user) => user._id !== userId));
+      setBooks((prev) =>
+        prev.filter((book) => {
+          const ownerId =
+            typeof book.owner === "object" ? book.owner?._id : book.owner;
+          const holderId =
+            typeof book.holder === "object" ? book.holder?._id : book.holder;
+          return ownerId !== userId && holderId !== userId;
+        }),
+      );
+    } catch (_error) {
+      setErrorMessage("Could not reach server.");
+    } finally {
+      setIsActing(false);
+    }
+  };
+
+  const userRows = useMemo(() => {
+    return users.map((user) => {
+      const userId = user._id;
+
+      const listings = books.filter((book) => {
+        const ownerId =
+          typeof book.owner === "object" ? book.owner?._id : book.owner;
+        return ownerId === userId;
+      }).length;
+
+      const borrowed = books.filter((book) => {
+        const ownerId =
+          typeof book.owner === "object" ? book.owner?._id : book.owner;
+        const holderId =
+          typeof book.holder === "object" ? book.holder?._id : book.holder;
+        return holderId === userId && ownerId !== userId;
+      }).length;
+
+      return {
+        id: user._id,
+        name: user.name || user.username || "Unknown user",
+        email: user.email || "",
+        role: user.role || "user",
+        status: user.status || "active",
+        borrowed,
+        listings,
+      };
+    });
+  }, [books, users]);
+
   return (
     <div className="admin-page">
       <div className="admin-shell">
         <header className="admin-topbar">
-          <div className="admin-logo-placeholder">Logo</div>
+          <img
+            src={logo}
+            alt="Community Library logo"
+            style={{ width: 42, height: 42, objectFit: "contain" }}
+          />
           <nav className="admin-nav">
             <NavLink
               to="/admin/home"
@@ -76,10 +264,16 @@ export default function AdminUsers() {
             className="admin-search"
             placeholder="Search users, email, role..."
           />
-          <span className="admin-chip">Admin name</span>
-          <Link className="admin-chip admin-link" to="/login">
+          <span className="admin-chip">
+            {currentUser?.name || currentUser?.username || "Admin"}
+          </span>
+          <button
+            type="button"
+            className="admin-chip admin-link"
+            onClick={handleLogout}
+          >
             Log Out
-          </Link>
+          </button>
         </header>
 
         <div className="admin-divider" />
@@ -90,21 +284,17 @@ export default function AdminUsers() {
           connect to authentication + database.
         </p>
 
+        {errorMessage ? (
+          <p className="admin-card-note">{errorMessage}</p>
+        ) : null}
+
         <section className="admin-card">
           <div className="admin-row">
             <div>
               <h2 className="admin-card-title">Users</h2>
               <p className="admin-card-note">
-                Front-end demo (swap arrays with DB later)
+                {isLoading ? "Loading users..." : "Live data"}
               </p>
-            </div>
-            <div className="admin-actions">
-              <button type="button" className="admin-button">
-                Add User
-              </button>
-              <button type="button" className="admin-button light">
-                Export (CSV)
-              </button>
             </div>
           </div>
 
@@ -145,7 +335,7 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {userRows.map((user) => (
                 <tr key={user.id}>
                   <td>
                     <strong>{user.name}</strong>
@@ -154,10 +344,14 @@ export default function AdminUsers() {
                     </div>
                   </td>
                   <td>
-                    <span className="admin-pill">{user.role}</span>
+                    <span className="admin-pill">
+                      {String(user.role).toUpperCase()}
+                    </span>
                   </td>
                   <td>
-                    <span className="admin-pill">{user.status}</span>
+                    <span className="admin-pill">
+                      {String(user.status).toUpperCase()}
+                    </span>
                   </td>
                   <td>
                     <strong>{user.borrowed}</strong>
@@ -167,14 +361,29 @@ export default function AdminUsers() {
                   </td>
                   <td>
                     <div className="admin-actions">
-                      <button type="button" className="admin-button light">
-                        View
+                      <button
+                        type="button"
+                        className="admin-button light"
+                        disabled={isActing}
+                        onClick={() => handleCycleRole(user.id)}
+                      >
+                        Cycle Role
                       </button>
-                      <button type="button" className="admin-button light">
+                      <button
+                        type="button"
+                        className="admin-button light"
+                        disabled={isActing}
+                        onClick={() => handleToggleStatus(user.id)}
+                      >
                         Toggle Status
                       </button>
-                      <button type="button" className="admin-button light">
-                        Cycle Role
+                      <button
+                        type="button"
+                        className="admin-button light"
+                        disabled={isActing}
+                        onClick={() => handleDeleteUser(user.id)}
+                      >
+                        Delete
                       </button>
                     </div>
                   </td>
@@ -183,11 +392,6 @@ export default function AdminUsers() {
             </tbody>
           </table>
         </div>
-
-        {/* Pending DB integration:
-						- GET /admin/users for rows and counters
-						- PATCH /admin/users/:id for status/role updates
-						- Authentication + role guard for admin-only access */}
       </div>
     </div>
   );

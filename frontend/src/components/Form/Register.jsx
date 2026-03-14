@@ -54,7 +54,7 @@ export default function Register() {
         return;
       }
 
-      localStorage.setItem("token", result.token);
+      localStorage.removeItem("token");
       setSuccessMessage("Registration successful. Redirecting to login...");
       setTimeout(() => navigate("/login"), 900);
     } catch (_error) {

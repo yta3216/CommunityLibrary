@@ -5,6 +5,10 @@ import "./RegisterAndLogin.css";
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
 
+const getHomeRouteForRole = (role) => {
+  return role === "admin" ? "/admin/home" : "/home";
+};
+
 export default function Login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
@@ -64,8 +68,16 @@ export default function Login() {
         return;
       }
 
+      if (!result?.token) {
+        setErrorMessage("Login succeeded but no token was returned.");
+        return;
+      }
+
       localStorage.setItem("token", result.token);
-      navigate("/home");
+      const targetRoute = getHomeRouteForRole(result?.user?.role);
+
+      // Force a hard navigation so App auth bootstrap re-runs with the new token.
+      window.location.assign(targetRoute);
     } catch (_error) {
       setErrorMessage("Could not reach server. Please try again.");
     } finally {
@@ -131,10 +143,6 @@ export default function Login() {
             >
               {isSubmitting ? "Logging in..." : "Login"}
             </button>
-
-            <Link to="/admin/home" className="action-button login-admin-button">
-              Login as Admin
-            </Link>
           </div>
         </form>
 

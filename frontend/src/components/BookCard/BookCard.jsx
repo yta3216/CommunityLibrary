@@ -3,7 +3,11 @@ import "./BookCard.css";
 
 const BookCard = ({ title, author, genre, rating, onClick }) => {
   return (
-    <div className="book-card" onClick={onClick} style = {{cursor: "pointer"}}>
+    <div
+      className="book-card"
+      onClick={onClick}
+      style={{ cursor: onClick ? "pointer" : "default" }}
+    >
       <div className="book-card-bg"></div>
       <div className="book-card-content">
         <h3>{title}</h3>

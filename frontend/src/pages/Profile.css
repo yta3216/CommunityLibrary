@@ -1,65 +1,86 @@
 /* Basic styling for profile page placeholders */
 .profile-container {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 
 .books-section {
-    margin-top: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.book-delete-panel {
+  margin: 0.75rem 0 1rem;
+}
+
+.book-delete-controls {
+  margin-top: 0.4rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.book-delete-controls select {
+  min-width: 280px;
+  max-width: 100%;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid #cfd4dc;
+  border-radius: 4px;
+  background: #fff;
 }
 
 .books-section h2 {
-    margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .books-section ul {
-    list-style-type: none;
-    padding-left: 0;
+  list-style-type: none;
+  padding-left: 0;
 }
 
 .books-section li {
-    padding: 0.25rem 0;
-    border-bottom: 1px solid #ddd;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #ddd;
 }
 
 .card-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .profile-info {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .profile-pic-large {
-    width: 250px;
-    height: 250px;
-    border-radius: 50%;
-    object-fit: cover;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .profile-actions {
-    display: flex;
-    gap: 0.5rem;
-    text-decoration: none;
-    color: #333;
+  display: flex;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #333;
 }
 
 .btn {
-    padding: 0.5rem 1rem;
-    border: 1px solid #333;
-    background: #fff;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    text-decoration: none;
-    color: #333;
+  padding: 0.5rem 1rem;
+  border: 1px solid #333;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: #333;
 }
 
 .btn:hover {
-    background: #f0f0f0;
+  background: #f0f0f0;
 }

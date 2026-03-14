@@ -1,13 +1,64 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import BookCard from "../components/BookCard/BookCard";
+import Navbar from "../components/Navbar/Navbar";
+import Sidebar from "../components/Sidebar/Sidebar";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
 
+const isBookAvailable = (book) => {
+  const ownerId = typeof book.owner === "object" ? book.owner?._id : book.owner;
+  const holderId =
+    typeof book.holder === "object" ? book.holder?._id : book.holder;
+  const normalizedStatus = String(book.status || "").toLowerCase();
+
+  return (
+    normalizedStatus === "available" ||
+    normalizedStatus === "with_owner" ||
+    (ownerId && holderId && ownerId.toString() === holderId.toString())
+  );
+};
+
 const LoggedInHome = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [books, setBooks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createErrorMessage, setCreateErrorMessage] = useState("");
+  const [createSuccessMessage, setCreateSuccessMessage] = useState("");
+  const [formValues, setFormValues] = useState({
+    isbn: "",
+    title: "",
+    author: "",
+    genre: "",
+    description: "",
+  });
+
+  const loadBooks = useCallback(async () => {
+    try {
+      setErrorMessage("");
+      setIsLoading(true);
+
+      const response = await fetch(`${API_BASE_URL}/api/books`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(data.message || "Failed to load books.");
+        setBooks([]);
+        return;
+      }
+
+      setBooks(Array.isArray(data) ? data : []);
+    } catch (_error) {
+      setErrorMessage("Could not reach server. Please try again later.");
+      setBooks([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -16,58 +67,238 @@ const LoggedInHome = () => {
       return;
     }
 
-    const loadMe = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+    loadBooks();
+  }, [loadBooks, navigate]);
 
-        const result = await response.json();
-        if (!response.ok) {
-          localStorage.removeItem("token");
-          navigate("/login", { replace: true });
-          return;
-        }
+  // Placeholder ordering until review counts are implemented.
+  const popularBooks = useMemo(() => books.slice(0, 6), [books]);
+  const allAvailableBooks = useMemo(
+    () => books.filter((book) => isBookAvailable(book)),
+    [books],
+  );
 
-        setUser(result);
-      } catch (_error) {
-        setErrorMessage("Failed to load account information.");
+  const renderCardRow = (bookList) => {
+    if (isLoading) {
+      return <p style={styles.metaText}>Loading books...</p>;
+    }
+
+    if (errorMessage) {
+      return <p style={styles.errorText}>{errorMessage}</p>;
+    }
+
+    if (bookList.length === 0) {
+      return <p style={styles.metaText}>No books found.</p>;
+    }
+
+    return bookList.map((book) => (
+      <BookCard
+        key={book._id}
+        title={book.title || "Untitled"}
+        author={book.author || "Unknown author"}
+        genre={book.genre || "Unknown"}
+        rating={typeof book.rating === "number" ? book.rating : 0}
+        onClick={() => navigate(`/book?id=${book._id}`)}
+      />
+    ));
+  };
+
+  const handleCreateChange = (event) => {
+    const { name, value } = event.target;
+    setFormValues((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCreateSubmit = async (event) => {
+    event.preventDefault();
+    setCreateErrorMessage("");
+    setCreateSuccessMessage("");
+
+    const isbn = formValues.isbn.trim();
+    const title = formValues.title.trim();
+    const author = formValues.author.trim();
+    const genre = formValues.genre.trim();
+    const description = formValues.description.trim();
+
+    if (!isbn || !title || !author || !genre || !description) {
+      setCreateErrorMessage("All fields are required.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      localStorage.removeItem("token");
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        isbn,
+        title,
+        author,
+        genre,
+        description,
+      };
+
+      const response = await fetch(`${API_BASE_URL}/api/books`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setCreateErrorMessage(result.message || "Failed to create book.");
+        return;
       }
-    };
 
-    loadMe();
-  }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login", { replace: true });
+      setBooks((prev) => [result, ...prev]);
+      setFormValues({
+        isbn: "",
+        title: "",
+        author: "",
+        genre: "",
+        description: "",
+      });
+      setCreateSuccessMessage("Book posted successfully.");
+      setIsCreateOpen(false);
+    } catch (_error) {
+      setCreateErrorMessage("Could not reach server. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Welcome to Community Library</h1>
-        <p style={styles.text}>
-          {user
-            ? `${user.name} (${user.username}) is logged in.`
-            : "Loading account..."}
-        </p>
-        {errorMessage ? <p style={styles.error}>{errorMessage}</p> : null}
+    <div>
+      <Navbar isLoggedIn={true} />
+      <div style={styles.page}>
+        <Sidebar isLoggedIn={true} />
 
-        <div style={styles.buttonRow}>
-          <Link to="/" style={styles.linkButton}>
-            Public Home
-          </Link>
-          <button
-            type="button"
-            style={styles.logoutButton}
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
-        </div>
+        <main style={styles.main}>
+          <h2 style={styles.sectionTitle}>Most Popular</h2>
+          <div style={styles.cardRow}>{renderCardRow(popularBooks)}</div>
+
+          <h2 style={styles.sectionTitle}>All Books</h2>
+          <div style={styles.cardRow}>{renderCardRow(allAvailableBooks)}</div>
+        </main>
+
+        <button
+          style={styles.fab}
+          onClick={() => {
+            setIsCreateOpen(true);
+            setCreateErrorMessage("");
+            setCreateSuccessMessage("");
+          }}
+        >
+          Create New Listing
+        </button>
+
+        {isCreateOpen ? (
+          <div style={styles.modalBackdrop}>
+            <div style={styles.modalCard}>
+              <h3 style={styles.modalTitle}>Create New Book Listing</h3>
+
+              <form onSubmit={handleCreateSubmit} style={styles.formGrid}>
+                <label style={styles.inputLabel} htmlFor="book-isbn">
+                  ISBN
+                </label>
+                <input
+                  id="book-isbn"
+                  name="isbn"
+                  required
+                  value={formValues.isbn}
+                  onChange={handleCreateChange}
+                  style={styles.textInput}
+                  placeholder="ISBN here"
+                />
+
+                <label style={styles.inputLabel} htmlFor="book-title">
+                  Title
+                </label>
+                <input
+                  id="book-title"
+                  name="title"
+                  required
+                  value={formValues.title}
+                  onChange={handleCreateChange}
+                  style={styles.textInput}
+                  placeholder="Book title here"
+                />
+
+                <label style={styles.inputLabel} htmlFor="book-author">
+                  Author
+                </label>
+                <input
+                  id="book-author"
+                  name="author"
+                  required
+                  value={formValues.author}
+                  onChange={handleCreateChange}
+                  style={styles.textInput}
+                  placeholder="Author name here"
+                />
+
+                <label style={styles.inputLabel} htmlFor="book-genre">
+                  Genre
+                </label>
+                <input
+                  id="book-genre"
+                  name="genre"
+                  required
+                  value={formValues.genre}
+                  onChange={handleCreateChange}
+                  style={styles.textInput}
+                  placeholder="Genre here"
+                />
+
+                <label style={styles.inputLabel} htmlFor="book-description">
+                  Description
+                </label>
+                <textarea
+                  id="book-description"
+                  name="description"
+                  required
+                  value={formValues.description}
+                  onChange={handleCreateChange}
+                  style={styles.textArea}
+                  placeholder="Write a short description"
+                />
+
+                {createErrorMessage ? (
+                  <p style={styles.createErrorText}>{createErrorMessage}</p>
+                ) : null}
+
+                {createSuccessMessage ? (
+                  <p style={styles.createSuccessText}>{createSuccessMessage}</p>
+                ) : null}
+
+                <div style={styles.modalButtonRow}>
+                  <button
+                    type="submit"
+                    style={styles.primaryButton}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Posting..." : "Post Book"}
+                  </button>
+
+                  <button
+                    type="button"
+                    style={styles.secondaryButton}
+                    onClick={() => setIsCreateOpen(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -75,56 +306,132 @@ const LoggedInHome = () => {
 
 const styles = {
   page: {
-    minHeight: "100dvh",
+    display: "flex",
+    flexDirection: "row",
+    minHeight: "100vh",
+    backgroundColor: "#fff",
+    marginTop: "0",
+  },
+  main: {
+    flex: 1,
+    padding: "32px 40px",
+    minWidth: 0,
+  },
+  sectionTitle: {
+    fontSize: "2rem",
+    fontWeight: "700",
+    margin: "0 0 24px",
+    color: "#000",
+  },
+  cardRow: {
+    display: "flex",
+    flexDirection: "row",
+    gap: "20px",
+    marginBottom: "48px",
+    flexWrap: "wrap",
+  },
+  metaText: {
+    color: "#667085",
+    fontSize: "18px",
+    margin: 0,
+  },
+  errorText: {
+    color: "#b42318",
+    fontSize: "18px",
+    margin: 0,
+  },
+  fab: {
+    position: "fixed",
+    bottom: "32px",
+    right: "32px",
+    backgroundColor: "#3d4a5c",
+    color: "#fff",
+    border: "none",
+    borderRadius: "24px",
+    padding: "14px 22px",
+    fontSize: "0.9rem",
+    cursor: "pointer",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+  },
+  modalBackdrop: {
+    position: "fixed",
+    inset: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "#f1f2f5",
-    padding: "24px",
+    padding: "20px",
+    zIndex: 1000,
   },
-  card: {
+  modalCard: {
     width: "100%",
-    maxWidth: "560px",
-    background: "#fff",
-    borderRadius: "10px",
-    boxShadow: "0 2px 16px rgba(0, 0, 0, 0.08)",
-    padding: "24px",
-    textAlign: "center",
+    maxWidth: "640px",
+    backgroundColor: "#ffffff",
+    borderRadius: "12px",
+    padding: "20px",
+    boxShadow: "0 14px 32px rgba(0,0,0,0.22)",
   },
-  title: {
-    margin: "0 0 16px",
-    fontSize: "32px",
-  },
-  text: {
-    margin: "0 0 16px",
-    fontSize: "18px",
-  },
-  error: {
-    margin: "0 0 16px",
-    fontSize: "16px",
-    color: "#b42318",
-  },
-  buttonRow: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "12px",
-    flexWrap: "wrap",
-  },
-  linkButton: {
-    textDecoration: "none",
-    background: "#6f6f72",
-    color: "#fff",
-    borderRadius: "8px",
-    padding: "10px 14px",
+  modalTitle: {
+    margin: "0 0 14px",
+    fontSize: "24px",
     fontWeight: 700,
   },
-  logoutButton: {
-    background: "#4f7f7c",
-    color: "#fff",
+  formGrid: {
+    display: "grid",
+    gap: "10px",
+  },
+  inputLabel: {
+    fontSize: "14px",
+    color: "#344054",
+    fontWeight: 600,
+  },
+  textInput: {
+    border: "1px solid #d0d5dd",
+    borderRadius: "8px",
+    padding: "10px 12px",
+    fontSize: "14px",
+  },
+  textArea: {
+    minHeight: "90px",
+    border: "1px solid #d0d5dd",
+    borderRadius: "8px",
+    padding: "10px 12px",
+    fontSize: "14px",
+    resize: "vertical",
+  },
+  createErrorText: {
+    margin: 0,
+    color: "#b42318",
+    fontSize: "14px",
+    fontWeight: 600,
+  },
+  createSuccessText: {
+    margin: 0,
+    color: "#166534",
+    fontSize: "14px",
+    fontWeight: 600,
+  },
+  modalButtonRow: {
+    display: "flex",
+    gap: "10px",
+    justifyContent: "flex-end",
+  },
+  primaryButton: {
     border: "none",
     borderRadius: "8px",
     padding: "10px 14px",
     fontWeight: 700,
+    color: "#fff",
+    backgroundColor: "#3d4a5c",
+    cursor: "pointer",
+  },
+  secondaryButton: {
+    border: "1px solid #d0d5dd",
+    borderRadius: "8px",
+    padding: "10px 14px",
+    fontWeight: 700,
+    color: "#344054",
+    backgroundColor: "#fff",
     cursor: "pointer",
   },
 };
