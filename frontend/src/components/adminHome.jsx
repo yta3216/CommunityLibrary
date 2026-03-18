@@ -132,20 +132,18 @@ export default function AdminHome() {
               Users
             </NavLink>
           </nav>
-          <input
-            className="admin-search"
-            placeholder="Search listings, users, borrower..."
-          />
-          <span className="admin-chip">
-            {currentUser?.name || currentUser?.username || "Admin"}
-          </span>
-          <button
-            type="button"
-            className="admin-chip admin-link"
-            onClick={handleLogout}
-          >
-            Log Out
-          </button>
+          <div className="admin-topbar-right">
+            <span className="admin-chip">
+              {currentUser?.name || currentUser?.username || "Admin"}
+            </span>
+            <button
+              type="button"
+              className="admin-chip admin-link"
+              onClick={handleLogout}
+            >
+              Log Out
+            </button>
+          </div>
         </header>
 
         <div className="admin-divider" />
@@ -193,9 +191,6 @@ export default function AdminHome() {
               <Link to="/admin/users" className="admin-button admin-link">
                 Manage Users
               </Link>
-              <button type="button" className="admin-button dark">
-                Lockdown Mode
-              </button>
             </div>
           </div>
 

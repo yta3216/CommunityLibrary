@@ -23,6 +23,8 @@ const isBookAvailable = (book) => {
 const LoggedInHome = () => {
   const navigate = useNavigate();
   const [books, setBooks] = useState([]);
+  // Search state used by Navbar to filter the lists shown below.
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -75,6 +77,33 @@ const LoggedInHome = () => {
   const allAvailableBooks = useMemo(
     () => books.filter((book) => isBookAvailable(book)),
     [books],
+  );
+
+  // One shared filter that matches book titles against the current search term.
+  const filterBooksByTitle = useCallback(
+    (bookList) => {
+      const normalizedQuery = searchQuery.trim().toLowerCase();
+      if (!normalizedQuery) {
+        return bookList;
+      }
+
+      return bookList.filter((book) =>
+        String(book.title || "")
+          .toLowerCase()
+          .includes(normalizedQuery),
+      );
+    },
+    [searchQuery],
+  );
+
+  // Filter each section so typing in Navbar updates both rows immediately.
+  const filteredPopularBooks = useMemo(
+    () => filterBooksByTitle(popularBooks),
+    [filterBooksByTitle, popularBooks],
+  );
+  const filteredAvailableBooks = useMemo(
+    () => filterBooksByTitle(allAvailableBooks),
+    [allAvailableBooks, filterBooksByTitle],
   );
 
   const renderCardRow = (bookList) => {
@@ -176,16 +205,24 @@ const LoggedInHome = () => {
 
   return (
     <div>
-      <Navbar isLoggedIn={true} />
+      <Navbar
+        isLoggedIn={true}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
       <div style={styles.page}>
         <Sidebar isLoggedIn={true} />
 
         <main style={styles.main}>
           <h2 style={styles.sectionTitle}>Most Popular</h2>
-          <div style={styles.cardRow}>{renderCardRow(popularBooks)}</div>
+          <div style={styles.cardRow}>
+            {renderCardRow(filteredPopularBooks)}
+          </div>
 
           <h2 style={styles.sectionTitle}>All Books</h2>
-          <div style={styles.cardRow}>{renderCardRow(allAvailableBooks)}</div>
+          <div style={styles.cardRow}>
+            {renderCardRow(filteredAvailableBooks)}
+          </div>
         </main>
 
         <button

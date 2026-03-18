@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
+import React from "react";
 import logo from "../../resources/logo.png";
 import avatar_placeholder from "../../resources/avatar_placeholder.png";
-import './Navbar.css';
+import "./Navbar.css";
 
-function Navbar({ isLoggedIn }) {
+function Navbar({ isLoggedIn, searchValue = "", onSearchChange }) {
+  const searchInputProps = onSearchChange
+    ? {
+        value: searchValue,
+        onChange: (event) => onSearchChange(event.target.value),
+      }
+    : {
+        defaultValue: searchValue,
+      };
 
   return (
     <nav className="navbar">
@@ -14,11 +22,15 @@ function Navbar({ isLoggedIn }) {
       </div>
 
       <div className="navbar-center">
-        {/* REPLACE LATER WHEN SEARCH BAR IS CREATED */}
-        <input 
-          type="text" 
-          placeholder="Search for a book" 
+        {/*
+          Search input is controlled by each page.
+          The page owns the search state and sends value + change handler here.
+        */}
+        <input
+          type="text"
+          placeholder="Search for a book"
           className="search"
+          {...searchInputProps}
         />
       </div>
 
@@ -37,8 +49,12 @@ function Navbar({ isLoggedIn }) {
         ) : (
           //Unregistered User View
           <>
-            <a href="/login" className="nav-link">Login</a>
-            <a href="/register" className="nav-link signup-btn">Sign Up</a>
+            <a href="/login" className="nav-link">
+              Login
+            </a>
+            <a href="/register" className="nav-link signup-btn">
+              Sign Up
+            </a>
           </>
         )}
       </div>

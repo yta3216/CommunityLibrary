@@ -10,6 +10,8 @@ const Home = () => {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  // Search state used by Navbar to filter books by title.
+  const [searchQuery, setSearchQuery] = useState("");
 
   const loadBooks = useCallback(async () => {
     try {
@@ -41,6 +43,33 @@ const Home = () => {
   const popularBooks = useMemo(() => books.slice(0, 6), [books]);
   const newBooks = useMemo(() => books.slice(4, 8), [books]);
 
+  // Reusable title-based filter so both sections respond to the same search term.
+  const filterBooksByTitle = useCallback(
+    (bookList) => {
+      const normalizedQuery = searchQuery.trim().toLowerCase();
+      if (!normalizedQuery) {
+        return bookList;
+      }
+
+      return bookList.filter((book) =>
+        String(book.title || "")
+          .toLowerCase()
+          .includes(normalizedQuery),
+      );
+    },
+    [searchQuery],
+  );
+
+  // Filtered datasets used by UI rendering.
+  const filteredPopularBooks = useMemo(
+    () => filterBooksByTitle(popularBooks),
+    [filterBooksByTitle, popularBooks],
+  );
+  const filteredNewBooks = useMemo(
+    () => filterBooksByTitle(newBooks),
+    [filterBooksByTitle, newBooks],
+  );
+
   const renderCardRow = (bookList) => {
     if (isLoading) {
       return <p style={styles.metaText}>Loading books...</p>;
@@ -67,16 +96,22 @@ const Home = () => {
 
   return (
     <div>
-      <Navbar isLoggedIn={false} />
+      <Navbar
+        isLoggedIn={false}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
       <div style={styles.page}>
         <Sidebar isLoggedIn={false} />
 
         <main style={styles.main}>
           <h2 style={styles.sectionTitle}>Most Popular</h2>
-          <div style={styles.cardRow}>{renderCardRow(popularBooks)}</div>
+          <div style={styles.cardRow}>
+            {renderCardRow(filteredPopularBooks)}
+          </div>
 
           <h2 style={styles.sectionTitle}>New Additions</h2>
-          <div style={styles.cardRow}>{renderCardRow(newBooks)}</div>
+          <div style={styles.cardRow}>{renderCardRow(filteredNewBooks)}</div>
           <p style={styles.metaText}>
             To open book details or create listings, please log in or register.
           </p>

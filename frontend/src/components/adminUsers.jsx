@@ -14,6 +14,8 @@ export default function AdminUsers() {
   const [isLoading, setIsLoading] = useState(true);
   const [isActing, setIsActing] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [userTypeFilter, setUserTypeFilter] = useState("all");
+  const [userIdSearch, setUserIdSearch] = useState("");
 
   const loadAdminUsersPage = async (token, isMountedRef) => {
     try {
@@ -225,6 +227,24 @@ export default function AdminUsers() {
     });
   }, [books, users]);
 
+  const filteredUserRows = useMemo(() => {
+    const normalizedQuery = userIdSearch.trim().toLowerCase();
+
+    return userRows.filter((user) => {
+      const matchesUserType =
+        userTypeFilter === "all"
+          ? true
+          : String(user.role).toLowerCase() === userTypeFilter;
+
+      const matchesUserId =
+        normalizedQuery.length === 0
+          ? true
+          : String(user.id).toLowerCase().includes(normalizedQuery);
+
+      return matchesUserType && matchesUserId;
+    });
+  }, [userIdSearch, userRows, userTypeFilter]);
+
   return (
     <div className="admin-page">
       <div className="admin-shell">
@@ -260,20 +280,18 @@ export default function AdminUsers() {
               Users
             </NavLink>
           </nav>
-          <input
-            className="admin-search"
-            placeholder="Search users, email, role..."
-          />
-          <span className="admin-chip">
-            {currentUser?.name || currentUser?.username || "Admin"}
-          </span>
-          <button
-            type="button"
-            className="admin-chip admin-link"
-            onClick={handleLogout}
-          >
-            Log Out
-          </button>
+          <div className="admin-topbar-right">
+            <span className="admin-chip">
+              {currentUser?.name || currentUser?.username || "Admin"}
+            </span>
+            <button
+              type="button"
+              className="admin-chip admin-link"
+              onClick={handleLogout}
+            >
+              Log Out
+            </button>
+          </div>
         </header>
 
         <div className="admin-divider" />
@@ -299,26 +317,21 @@ export default function AdminUsers() {
           </div>
 
           <div className="admin-filters">
-            <input className="admin-input" placeholder="Name, email, role..." />
-            <select className="admin-select" defaultValue="All">
-              <option>All</option>
-              <option>Admin</option>
-              <option>Verified</option>
-              <option>User</option>
+            <input
+              className="admin-input"
+              value={userIdSearch}
+              onChange={(event) => setUserIdSearch(event.target.value)}
+              placeholder="Search user id..."
+            />
+            <select
+              className="admin-select"
+              value={userTypeFilter}
+              onChange={(event) => setUserTypeFilter(event.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="admin">Admin</option>
+              <option value="user">User</option>
             </select>
-            <select className="admin-select" defaultValue="All">
-              <option>All</option>
-              <option>Active</option>
-              <option>Suspended</option>
-            </select>
-            <div className="admin-actions">
-              <button type="button" className="admin-button light">
-                Clear
-              </button>
-              <button type="button" className="admin-button">
-                Apply
-              </button>
-            </div>
           </div>
         </section>
 
@@ -335,60 +348,68 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody>
-              {userRows.map((user) => (
-                <tr key={user.id}>
-                  <td>
-                    <strong>{user.name}</strong>
-                    <div className="admin-card-note">
-                      {user.email} • {user.id}
-                    </div>
-                  </td>
-                  <td>
-                    <span className="admin-pill">
-                      {String(user.role).toUpperCase()}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="admin-pill">
-                      {String(user.status).toUpperCase()}
-                    </span>
-                  </td>
-                  <td>
-                    <strong>{user.borrowed}</strong>
-                  </td>
-                  <td>
-                    <strong>{user.listings}</strong>
-                  </td>
-                  <td>
-                    <div className="admin-actions">
-                      <button
-                        type="button"
-                        className="admin-button light"
-                        disabled={isActing}
-                        onClick={() => handleCycleRole(user.id)}
-                      >
-                        Cycle Role
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-button light"
-                        disabled={isActing}
-                        onClick={() => handleToggleStatus(user.id)}
-                      >
-                        Toggle Status
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-button light"
-                        disabled={isActing}
-                        onClick={() => handleDeleteUser(user.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+              {filteredUserRows.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="admin-card-note">
+                    No users match this filter.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredUserRows.map((user) => (
+                  <tr key={user.id}>
+                    <td>
+                      <strong>{user.name}</strong>
+                      <div className="admin-card-note">
+                        {user.email} • {user.id}
+                      </div>
+                    </td>
+                    <td>
+                      <span className="admin-pill">
+                        {String(user.role).toUpperCase()}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="admin-pill">
+                        {String(user.status).toUpperCase()}
+                      </span>
+                    </td>
+                    <td>
+                      <strong>{user.borrowed}</strong>
+                    </td>
+                    <td>
+                      <strong>{user.listings}</strong>
+                    </td>
+                    <td>
+                      <div className="admin-actions">
+                        <button
+                          type="button"
+                          className="admin-button light"
+                          disabled={isActing}
+                          onClick={() => handleCycleRole(user.id)}
+                        >
+                          Cycle Role
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-button light"
+                          disabled={isActing}
+                          onClick={() => handleToggleStatus(user.id)}
+                        >
+                          Toggle Status
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-button light"
+                          disabled={isActing}
+                          onClick={() => handleDeleteUser(user.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

@@ -16,6 +16,8 @@ export default function AdminBooks() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [createErrorMessage, setCreateErrorMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [formValues, setFormValues] = useState({
     isbn: "",
     title: "",
@@ -106,6 +108,31 @@ export default function AdminBooks() {
       };
     });
   }, [books]);
+
+  const filteredRows = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+
+    return rows.filter((row) => {
+      const isAvailable =
+        row.status === "AVAILABLE" || row.status === "WITH_OWNER";
+      const matchesAvailability =
+        availabilityFilter === "all"
+          ? true
+          : availabilityFilter === "available"
+            ? isAvailable
+            : !isAvailable;
+
+      const matchesSearch =
+        normalizedQuery.length === 0
+          ? true
+          : [row.title, row.owner, row.holder, row.id]
+              .join(" ")
+              .toLowerCase()
+              .includes(normalizedQuery);
+
+      return matchesAvailability && matchesSearch;
+    });
+  }, [availabilityFilter, rows, searchQuery]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -242,20 +269,18 @@ export default function AdminBooks() {
               Users
             </NavLink>
           </nav>
-          <input
-            className="admin-search"
-            placeholder="Search listings, owner, borrower..."
-          />
-          <span className="admin-chip">
-            {currentUser?.name || currentUser?.username || "Admin"}
-          </span>
-          <button
-            type="button"
-            className="admin-chip admin-link"
-            onClick={handleLogout}
-          >
-            Log Out
-          </button>
+          <div className="admin-topbar-right">
+            <span className="admin-chip">
+              {currentUser?.name || currentUser?.username || "Admin"}
+            </span>
+            <button
+              type="button"
+              className="admin-chip admin-link"
+              onClick={handleLogout}
+            >
+              Log Out
+            </button>
+          </div>
         </header>
 
         <div className="admin-divider" />
@@ -294,28 +319,19 @@ export default function AdminBooks() {
           <div className="admin-filters">
             <input
               className="admin-input"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Title, owner, borrower..."
             />
-            <select className="admin-select" defaultValue="All">
-              <option>All</option>
-              <option>Available</option>
-              <option>Not Available</option>
+            <select
+              className="admin-select"
+              value={availabilityFilter}
+              onChange={(event) => setAvailabilityFilter(event.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="available">Available</option>
+              <option value="not_available">Not Available</option>
             </select>
-            <select className="admin-select" defaultValue="All">
-              <option>All</option>
-              <option>Sci-fi</option>
-              <option>Fantasy</option>
-              <option>Romance</option>
-              <option>Horror</option>
-            </select>
-            <div className="admin-actions">
-              <button type="button" className="admin-button light">
-                Clear
-              </button>
-              <button type="button" className="admin-button">
-                Apply
-              </button>
-            </div>
           </div>
         </section>
 
@@ -331,33 +347,41 @@ export default function AdminBooks() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((book) => (
-                <tr key={book.id}>
-                  <td>
-                    <strong>{book.title}</strong>
-                    <div className="admin-card-note">
-                      {book.genre} • {book.id}
-                    </div>
-                  </td>
-                  <td>
-                    <strong>{book.owner}</strong>
-                  </td>
-                  <td>
-                    <span className="admin-pill">{book.status}</span>
-                  </td>
-                  <td>{book.holder}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="admin-button light"
-                      disabled={isActing}
-                      onClick={() => handleToggleBook(book.id)}
-                    >
-                      Toggle
-                    </button>
+              {filteredRows.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="admin-card-note">
+                    No books match this filter.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredRows.map((book) => (
+                  <tr key={book.id}>
+                    <td>
+                      <strong>{book.title}</strong>
+                      <div className="admin-card-note">
+                        {book.genre} • {book.id}
+                      </div>
+                    </td>
+                    <td>
+                      <strong>{book.owner}</strong>
+                    </td>
+                    <td>
+                      <span className="admin-pill">{book.status}</span>
+                    </td>
+                    <td>{book.holder}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="admin-button light"
+                        disabled={isActing}
+                        onClick={() => handleToggleBook(book.id)}
+                      >
+                        Toggle
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
