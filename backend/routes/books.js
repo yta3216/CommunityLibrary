@@ -91,25 +91,5 @@ router.get("/", async (_req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "invalid book id" });
-    }
-
-    const book = await Book.findById(id)
-      .populate("owner", "_id username name email role")
-      .populate("holder", "_id username name email role");
-
-    if (!book) {
-      return res.status(404).json({ message: "book not found" });
-    }
-
-    return res.json(book);
-  } catch (_error) {
-    return res.status(500).json({ message: "failed to fetch book" });
-  }
-});
 
 module.exports = router;
