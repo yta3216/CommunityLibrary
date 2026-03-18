@@ -1,7 +1,7 @@
 const express = require("express");
 
 const User = require("../models/User");
-const { authRequired, signToken } = require("../middleware/auth");
+const { signToken } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -89,19 +89,6 @@ router.post("/login", async (req, res) => {
 			message: "failed to login",
 			detail: error.message,
 		});
-	}
-});
-
-router.get("/me", authRequired, async (req, res) => {
-	try {
-		const user = await User.findById(req.user.id);
-		if (!user) {
-			return res.status(404).json({ message: "user not found" });
-		}
-
-		return res.json(toPublicUser(user));
-	} catch (_error) {
-		return res.status(500).json({ message: "failed to fetch current user" });
 	}
 });
 

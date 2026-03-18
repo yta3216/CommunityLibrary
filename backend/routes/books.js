@@ -78,18 +78,4 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/", async (_req, res) => {
-  try {
-    const books = await Book.find()
-      .populate("owner", "_id username name email role")
-      .populate("holder", "_id username name email role")
-      .sort({ createdAt: -1 });
-
-    return res.json(books);
-  } catch (_error) {
-    return res.status(500).json({ message: "failed to fetch books" });
-  }
-});
-
-
 module.exports = router;
