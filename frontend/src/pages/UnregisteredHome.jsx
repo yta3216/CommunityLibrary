@@ -8,6 +8,8 @@ const API_BASE_URL =
 
 const Home = () => {
   const [books, setBooks] = useState([]);
+  // Search term from the navbar input.
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -45,8 +47,33 @@ const Home = () => {
     loadBooks();
   }, [loadBooks]);
 
-  const popularBooks = useMemo(() => books.slice(0, 6), [books]);
-  const newBooks = useMemo(() => books.slice(4, 8), [books]);
+  // Filter against already-loaded books I don think we need to ass another API just for this.
+  // Keep it simple: match by title, author, or genre
+  const filteredBooks = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      return books; // if falsy just return the whole list without filtering to avoid unnecessary processing
+    }
+
+    return books.filter((book) => {
+      const title = String(book.title || "").toLowerCase(); //if any of those contains normalizedQuery using includes...if at least one matches, that book is kept
+      const author = String(book.author || "").toLowerCase();
+      const genre = String(book.genre || "").toLowerCase();
+      return (
+        title.includes(normalizedQuery) ||
+        author.includes(normalizedQuery) ||
+        genre.includes(normalizedQuery)
+      );
+    });
+  }, [books, searchQuery]);
+
+  // Build the two home sections from filtered results.
+  const popularBooks = useMemo(
+    () => filteredBooks.slice(0, 6),
+    [filteredBooks],
+  );
+  const newBooks = useMemo(() => filteredBooks.slice(4, 8), [filteredBooks]);
 
   const renderCardRow = (bookList) => {
     if (isLoading) {
@@ -129,7 +156,11 @@ const Home = () => {
 
   return (
     <div>
-      <Navbar />
+      <Navbar
+        isLoggedIn={false}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
       <div style={styles.page}>
         <Sidebar />
 
