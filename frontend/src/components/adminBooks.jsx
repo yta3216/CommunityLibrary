@@ -220,7 +220,7 @@ export default function AdminBooks() {
       const result = await response.json();
 
       if (!response.ok) {
-        setErrorMessage(result.message || "Could not toggle book status.");
+        setErrorMessage("Could not toggle book status.");
         return;
       }
 

@@ -146,17 +146,13 @@ router.patch(
       }
 
       const ownerId = book.owner.toString();
+      const actingAdminId = req.user.id;
 
       if (book.status === "available") {
-        const replacementHolder = await User.findOne({
-          _id: { $ne: ownerId },
-        }).sort({ createdAt: 1 });
-        if (!replacementHolder) {
-          return res
-            .status(409)
-            .json({ message: "no alternate user available to hold this book" });
+        if (actingAdminId === ownerId) {
+          return res.status(409).json({ success: false });
         }
-        book.holder = replacementHolder._id;
+        book.holder = actingAdminId;
       } else {
         book.holder = book.owner;
       }

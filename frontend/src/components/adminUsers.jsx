@@ -15,7 +15,7 @@ export default function AdminUsers() {
   const [isActing, setIsActing] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [userTypeFilter, setUserTypeFilter] = useState("all");
-  const [userIdSearch, setUserIdSearch] = useState("");
+  const [userSearch, setUserSearch] = useState("");
 
   const loadAdminUsersPage = async (token, isMountedRef) => {
     try {
@@ -217,6 +217,7 @@ export default function AdminUsers() {
 
       return {
         id: user._id,
+        username: user.username || "",
         name: user.name || user.username || "Unknown user",
         email: user.email || "",
         role: user.role || "user",
@@ -228,7 +229,7 @@ export default function AdminUsers() {
   }, [books, users]);
 
   const filteredUserRows = useMemo(() => {
-    const normalizedQuery = userIdSearch.trim().toLowerCase();
+    const normalizedQuery = userSearch.trim().toLowerCase();
 
     return userRows.filter((user) => {
       const matchesUserType =
@@ -236,14 +237,15 @@ export default function AdminUsers() {
           ? true
           : String(user.role).toLowerCase() === userTypeFilter;
 
-      const matchesUserId =
+      const matchesUserSearch =
         normalizedQuery.length === 0
           ? true
-          : String(user.id).toLowerCase().includes(normalizedQuery);
+          : String(user.username).toLowerCase().includes(normalizedQuery) ||
+            String(user.name).toLowerCase().includes(normalizedQuery);
 
-      return matchesUserType && matchesUserId;
+      return matchesUserType && matchesUserSearch;
     });
-  }, [userIdSearch, userRows, userTypeFilter]);
+  }, [userSearch, userRows, userTypeFilter]);
 
   return (
     <div className="admin-page">
@@ -298,8 +300,8 @@ export default function AdminUsers() {
 
         <h1 className="admin-title">Manage Users</h1>
         <p className="admin-subtitle">
-          Admin view of users. Toggle status, change role (UI only). Later
-          connect to authentication + database.
+          Admin view of users. Toggle status, change role or delete a user. Be
+          careful with this page!
         </p>
 
         {errorMessage ? (
@@ -319,9 +321,9 @@ export default function AdminUsers() {
           <div className="admin-filters">
             <input
               className="admin-input"
-              value={userIdSearch}
-              onChange={(event) => setUserIdSearch(event.target.value)}
-              placeholder="Search user id..."
+              value={userSearch}
+              onChange={(event) => setUserSearch(event.target.value)}
+              placeholder="Search name or username..."
             />
             <select
               className="admin-select"
