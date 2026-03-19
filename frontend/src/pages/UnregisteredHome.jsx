@@ -10,6 +10,7 @@ const Home = () => {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createErrorMessage, setCreateErrorMessage] = useState("");
@@ -45,8 +46,31 @@ const Home = () => {
     loadBooks();
   }, [loadBooks]);
 
-  const popularBooks = useMemo(() => books.slice(0, 6), [books]);
-  const newBooks = useMemo(() => books.slice(4, 8), [books]);
+  const filteredBooks = useMemo(() => {
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+
+    if (!normalizedSearch) {
+      return books;
+    }
+
+    return books.filter((book) => {
+      const title = (book.title || "").toLowerCase();
+      const author = (book.author || "").toLowerCase();
+      const genre = (book.genre || "").toLowerCase();
+
+      return (
+        title.includes(normalizedSearch) ||
+        author.includes(normalizedSearch) ||
+        genre.includes(normalizedSearch)
+      );
+    });
+  }, [books, searchQuery]);
+
+  const popularBooks = useMemo(
+    () => filteredBooks.slice(0, 6),
+    [filteredBooks],
+  );
+  const newBooks = useMemo(() => filteredBooks.slice(4, 8), [filteredBooks]);
 
   const renderCardRow = (bookList) => {
     if (isLoading) {
@@ -129,7 +153,11 @@ const Home = () => {
 
   return (
     <div>
-      <Navbar />
+      <Navbar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by title, author, or genre"
+      />
       <div style={styles.page}>
         <Sidebar />
 
