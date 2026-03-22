@@ -1,13 +1,16 @@
+// bring in the jwt library so we can create and check login tokens
 const jwt = require("jsonwebtoken");
 
+// helper function to safely read jwt secret from environment variables
 const getJwtSecret = () => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    throw new Error("JWT_SECRET is not defined");
+    throw new Error("JWT_SECRET not defined");
   }
   return secret;
 };
 
+// create a signed token for a user after login/register
 const signToken = (user) => {
   return jwt.sign(
     {
@@ -20,6 +23,7 @@ const signToken = (user) => {
   );
 };
 
+// middleware that blocks routes unless request has a valid bearer token
 const authRequired = (req, res, next) => {
   const authHeader = req.headers.authorization || "";
 
@@ -29,6 +33,7 @@ const authRequired = (req, res, next) => {
 
   const token = authHeader.slice("Bearer ".length).trim();
 
+  // verify token and attach payload to req.user so later handlers know who is logged in
   try {
     const payload = jwt.verify(token, getJwtSecret());
     req.user = payload;
@@ -38,6 +43,7 @@ const authRequired = (req, res, next) => {
   }
 };
 
+// middleware  that checks if logged in user has a required role
 const requireRole = (role) => {
   return (req, res, next) => {
     if (!req.user) {
@@ -54,6 +60,7 @@ const requireRole = (role) => {
   };
 };
 
+// export helpers/middleware so other files can import and use them
 module.exports = {
   authRequired,
   requireRole,

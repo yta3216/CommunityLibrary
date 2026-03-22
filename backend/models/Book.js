@@ -1,7 +1,10 @@
+// load mongoose so we can define schema and create model for mongodb
 const mongoose = require("mongoose");
 
+// only these status values are allowed for a book
 const ALLOWED_STATUS = ["available", "not_available"];
 
+// schema that describes what every book document should look like
 const bookSchema = new mongoose.Schema({
   isbn: {
     type: String,
@@ -45,13 +48,15 @@ const bookSchema = new mongoose.Schema({
   },
 });
 
+// before validation, auto-set status based on whether owner and holder are the same user
 bookSchema.pre("validate", function () {
   if (!this.owner || !this.holder) {
     return;
   }
-
+  // logic for determining if book is available or not based on whether owner and holder are the same
   const sameUser = this.owner.toString() === this.holder.toString();
   this.status = sameUser ? "available" : "not_available";
 });
 
+// export the Book model so routes/controllers can use it
 module.exports = mongoose.model("Book", bookSchema);
