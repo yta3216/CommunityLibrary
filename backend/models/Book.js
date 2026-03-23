@@ -1,65 +1,62 @@
+// load mongoose so we can define schema and create model for mongodb
 const mongoose = require("mongoose");
 
-const ALLOWED_STATUS = ["with_owner", "exchanged", "lended"];
+// only these status values are allowed for a book
+const ALLOWED_STATUS = ["available", "not_available"];
 
-const bookSchema = new mongoose.Schema(
-  {
-    isbn: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    title: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    author: {
-      type: String,
-      trim: true,
-    },
-    genre: {
-      type: String,
-      trim: true,
-      required: true,
-    },
-    owner: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: false,
-    },
-    holder: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: false,
-    },
-    status: {
-      type: String,
-      required: false,
-      enum: ALLOWED_STATUS,
-    },
-    description: {
-      type: String,
-      trim: true,
-    },
+// schema that describes what every book document should look like
+const bookSchema = new mongoose.Schema({
+  isbn: {
+    type: String,
+    required: true,
+    trim: true,
   },
-  { timestamps: true },
-);
-
-bookSchema.pre("validate", function () {
-  if (!this.owner || !this.holder || !this.status) {
-    return;
-  }
-
-  const sameUser = this.owner.toString() === this.holder.toString();
-
-  if (sameUser && this.status !== "with_owner") {
-    throw new Error("If holder equals owner, status must be 'with_owner'.");
-  }
-
-  if (!sameUser && this.status === "with_owner") {
-    throw new Error("Status 'with_owner' requires holder to be the owner.");
-  }
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  author: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  genre: {
+    type: String,
+    trim: true,
+    required: true,
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  holder: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  status: {
+    type: String,
+    required: true,
+    enum: ALLOWED_STATUS,
+  },
+  description: {
+    type: String,
+    required: true,
+    trim: true,
+  },
 });
 
+// before validation, auto-set status based on whether owner and holder are the same user
+bookSchema.pre("validate", function () {
+  if (!this.owner || !this.holder) {
+    return;
+  }
+  // logic for determining if book is available or not based on whether owner and holder are the same
+  const sameUser = this.owner.toString() === this.holder.toString();
+  this.status = sameUser ? "available" : "not_available";
+});
+
+// export the Book model so routes/controllers can use it
 module.exports = mongoose.model("Book", bookSchema);

@@ -1,11 +1,13 @@
-// Displays the genre tags and action buttons (Borrow, Exchange, Trade).
+// Displays the genre tags and action buttons Borrow, Exchange, Trade
 
 function BookActions({ genres, bookStatus, onActionSelect }) {
   const genreList = genres || ["Horror", "Romance", "Action", "Sci-fi"];
   const actions = ["Borrow", "Exchange", "Trade"];
-  // A single listing status now controls all three buttons together.
-  // This should come from the single availability status returned by the backend.
-  const isAvailable = (bookStatus || "available") === "available";
+  // A single listing status now controls all three buttons together
+  // This should come from the single availability status returned by the backend
+  const normalizedStatus = String(bookStatus || "available").toLowerCase();
+  const isAvailable =
+    normalizedStatus === "available" || normalizedStatus === "with_owner";
 
   return (
     <div style={styles.wrapper}>
@@ -32,7 +34,7 @@ function BookActions({ genres, bookStatus, onActionSelect }) {
                 type="button"
                 disabled={!isAvailable}
                 onClick={() => {
-                  // Only forward the click when the listing is currently available.
+                  // Only forward the click when the listing is currently available
                   if (isAvailable) {
                     onActionSelect?.(action);
                   }
