@@ -2,10 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import "./Sidebar.css";
 
-const Sidebar = ({isLoggedIn}) => {
+const Sidebar = ({ isLoggedIn }) => {
   return (
     <div className="sidebar">
-      {isLoggedIn? (
+      {isLoggedIn ? (
         //Registered User View
         <>
           <ul>
@@ -13,16 +13,16 @@ const Sidebar = ({isLoggedIn}) => {
               <a href="/Home">Home</a>
             </li>
             <li>
-              <a href="/library">My Library</a>
+              <a href="./profile">My Books</a>
             </li>
             <li>
-              <a href="/community">Community</a>
+              <a href="./messages">Messages</a>
             </li>
             <li>
-              <a href="/settings">Settings</a>
+              <a href="./profile/edit">Settings</a>
             </li>
             <li>
-              <a href ="/logout">Logout</a>
+              <a href="./login">Logout</a>
             </li>
           </ul>
         </>
@@ -31,10 +31,7 @@ const Sidebar = ({isLoggedIn}) => {
         <>
           <ul>
             <li>
-              <a href="/">Home</a>
-            </li>
-            <li>
-              <a href="/login">Books</a>
+              <a href="/login">Login to access all features</a>
             </li>
           </ul>
         </>
