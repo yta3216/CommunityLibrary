@@ -3,6 +3,11 @@ import { Link } from "react-router-dom";
 import "./Sidebar.css";
 
 const Sidebar = ({ isLoggedIn }) => {
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.assign("/");
+  };
+
   return (
     <div className="sidebar">
       {isLoggedIn ? (
@@ -22,7 +27,9 @@ const Sidebar = ({ isLoggedIn }) => {
               <a href="./profile/edit">Settings</a>
             </li>
             <li>
-              <a href="./login">Logout</a>
+              <Link to="/" onClick={handleLogout}>
+                Logout
+              </Link>
             </li>
           </ul>
         </>

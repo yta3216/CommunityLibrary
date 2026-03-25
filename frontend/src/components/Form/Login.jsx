@@ -68,15 +68,10 @@ export default function Login() {
         return;
       }
 
-      if (!result?.token) {
-        setErrorMessage("Login succeeded but no token was returned.");
-        return;
-      }
-
       localStorage.setItem("token", result.token);
       const targetRoute = getHomeRouteForRole(result?.user?.role);
 
-      // Force a hard navigation so App auth bootstrap re-runs with the new token.
+      // force a hard navigation so App auth bootstrap re-runs with the new token
       window.location.assign(targetRoute);
     } catch (_error) {
       setErrorMessage("Could not reach server. Please try again.");

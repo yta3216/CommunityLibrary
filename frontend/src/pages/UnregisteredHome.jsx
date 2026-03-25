@@ -40,7 +40,7 @@ const Home = () => {
     loadBooks();
   }, [loadBooks]);
 
-  const popularBooks = useMemo(() => books.slice(0, 6), [books]);
+  const popularBooks = useMemo(() => books.slice(0, 5), [books]);
   const newBooks = useMemo(() => books.slice(4, 8), [books]);
 
   // Reusable title-based filter so both sections respond to the same search term.
