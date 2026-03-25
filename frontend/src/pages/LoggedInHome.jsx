@@ -23,7 +23,7 @@ const isBookAvailable = (book) => {
 const LoggedInHome = () => {
   const navigate = useNavigate();
   const [books, setBooks] = useState([]);
-  // Search state used by Navbar to filter the lists shown below.
+  // search state used by Navibar to filter the lists shown below
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -73,7 +73,7 @@ const LoggedInHome = () => {
   }, [loadBooks, navigate]);
 
   // Placeholder ordering until review counts are implemented.
-  const popularBooks = useMemo(() => books.slice(0, 6), [books]);
+  const popularBooks = useMemo(() => books.slice(0, 5), [books]);
   const allAvailableBooks = useMemo(
     () => books.filter((book) => isBookAvailable(book)),
     [books],
