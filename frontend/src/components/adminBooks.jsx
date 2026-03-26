@@ -89,14 +89,10 @@ export default function AdminBooks() {
   const rows = useMemo(() => {
     return books.map((book) => {
       const ownerName =
-        typeof book.owner === "object"
-          ? book.owner?.name || book.owner?.username
-          : "Unknown";
+        typeof book.owner === "object" ? book.owner?.username : "Unknown";
 
       const holderName =
-        typeof book.holder === "object"
-          ? book.holder?.name || book.holder?.username
-          : "Unknown";
+        typeof book.holder === "object" ? book.holder?.username : "Unknown";
 
       return {
         id: book._id,
@@ -271,7 +267,7 @@ export default function AdminBooks() {
           </nav>
           <div className="admin-topbar-right">
             <span className="admin-chip">
-              {currentUser?.name || currentUser?.username || "Admin"}
+              {currentUser?.username || "Admin"}
             </span>
             <button
               type="button"

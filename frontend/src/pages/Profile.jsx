@@ -201,7 +201,7 @@ const Profile = () => {
               {isLoading
                 ? "Loading account..."
                 : user
-                  ? `${user.name} (${user.username})`
+                  ? user.username
                   : "Could not load your account."}
             </p>
             <p style={styles.subtleText}>{user?.email || ""}</p>

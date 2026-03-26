@@ -21,9 +21,9 @@ import ChatDrawer from "../components/BookDetail/ChatDrawer";
 //                   (backend returns Book.status "with_owner" | "exchanged" | "lended";
 //                    map "with_owner" → "available", anything else → "not_available")
 //   ownerId       — Book.owner User._id  (the book's listed owner)
-//   ownerName     — populated from User.name
+//   ownerName     — populated from User.username
 //   requesterId   — User._id of the person who initiated the conversation
-//   requesterName — populated from User.name
+//   requesterName — populated from User.username
 //   operation     — "Borrow" | "Exchange" | "Trade"
 //   lastMessage   — text of the most recent message (used for list preview)
 //   lastMessageAt — ISO timestamp used for sorting within each section

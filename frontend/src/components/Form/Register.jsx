@@ -2,6 +2,11 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./RegisterAndLogin.css";
 
+//validation consts... the same as backend. only adding this because it is a requirement
+const USERNAME_REGEX = /^[A-Za-z0-9]{3,20}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_MIN_LENGTH = 5;
+
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
 
@@ -26,6 +31,25 @@ export default function Register() {
       setErrorMessage("Please fill all required fields.");
       return;
     }
+    const normalizedUsername = username.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!USERNAME_REGEX.test(normalizedUsername)) {
+      setErrorMessage("Username must be 3-20 letters or numbers.");
+      return;
+    }
+
+    if (!EMAIL_REGEX.test(normalizedEmail)) {
+      setErrorMessage("Please enter a valid email.");
+      return;
+    }
+
+    if (password.length < PASSWORD_MIN_LENGTH) {
+      setErrorMessage(
+        `Password must be at least ${PASSWORD_MIN_LENGTH} characters.`,
+      );
+      return;
+    }
 
     if (password !== confirmPassword) {
       setErrorMessage("Passwords do not match.");
@@ -40,9 +64,8 @@ export default function Register() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username,
-          name: username,
-          email,
+          username: normalizedUsername,
+          email: normalizedEmail,
           password,
         }),
       });
@@ -53,8 +76,6 @@ export default function Register() {
         setErrorMessage(result.message || "Failed to register.");
         return;
       }
-
-      localStorage.removeItem("token");
       setSuccessMessage("Registration successful. Redirecting to login...");
       setTimeout(() => navigate("/login"), 900);
     } catch (_error) {
