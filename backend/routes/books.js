@@ -58,7 +58,7 @@ router.post("/", authRequired, async (req, res) => {
       description: normalizedDescription,
     });
 
-    // repull with populated user references so frontend gets full owner/holder info
+    // re-fetch with populated owner/holder so create-book returns full user data, not just ids
     const populatedBook = await Book.findById(createdBook._id)
       .populate("owner", "_id username email role status description")
       .populate("holder", "_id username email role status description");
@@ -141,7 +141,7 @@ router.patch(
       const ownerId = book.owner.toString();
       const actingAdminId = req.user.id;
 
-      // if currently available, admin borrows it (but owner cannot borrow own book here)
+      // admin toggle: if currently available, admin borrows it (but owner cannot borrow own book here)
       if (book.status === "available") {
         if (actingAdminId === ownerId) {
           return res.status(409).json({ success: false });
@@ -154,7 +154,7 @@ router.patch(
 
       await book.save();
 
-      // return updated book with populated references for frontend display
+      // admin: toggle function. return updated book with populated references for frontend display
       const updatedBook = await Book.findById(book._id)
         .populate("owner", "_id username email role")
         .populate("holder", "_id username email role");

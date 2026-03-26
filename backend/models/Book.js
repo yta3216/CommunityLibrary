@@ -46,6 +46,12 @@ const bookSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  //increase count based on added review
+  numberOfReviews: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
 });
 
 // before validation, auto-set status based on whether owner and holder are the same user
