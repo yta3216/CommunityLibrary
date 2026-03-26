@@ -1,6 +1,10 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import "./RegisterAndLogin.css";
+
+//validation consts... the same as backend. only adding this because it is a requirement
+const USERNAME_REGEX = /^[A-Za-z0-9]{3,20}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
@@ -10,7 +14,6 @@ const getHomeRouteForRole = (role) => {
 };
 
 export default function Login() {
-  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -18,21 +21,32 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // new handler that has the required frontend validation
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     setErrorMessage("");
-
-    const form = event.currentTarget;
-    const identifierValue = (
-      form.elements.username?.value ||
-      username ||
-      ""
-    ).trim();
-    const passwordValue = form.elements.password?.value || password || "";
+    //user name is the var name but it is either username or email...
+    const identifierValue = username.trim();
+    const passwordValue = password;
 
     if (!identifierValue || !passwordValue) {
       setErrorMessage("Please enter your email/username and password.");
+      return;
+    }
+
+    const isEmailLogin = identifierValue.includes("@");
+    if (isEmailLogin && !EMAIL_REGEX.test(identifierValue)) {
+      setErrorMessage("Please enter a valid email.");
+      return;
+    }
+
+    if (!isEmailLogin && !USERNAME_REGEX.test(identifierValue)) {
+      setErrorMessage("Username must be 3-20 letters or numbers.");
+      return;
+    }
+
+    if (passwordValue.length < 5) {
+      setErrorMessage("Password must be at least 5 characters.");
       return;
     }
 
@@ -44,8 +58,8 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
-      const normalizedId = identifierValue;
-      const maybeEmail = normalizedId.includes("@") ? normalizedId : "";
+      const maybeEmail = isEmailLogin ? identifierValue : "";
+      const maybeUsername = isEmailLogin ? "" : identifierValue;
 
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
@@ -53,9 +67,8 @@ export default function Login() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          identifier: normalizedId,
           email: maybeEmail,
-          username: normalizedId,
+          username: maybeUsername,
           password: passwordValue,
         }),
       });
@@ -68,6 +81,7 @@ export default function Login() {
         return;
       }
 
+      //stores the token so the user stays loged in on other pages and decides where the user goes.. admin or user
       localStorage.setItem("token", result.token);
       const targetRoute = getHomeRouteForRole(result?.user?.role);
 

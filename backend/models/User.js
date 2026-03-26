@@ -2,9 +2,11 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-// allowed values to keep role and account status consistent
+// validadtion values to files consistent to what is expected by our code
 const ALLOWED_ROLES = ["admin", "user"];
 const ALLOWED_STATUS = ["active", "suspended"];
+const USERNAME_REGEX = /^[a-zA-Z0-9]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // schema that defines user fields and validation rules
 const userSchema = new mongoose.Schema({
@@ -14,11 +16,9 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     lowercase: true,
-  },
-  name: {
-    type: String,
-    required: true,
-    trim: true,
+    minlength: 3,
+    maxlength: 20,
+    match: USERNAME_REGEX,
   },
   email: {
     type: String,
@@ -26,11 +26,13 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     lowercase: true,
+    match: EMAIL_REGEX,
   },
   password: {
     type: String,
     required: true,
     select: false,
+    minlength: 5, //
   },
   numberOfBooks: {
     type: Number,

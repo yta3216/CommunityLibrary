@@ -7,6 +7,10 @@ import "./EditProfile.css";
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
 
+//validation consts... the same as backend. only adding this because it is a requirement
+const USERNAME_REGEX = /^[A-Za-z0-9]{3,20}$/;
+const DESCRIPTION_MAX_LENGTH = 300;
+
 const EditProfile = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
@@ -71,14 +75,27 @@ const EditProfile = () => {
     setSuccessMessage("");
 
     const trimmedUsername = username.trim();
+    const trimmedDescription = description.trim();
+
     if (!trimmedUsername) {
       setErrorMessage("Username is required.");
       return;
     }
 
+    if (!USERNAME_REGEX.test(trimmedUsername)) {
+      setErrorMessage("Username must be 3-20 letters or numbers.");
+      return;
+    }
+
+    if (trimmedDescription.length > DESCRIPTION_MAX_LENGTH) {
+      setErrorMessage(
+        `Description can be up to ${DESCRIPTION_MAX_LENGTH} characters only.`,
+      );
+      return;
+    }
+
     const token = localStorage.getItem("token");
     if (!token) {
-      localStorage.removeItem("token");
       navigate("/login", { replace: true });
       return;
     }
@@ -94,7 +111,7 @@ const EditProfile = () => {
         },
         body: JSON.stringify({
           username: trimmedUsername,
-          description: description.trim(),
+          description: trimmedDescription,
         }),
       });
 
@@ -139,6 +156,8 @@ const EditProfile = () => {
               type="text"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
+              required
+              pattern="[A-Za-z0-9]{3,20}"
               disabled={isLoading || isSubmitting}
             />
           </div>
@@ -148,7 +167,7 @@ const EditProfile = () => {
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={5}
-              maxLength={300}
+              maxLength={DESCRIPTION_MAX_LENGTH}
               placeholder="Tell other users a little about yourself"
               disabled={isLoading || isSubmitting}
             />

@@ -7,9 +7,9 @@ const ALLOWED_STATUS = ["available", "not_available"];
 // schema that describes what every book document should look like
 const bookSchema = new mongoose.Schema({
   isbn: {
-    type: String,
+    type: Number,
     required: true,
-    trim: true,
+    unique: true,
   },
   title: {
     type: String,

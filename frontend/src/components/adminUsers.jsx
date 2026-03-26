@@ -218,7 +218,7 @@ export default function AdminUsers() {
       return {
         id: user._id,
         username: user.username || "",
-        name: user.name || user.username || "Unknown user",
+        displayUsername: user.username || "Unknown user",
         email: user.email || "",
         role: user.role || "user",
         status: user.status || "active",
@@ -240,8 +240,7 @@ export default function AdminUsers() {
       const matchesUserSearch =
         normalizedQuery.length === 0
           ? true
-          : String(user.username).toLowerCase().includes(normalizedQuery) ||
-            String(user.name).toLowerCase().includes(normalizedQuery);
+          : String(user.username).toLowerCase().includes(normalizedQuery);
 
       return matchesUserType && matchesUserSearch;
     });
@@ -284,7 +283,7 @@ export default function AdminUsers() {
           </nav>
           <div className="admin-topbar-right">
             <span className="admin-chip">
-              {currentUser?.name || currentUser?.username || "Admin"}
+              {currentUser?.username || "Admin"}
             </span>
             <button
               type="button"
@@ -323,7 +322,7 @@ export default function AdminUsers() {
               className="admin-input"
               value={userSearch}
               onChange={(event) => setUserSearch(event.target.value)}
-              placeholder="Search name or username..."
+              placeholder="Search username..."
             />
             <select
               className="admin-select"
@@ -360,7 +359,7 @@ export default function AdminUsers() {
                 filteredUserRows.map((user) => (
                   <tr key={user.id}>
                     <td>
-                      <strong>{user.name}</strong>
+                      <strong>{user.displayUsername}</strong>
                       <div className="admin-card-note">
                         {user.email} • {user.id}
                       </div>

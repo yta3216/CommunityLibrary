@@ -60,8 +60,8 @@ router.post("/", authRequired, async (req, res) => {
 
     // repull with populated user references so frontend gets full owner/holder info
     const populatedBook = await Book.findById(createdBook._id)
-      .populate("owner", "_id username name email role status description")
-      .populate("holder", "_id username name email role status description");
+      .populate("owner", "_id username email role status description")
+      .populate("holder", "_id username email role status description");
 
     return res.status(201).json(populatedBook);
   } catch (error) {
@@ -83,8 +83,8 @@ router.post("/", authRequired, async (req, res) => {
 router.get("/", async (_req, res) => {
   try {
     const books = await Book.find()
-      .populate("owner", "_id username name email role")
-      .populate("holder", "_id username name email role")
+      .populate("owner", "_id username email role")
+      .populate("holder", "_id username email role")
       .sort({ createdAt: -1 });
 
     return res.json(books);
@@ -156,8 +156,8 @@ router.patch(
 
       // return updated book with populated references for frontend display
       const updatedBook = await Book.findById(book._id)
-        .populate("owner", "_id username name email role")
-        .populate("holder", "_id username name email role");
+        .populate("owner", "_id username email role")
+        .populate("holder", "_id username email role");
 
       return res.json(updatedBook);
     } catch (_error) {

@@ -168,7 +168,7 @@ function BookDetail() {
       author: selectedBook.author || "Unknown author",
       ownerId,
       holderId,
-      ownerName: ownerData?.name || ownerData?.username || "Book owner",
+      ownerName: ownerData?.username || "Book owner",
       genres: genres.length > 0 ? genres : ["Unknown"],
       status:
         isAvailableByOwnership || isAvailableByStatus

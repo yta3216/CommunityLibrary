@@ -18,19 +18,18 @@ const toPublicUser = (userDoc) => {
 router.post("/register", async (req, res) => {
   try {
     // read values sent by client in request body
-    const { username, name, email, password } = req.body;
+    const { username, email, password } = req.body;
 
     // quick required-field check before trying to create user
-    if (!username || !name || !email || !password) {
+    if (!username || !email || !password) {
       return res.status(400).json({
-        message: "username, name, email, password are required",
+        message: "username, email, password are required",
       });
     }
 
     // create user in database (password hashing is handled in User model pre-save hook)
     const createdUser = await User.create({
       username,
-      name,
       email,
       password,
       role: "user",
@@ -69,11 +68,9 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     // allow login using identifier or email or username from body
-    const { email, username, identifier, password } = req.body;
+    const { email, username, password } = req.body;
     // normalize input so lookup is consistent with lowercase usernames
-    const loginId = (identifier || email || username || "")
-      .trim()
-      .toLowerCase();
+    const loginId = (email || username || "").trim().toLowerCase();
 
     // must have id + password to continue
     if (!loginId || !password) {
@@ -82,9 +79,9 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // get user and explicitly include password for compare step
+    // get user by username or email and get password for compare step
     const user = await User.findOne({
-      username: loginId,
+      $or: [{ username: loginId }, { email: loginId }],
     }).select("+password");
     // avoid leaking whether username exists by using generic credentials error
     if (!user) {

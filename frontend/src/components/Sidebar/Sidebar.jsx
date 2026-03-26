@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "./Sidebar.css";
-
+// logout handler... same as profile page logout
 const Sidebar = ({ isLoggedIn }) => {
   const handleLogout = () => {
     localStorage.removeItem("token");

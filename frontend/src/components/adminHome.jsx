@@ -134,7 +134,7 @@ export default function AdminHome() {
           </nav>
           <div className="admin-topbar-right">
             <span className="admin-chip">
-              {currentUser?.name || currentUser?.username || "Admin"}
+              {currentUser?.username || "Admin"}
             </span>
             <button
               type="button"
@@ -208,7 +208,7 @@ export default function AdminHome() {
                 recentBooks.map((book) => {
                   const ownerName =
                     typeof book.owner === "object"
-                      ? book.owner?.name || book.owner?.username
+                      ? book.owner?.username
                       : "Unknown";
 
                   return (
