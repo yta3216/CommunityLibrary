@@ -41,7 +41,7 @@ const Home = () => {
   }, [loadBooks]);
 
   const popularBooks = useMemo(() => books.slice(0, 5), [books]);
-  const newBooks = useMemo(() => books.slice(4, 8), [books]);
+  const newBooks = useMemo(() => books.slice(), [books]);
 
   // Reusable title-based filter so both sections respond to the same search term.
   const filterBooksByTitle = useCallback(
