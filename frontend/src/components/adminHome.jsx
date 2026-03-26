@@ -12,7 +12,6 @@ export default function AdminHome() {
   const [users, setUsers] = useState([]);
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -25,7 +24,6 @@ export default function AdminHome() {
 
     const loadAdminHome = async () => {
       try {
-        setErrorMessage("");
         setIsLoading(true);
 
         const [meResponse, usersResponse, booksResponse] = await Promise.all([
@@ -57,11 +55,11 @@ export default function AdminHome() {
         setBooks(Array.isArray(booksData) ? booksData : []);
 
         if (!usersResponse.ok || !booksResponse.ok) {
-          setErrorMessage("Could not load all dashboard data.");
+          alert("Could not load all dashboard data.");
         }
       } catch (_error) {
         if (isMounted) {
-          setErrorMessage("Could not reach server.");
+          alert("Could not reach server.");
         }
       } finally {
         if (isMounted) {
@@ -152,10 +150,6 @@ export default function AdminHome() {
         <p className="admin-subtitle">
           Manage listings, users, and current availability in one place.
         </p>
-
-        {errorMessage ? (
-          <p className="admin-card-note">{errorMessage}</p>
-        ) : null}
 
         <section className="admin-metrics">
           <div className="admin-card">

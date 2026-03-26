@@ -14,8 +14,6 @@ export default function AdminBooks() {
   const [isActing, setIsActing] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [createErrorMessage, setCreateErrorMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [formValues, setFormValues] = useState({
@@ -28,7 +26,6 @@ export default function AdminBooks() {
 
   const loadAdminBooks = async (token, isMountedRef) => {
     try {
-      setErrorMessage("");
       setIsLoading(true);
 
       const [meResponse, booksResponse] = await Promise.all([
@@ -57,11 +54,11 @@ export default function AdminBooks() {
       setBooks(Array.isArray(booksData) ? booksData : []);
 
       if (!booksResponse.ok) {
-        setErrorMessage("Could not load books.");
+        alert("Could not load books.");
       }
     } catch (_error) {
       if (isMountedRef()) {
-        setErrorMessage("Could not reach server.");
+        alert("Could not reach server.");
       }
     } finally {
       if (isMountedRef()) {
@@ -142,7 +139,6 @@ export default function AdminBooks() {
 
   const handleCreateSubmit = async (event) => {
     event.preventDefault();
-    setCreateErrorMessage("");
 
     const isbn = formValues.isbn.trim();
     const title = formValues.title.trim();
@@ -151,7 +147,7 @@ export default function AdminBooks() {
     const description = formValues.description.trim();
 
     if (!isbn || !title || !author || !genre || !description) {
-      setCreateErrorMessage("All fields are required.");
+      alert("All fields are required.");
       return;
     }
 
@@ -174,7 +170,7 @@ export default function AdminBooks() {
       const result = await response.json();
 
       if (!response.ok) {
-        setCreateErrorMessage(result.message || "Failed to add listing.");
+        alert(result.message || "Failed to add listing.");
         return;
       }
 
@@ -188,7 +184,7 @@ export default function AdminBooks() {
       });
       setIsCreateOpen(false);
     } catch (_error) {
-      setCreateErrorMessage("Could not reach server.");
+      alert("Could not reach server.");
     } finally {
       setIsSubmitting(false);
     }
@@ -202,7 +198,6 @@ export default function AdminBooks() {
     }
 
     setIsActing(true);
-    setErrorMessage("");
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/books/${bookId}/toggle-status`,
@@ -216,7 +211,7 @@ export default function AdminBooks() {
       const result = await response.json();
 
       if (!response.ok) {
-        setErrorMessage("Could not toggle book status.");
+        alert("Could not toggle book status.");
         return;
       }
 
@@ -224,9 +219,26 @@ export default function AdminBooks() {
         prev.map((book) => (book._id === bookId ? result : book)),
       );
     } catch (_error) {
-      setErrorMessage("Could not reach server.");
+      alert("Could not reach server.");
     } finally {
       setIsActing(false);
+    }
+  };
+
+  const handleDeleteBook = async (bookId) => {
+    const token = localStorage.getItem("token");
+    if (!token) return handleLogout();
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/books/${bookId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) throw new Error("Could not delete book.");
+      setBooks((prev) => prev.filter((book) => book._id !== bookId));
+      alert("Book deleted.");
+    } catch (error) {
+      alert(error.message || "Could not reach server.");
     }
   };
 
@@ -286,10 +298,6 @@ export default function AdminBooks() {
           Admin view of listings, ownership, and availability.
         </p>
 
-        {errorMessage ? (
-          <p className="admin-card-note">{errorMessage}</p>
-        ) : null}
-
         <section className="admin-card">
           <div className="admin-row">
             <div>
@@ -304,7 +312,6 @@ export default function AdminBooks() {
                 className="admin-button"
                 onClick={() => {
                   setIsCreateOpen(true);
-                  setCreateErrorMessage("");
                 }}
               >
                 Add Listing
@@ -366,14 +373,24 @@ export default function AdminBooks() {
                     </td>
                     <td>{book.holder}</td>
                     <td>
-                      <button
-                        type="button"
-                        className="admin-button light"
-                        disabled={isActing}
-                        onClick={() => handleToggleBook(book.id)}
-                      >
-                        Toggle
-                      </button>
+                      <div className="admin-actions">
+                        <button
+                          type="button"
+                          className="admin-button light"
+                          disabled={isActing}
+                          onClick={() => handleToggleBook(book.id)}
+                        >
+                          Toggle
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-button light"
+                          disabled={isActing}
+                          onClick={() => handleDeleteBook(book.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -423,12 +440,6 @@ export default function AdminBooks() {
                   placeholder="Description"
                   style={styles.textArea}
                 />
-
-                {createErrorMessage ? (
-                  <p className="admin-card-note" style={{ color: "#b42318" }}>
-                    {createErrorMessage}
-                  </p>
-                ) : null}
 
                 <div
                   className="admin-actions"
