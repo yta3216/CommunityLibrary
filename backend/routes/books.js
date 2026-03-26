@@ -110,10 +110,6 @@ router.delete("/:id", authRequired, async (req, res) => {
     const isOwner = book.owner.toString() === req.user.id;
     const isAdmin = req.user.role === "admin";
 
-    if (!isOwner && !isAdmin) {
-      return res.status(403).json({ message: "forbidden" });
-    }
-
     await Book.findByIdAndDelete(id);
     return res.json({ message: "book deleted" });
   } catch (_error) {
@@ -154,10 +150,10 @@ router.patch(
 
       await book.save();
 
-      // admin: toggle function. return updated book with populated references for frontend display
+      // only makes the front end update after toggling. so that the admin can see that the holder changed
       const updatedBook = await Book.findById(book._id)
-        .populate("owner", "_id username email role")
-        .populate("holder", "_id username email role");
+        .populate("owner", "_id username")
+        .populate("holder", "_id username");
 
       return res.json(updatedBook);
     } catch (_error) {

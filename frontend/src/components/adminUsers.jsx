@@ -13,13 +13,11 @@ export default function AdminUsers() {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isActing, setIsActing] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [userSearch, setUserSearch] = useState("");
 
   const loadAdminUsersPage = async (token, isMountedRef) => {
     try {
-      setErrorMessage("");
       setIsLoading(true);
 
       const [meResponse, usersResponse, booksResponse] = await Promise.all([
@@ -51,11 +49,11 @@ export default function AdminUsers() {
       setBooks(Array.isArray(booksData) ? booksData : []);
 
       if (!usersResponse.ok || !booksResponse.ok) {
-        setErrorMessage("Could not load all admin data.");
+        alert("Could not load all admin data.");
       }
     } catch (_error) {
       if (isMountedRef()) {
-        setErrorMessage("Could not reach server.");
+        alert("Could not reach server.");
       }
     } finally {
       if (isMountedRef()) {
@@ -93,7 +91,6 @@ export default function AdminUsers() {
     }
 
     setIsActing(true);
-    setErrorMessage("");
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/users/${userId}/cycle-role`,
@@ -107,15 +104,16 @@ export default function AdminUsers() {
       const result = await response.json();
 
       if (!response.ok) {
-        setErrorMessage(result.message || "Could not cycle role.");
+        alert(result.message || "Could not cycle role.");
         return;
       }
 
       setUsers((prev) =>
         prev.map((user) => (user._id === userId ? result : user)),
       );
+      alert("User role updated.");
     } catch (_error) {
-      setErrorMessage("Could not reach server.");
+      alert("Could not reach server.");
     } finally {
       setIsActing(false);
     }
@@ -129,7 +127,6 @@ export default function AdminUsers() {
     }
 
     setIsActing(true);
-    setErrorMessage("");
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/users/${userId}/toggle-status`,
@@ -143,15 +140,16 @@ export default function AdminUsers() {
       const result = await response.json();
 
       if (!response.ok) {
-        setErrorMessage(result.message || "Could not toggle status.");
+        alert(result.message || "Could not toggle status.");
         return;
       }
 
       setUsers((prev) =>
         prev.map((user) => (user._id === userId ? result : user)),
       );
+      alert("User status updated.");
     } catch (_error) {
-      setErrorMessage("Could not reach server.");
+      alert("Could not reach server.");
     } finally {
       setIsActing(false);
     }
@@ -165,7 +163,6 @@ export default function AdminUsers() {
     }
 
     setIsActing(true);
-    setErrorMessage("");
     try {
       const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
         method: "DELETE",
@@ -176,7 +173,7 @@ export default function AdminUsers() {
       const result = await response.json();
 
       if (!response.ok) {
-        setErrorMessage(result.message || "Could not delete user.");
+        alert(result.message || "Could not delete user.");
         return;
       }
 
@@ -190,8 +187,9 @@ export default function AdminUsers() {
           return ownerId !== userId && holderId !== userId;
         }),
       );
+      alert("User deleted.");
     } catch (_error) {
-      setErrorMessage("Could not reach server.");
+      alert("Could not reach server.");
     } finally {
       setIsActing(false);
     }
@@ -302,10 +300,6 @@ export default function AdminUsers() {
           Admin view of users. Toggle status, change role or delete a user. Be
           careful with this page!
         </p>
-
-        {errorMessage ? (
-          <p className="admin-card-note">{errorMessage}</p>
-        ) : null}
 
         <section className="admin-card">
           <div className="admin-row">
