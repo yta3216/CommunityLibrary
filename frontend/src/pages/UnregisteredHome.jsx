@@ -40,7 +40,24 @@ const Home = () => {
     loadBooks();
   }, [loadBooks]);
 
-  const popularBooks = useMemo(() => books.slice(0, 5), [books]);
+  const [popularBooks, setPopularBooks] = useState([]);
+
+  useEffect(() => {
+    const fetchPopular = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/books/popular`);
+        const data = await response.json();
+        if (response.ok) {
+          setPopularBooks(data.map((item) => ({
+            ...item.bookData,
+            avgRating: item.avgRating,
+          })));
+        }
+      } catch (_error) {}
+    };
+    fetchPopular();
+  }, []);
+
   const newBooks = useMemo(() => books.slice(), [books]);
 
   // Reusable title-based filter so both sections respond to the same search term.
@@ -89,7 +106,7 @@ const Home = () => {
         title={book.title || "Untitled"}
         author={book.author || "Unknown author"}
         genre={book.genre || "Unknown"}
-        rating={typeof book.rating === "number" ? book.rating : 0}
+        rating={typeof book.avgRating === "number" ? Math.round(book.avgRating) : 0}
       />
     ));
   };

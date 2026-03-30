@@ -266,7 +266,7 @@ function BookDetail() {
         />
 
         {/*Comments section*/}
-        <ReviewSection currentUser={currentUser?._id} postedBy={book.ownerId} />
+        <ReviewSection bookId={book.id} currentUser={currentUser?._id} postedBy={book.ownerId} />
 
         {errorMessage ? <p style={styles.errorText}>{errorMessage}</p> : null}
       </div>
