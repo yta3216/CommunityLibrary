@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 
 const Book = require("../models/Book");
 const User = require("../models/User");
+const Review = require("../models/Review");
 const { authRequired, requireRole } = require("../middleware/auth");
 
 // router groups all book-related endpoints
@@ -78,6 +79,46 @@ router.post("/", authRequired, async (req, res) => {
     });
   }
 });
+// Popular book endpoints
+router.get("/popular", async (_req, res) => {
+  try {
+    const popular = await Review.aggregate([
+      {
+        $group: {
+          _id: "$book",
+          avgRating: { $avg: "$rating" },
+          numberOfReviews: { $sum: 1 },
+        },
+      },
+      { $match: { numberOfReviews: { $gte: 1 } } },
+      { $sort: { avgRating: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "books",
+          localField: "_id",
+          foreignField: "_id",
+          as: "bookData",
+        },
+      },
+      { $unwind: "$bookData" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "bookData.owner",
+          foreignField: "_id",
+          as: "bookData.owner",
+        },
+      },
+      { $unwind: "$bookData.owner" },
+    ]);
+
+    return res.json(popular);
+  } catch (error) {
+    console.error("popular books error:", error);
+    return res.status(500).json({ message: "failed to fetch popular books" });
+  }
+});
 
 // list all books with lightweight owner/holder info
 router.get("/", async (_req, res) => {
@@ -87,7 +128,40 @@ router.get("/", async (_req, res) => {
       .populate("holder", "_id username email role")
       .sort({ createdAt: -1 });
 
-    return res.json(books);
+      //get average rating for each book
+      const ratings = await Review.aggregate([
+      {
+        $group: {
+          _id: "$book",
+          avgRating: { $avg: "$rating" },
+          numberOfReviews: { $sum: 1 },
+        },
+      },
+    ]);
+
+    //match rating with books
+    const ratingsMap = {};
+    ratings.forEach((r) => {
+      ratingsMap[r._id.toString()] = {
+        avgRating: Math.round(r.avgRating * 10) / 10,
+        numberOfReviews: r.numberOfReviews,
+      };
+    });
+
+    // attach avgRating and numberOfReviews to each book
+    const booksWithRatings = books.map((book) => {
+      const ratingData = ratingsMap[book._id.toString()] || {
+        avgRating: 0,
+        numberOfReviews: 0,
+      };
+      return {
+        ...book.toObject(),
+        avgRating: ratingData.avgRating,
+        numberOfReviews: ratingData.numberOfReviews,
+      };
+    });
+
+    return res.json(booksWithRatings);
   } catch (_error) {
     return res.status(500).json({ message: "failed to fetch books" });
   }
