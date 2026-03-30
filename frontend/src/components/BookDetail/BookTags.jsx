@@ -1,13 +1,28 @@
-// Displays the genre tags and action buttons Borrow, Exchange, Trade
+// Displays genre tags and borrow/return availability actions for a listing
 
-function BookActions({ genres, bookStatus, onActionSelect }) {
+function BookActions({
+  genres,
+  borrowAvailabilityText,
+  showBorrowButton,
+  isBorrowEnabled,
+  showViewConversationButton,
+  showReturnButton,
+  actionHintText,
+  onBorrow,
+  onViewConversation,
+  onReturn,
+  isActionPending,
+}) {
   const genreList = genres || ["Horror", "Romance", "Action", "Sci-fi"];
-  const actions = ["Borrow", "Exchange", "Trade"];
-  // A single listing status now controls all three buttons together
-  // This should come from the single availability status returned by the backend
-  const normalizedStatus = String(bookStatus || "available").toLowerCase();
-  const isAvailable =
-    normalizedStatus === "available" || normalizedStatus === "with_owner";
+  const isBorrowDisabled = !isBorrowEnabled || isActionPending;
+  const isActionDisabled = isActionPending;
+
+  const borrowButtonStyle = isBorrowDisabled
+    ? styles.buttonDisabled
+    : styles.buttonEnabled;
+  const actionButtonStyle = isActionDisabled
+    ? styles.buttonDisabled
+    : styles.buttonEnabled;
 
   return (
     <div style={styles.wrapper}>
@@ -27,32 +42,47 @@ function BookActions({ genres, bookStatus, onActionSelect }) {
       <div style={styles.row}>
         <span style={styles.label}>Actions</span>
         <div style={styles.buttons}>
-          {actions.map((action, i) => {
-            return (
+          {showBorrowButton ? (
+            <div style={styles.borrowGroup}>
               <button
-                key={i}
                 type="button"
-                disabled={!isAvailable}
-                onClick={() => {
-                  // Only forward the click when the listing is currently available
-                  if (isAvailable) {
-                    onActionSelect?.(action);
-                  }
-                }}
-                style={{
-                  ...styles.button,
-                  backgroundColor: isAvailable ? "#4f7f7c" : "#e0e0e0",
-                  color: isAvailable ? "#fff" : "#333",
-                  cursor: isAvailable ? "pointer" : "not-allowed",
-                  opacity: isAvailable ? 1 : 0.95,
-                }}
+                disabled={isBorrowDisabled}
+                onClick={() => onBorrow?.()}
+                style={borrowButtonStyle}
               >
-                {action}
+                Borrow
               </button>
-            );
-          })}
+            </div>
+          ) : null}
+
+          {showViewConversationButton ? (
+            <button
+              type="button"
+              onClick={() => onViewConversation?.()}
+              style={actionButtonStyle}
+              disabled={isActionDisabled}
+            >
+              View Conversation
+            </button>
+          ) : null}
+
+          {showReturnButton ? (
+            <button
+              type="button"
+              onClick={() => onReturn?.()}
+              style={actionButtonStyle}
+              disabled={isActionDisabled}
+            >
+              Return
+            </button>
+          ) : null}
+          <span style={styles.availabilityText}>
+            {borrowAvailabilityText || "0 copies available"}
+          </span>
         </div>
       </div>
+
+      {actionHintText ? <p style={styles.actionHint}>{actionHintText}</p> : null}
     </div>
   );
 }
@@ -89,13 +119,51 @@ const styles = {
     flexWrap: "wrap",
     gap: "12px",
   },
+  borrowGroup: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  },
   button: {
+    padding: "8px 28px",
+    borderRadius: "20px",
+    border: "none",
+    fontSize: "0.9rem",
+    cursor: "not-allowed",
+    fontWeight: "500",
+  },
+  buttonEnabled: {
     padding: "8px 28px",
     borderRadius: "20px",
     border: "none",
     fontSize: "0.9rem",
     cursor: "pointer",
     fontWeight: "500",
+    backgroundColor: "#4f7f7c",
+    color: "#fff",
+    opacity: 1,
+  },
+  buttonDisabled: {
+    padding: "8px 28px",
+    borderRadius: "20px",
+    border: "none",
+    fontSize: "0.9rem",
+    cursor: "not-allowed",
+    fontWeight: "500",
+    backgroundColor: "#e0e0e0",
+    color: "#333",
+    opacity: 0.95,
+  },
+  actionHint: {
+    margin: "-4px 0 12px 104px",
+    color: "#667085",
+    fontSize: "0.85rem",
+  },
+  availabilityText: {
+    color: "#475467",
+    fontSize: "0.9rem",
+    fontWeight: "500",
+    alignSelf: "center",
   },
 };
 

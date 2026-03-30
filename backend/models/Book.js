@@ -9,7 +9,6 @@ const bookSchema = new mongoose.Schema({
   isbn: {
     type: Number,
     required: true,
-    unique: true,
   },
   title: {
     type: String,
