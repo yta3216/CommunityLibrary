@@ -8,6 +8,7 @@ const cors = require("cors");
 const authRouter = require("./routes/auth");
 const usersRouter = require("./routes/users");
 const booksRouter = require("./routes/books");
+const reviewsRouter = require("./routes/reviews");
 
 // load values from .env into process.env
 dotenv.config();
@@ -26,6 +27,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/books", booksRouter);
+app.use("/api/reviews", reviewsRouter);
 
 // use env port if provided, otherwise default to 5000
 const port = process.env.PORT || 5000;
