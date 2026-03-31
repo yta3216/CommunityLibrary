@@ -8,6 +8,8 @@ const cors = require("cors");
 const authRouter = require("./routes/auth");
 const usersRouter = require("./routes/users");
 const booksRouter = require("./routes/books");
+const chatsRouter = require("./routes/chats");
+const Chat = require("./models/Chat");
 const reviewsRouter = require("./routes/reviews");
 
 // load values from .env into process.env
@@ -27,6 +29,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/books", booksRouter);
+app.use("/api/chats", chatsRouter);
 app.use("/api/reviews", reviewsRouter);
 
 // use env port if provided, otherwise default to 5000
@@ -35,8 +38,11 @@ const port = process.env.PORT || 5000;
 // connect to mongodb first, then start listening for requests
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log("MongoDB connected");
+
+    // Keep chat indexes in sync so old unique constraints do not block valid requests.
+    await Chat.syncIndexes();
 
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);

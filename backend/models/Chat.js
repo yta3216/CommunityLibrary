@@ -2,6 +2,22 @@
 const mongoose = require("mongoose");
 
 // schema that describes what every chat document should look like
+const chatMessageSchema = new mongoose.Schema(
+  {
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    text: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 500,
+    },
+  },
+  { timestamps: true },
+);
 const chatSchema = new mongoose.Schema(
   {
     book: {
@@ -9,24 +25,25 @@ const chatSchema = new mongoose.Schema(
       ref: "Book",
       required: true,
     },
-    sender: {
+    owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    receiver: {
+    requester: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    message: {
-      type: String,
-      trim: true,
-      maxlength: 500,
+    messages: {
+      type: [chatMessageSchema],
+      default: [],
     },
   },
   { timestamps: true },
 );
+
+chatSchema.index({ book: 1, owner: 1, requester: 1 }, { unique: true });
 
 // create model from schema and export it for use in other files
 const Chat = mongoose.model("Chat", chatSchema);

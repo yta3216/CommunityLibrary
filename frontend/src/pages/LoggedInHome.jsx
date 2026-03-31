@@ -3,22 +3,13 @@ import { useNavigate } from "react-router-dom";
 import BookCard from "../components/BookCard/BookCard";
 import Navbar from "../components/Navbar/Navbar";
 import Sidebar from "../components/Sidebar/Sidebar";
+import {
+  isListingAvailable,
+  toAvailableCopiesText,
+} from "../utils/bookAvailability";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
-
-const isBookAvailable = (book) => {
-  const ownerId = typeof book.owner === "object" ? book.owner?._id : book.owner;
-  const holderId =
-    typeof book.holder === "object" ? book.holder?._id : book.holder;
-  const normalizedStatus = String(book.status || "").toLowerCase();
-
-  return (
-    normalizedStatus === "available" ||
-    normalizedStatus === "with_owner" ||
-    (ownerId && holderId && ownerId.toString() === holderId.toString())
-  );
-};
 
 const LoggedInHome = () => {
   const navigate = useNavigate();
@@ -72,6 +63,37 @@ const LoggedInHome = () => {
     loadBooks();
   }, [loadBooks, navigate]);
 
+  const booksGroupedByIsbn = useMemo(() => {
+    const grouped = new Map();
+
+    books.forEach((book) => {
+      const isbnKey = String(book?.isbn || "").trim() || String(book?._id || "");
+      const isAvailable = isListingAvailable(book);
+
+      if (!grouped.has(isbnKey)) {
+        grouped.set(isbnKey, {
+          representative: book,
+          availableCount: isAvailable ? 1 : 0,
+          representativeAvailable: isAvailable,
+        });
+        return;
+      }
+
+      const existing = grouped.get(isbnKey);
+      existing.availableCount += isAvailable ? 1 : 0;
+
+      if (!existing.representativeAvailable && isAvailable) {
+        existing.representative = book;
+        existing.representativeAvailable = true;
+      }
+    });
+
+    return Array.from(grouped.values()).map((entry) => ({
+      ...entry.representative,
+      availableCountByIsbn: entry.availableCount,
+    }));
+  }, [books]);
+
   // Placeholder ordering until review counts are implemented.
   // Popular books
   const [popularBooks, setPopularBooks] = useState([]);
@@ -121,9 +143,9 @@ const LoggedInHome = () => {
     () => filterBooksByTitle(popularBooks),
     [filterBooksByTitle, popularBooks],
   );
-  const filteredAvailableBooks = useMemo(
-    () => filterBooksByTitle(allAvailableBooks),
-    [allAvailableBooks, filterBooksByTitle],
+  const filteredAllBooks = useMemo(
+    () => filterBooksByTitle(allBooks),
+    [allBooks, filterBooksByTitle],
   );
 
   const renderCardRow = (bookList) => {
@@ -145,6 +167,7 @@ const LoggedInHome = () => {
         title={book.title || "Untitled"}
         author={book.author || "Unknown author"}
         genre={book.genre || "Unknown"}
+        availabilityLabel={toAvailableCopiesText(book.availableCountByIsbn || 0
         rating={typeof book.avgRating === "number" ? Math.round(book.avgRating) : 0}
         onClick={() => navigate(`/book?id=${book._id}`)}
       />
@@ -241,7 +264,7 @@ const LoggedInHome = () => {
 
           <h2 style={styles.sectionTitle}>All Books</h2>
           <div style={styles.cardRow}>
-            {renderCardRow(filteredAvailableBooks)}
+            {renderCardRow(filteredAllBooks)}
           </div>
         </main>
 

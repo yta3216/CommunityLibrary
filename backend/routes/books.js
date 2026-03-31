@@ -184,10 +184,51 @@ router.delete("/:id", authRequired, async (req, res) => {
     const isOwner = book.owner.toString() === req.user.id;
     const isAdmin = req.user.role === "admin";
 
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: "forbidden" });
+    }
+
     await Book.findByIdAndDelete(id);
     return res.json({ message: "book deleted" });
   } catch (_error) {
     return res.status(500).json({ message: "failed to delete book" });
+  }
+});
+
+router.patch("/:id/return", authRequired, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "invalid book id" });
+    }
+
+    const book = await Book.findById(id);
+    if (!book) {
+      return res.status(404).json({ message: "book not found" });
+    }
+
+    const ownerId = book.owner.toString();
+    const holderId = book.holder.toString();
+    const actorId = req.user.id;
+
+    const requesterCanReturn = actorId === holderId && actorId !== ownerId;
+    const ownerCanMarkAvailable = actorId === ownerId && holderId !== ownerId;
+
+    if (!requesterCanReturn && !ownerCanMarkAvailable) {
+      return res.status(403).json({ message: "you cannot return this book from the current state" });
+    }
+
+    book.holder = book.owner;
+    await book.save();
+
+    const populatedBook = await Book.findById(book._id)
+      .populate("owner", "_id username email role")
+      .populate("holder", "_id username email role");
+
+    return res.json(populatedBook);
+  } catch (error) {
+    return res.status(500).json({ message: "failed to return book", detail: error.message });
   }
 });
 
