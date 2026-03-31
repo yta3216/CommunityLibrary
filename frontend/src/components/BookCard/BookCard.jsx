@@ -1,7 +1,7 @@
 import React from "react";
 import "./BookCard.css";
 
-const BookCard = ({ title, author, genre, availabilityLabel, rating, onClick }) => {
+const BookCard = ({ title, author, owner, genre, rating, onClick }) => {
   return (
     <div
       className="book-card"
@@ -12,10 +12,8 @@ const BookCard = ({ title, author, genre, availabilityLabel, rating, onClick }) 
       <div className="book-card-content">
         <h3>{title}</h3>
         <p className="author">by {author}</p>
+        <p className="owner">Owner: {owner}</p>
         <p className="genre">Genre: {genre}</p>
-        {availabilityLabel ? (
-          <p className="availability">{availabilityLabel}</p>
-        ) : null}
         <div className="stars">
           {Array.from({ length: 5 }).map((_, i) =>
             i < rating ? (

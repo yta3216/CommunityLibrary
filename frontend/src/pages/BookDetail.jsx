@@ -8,7 +8,6 @@ import MessageComposer from "../components/Messages/MessageComposer";
 import {
   getBookUserId,
   isListingAvailable,
-  toAvailableCopiesText,
 } from "../utils/bookAvailability";
 
 const API_BASE_URL =
@@ -194,27 +193,6 @@ function BookDetail() {
     };
   }, [selectedBook]);
 
-  const availableCopiesByIsbn = useMemo(() => {
-    if (!book?.isbn) {
-      return 0;
-    }
-
-    const normalizedIsbn = String(book.isbn).trim();
-
-    return books.filter((listedBook) => {
-      const listedIsbn = String(listedBook?.isbn || "").trim();
-      return listedIsbn === normalizedIsbn && isListingAvailable(listedBook);
-    }).length;
-  }, [books, book?.isbn]);
-
-  const borrowAvailabilityText = useMemo(() => {
-    if (!book?.isbn) {
-      return "ISBN unavailable";
-    }
-
-    return toAvailableCopiesText(availableCopiesByIsbn);
-  }, [availableCopiesByIsbn, book?.isbn]);
-
   const currentUserId = currentUser?._id || "";
   const isBookAvailable = book?.status === "available";
   const existingRequesterChatId = book ? requesterChatByBook[book.id] || "" : "";
@@ -257,6 +235,7 @@ function BookDetail() {
       currentUserId === book.holderId &&
       currentUserId !== book.ownerId,
   );
+  const isCurrentOwner = Boolean(currentUserId && book && currentUserId === book.ownerId);
 
   const canBorrow = Boolean(
     book &&
@@ -278,6 +257,10 @@ function BookDetail() {
   );
 
   const actionHintText = useMemo(() => {
+    if (isCurrentOwner) {
+      return "You are the owner of this book.";
+    }
+
     if (ownsCopyWithSameIsbn) {
       return "You already own a copy of this book.";
     }
@@ -457,6 +440,7 @@ function BookDetail() {
         {/* Book title */}
         <h1 style={styles.title}>{book.title}</h1>
         <h3 style={styles.author}>{book.author}</h3>
+        <h3 style={styles.owner}>Owned by: {book.ownerName || "Unknown"}</h3>
 
         {/* Cover image + synopsis */}
         <BookCover synopsis={book.description} />
@@ -464,7 +448,6 @@ function BookDetail() {
         {/* Genre tags + action buttons */}
         <BookActions
           genres={book.genres}
-          borrowAvailabilityText={borrowAvailabilityText}
           listedBookAvailabilityText={
             isBookAvailable ? "This listing: Available" : "This listing: Not available"
           }
@@ -521,6 +504,12 @@ const styles = {
   },
   author: {
     fontSize: "1.2rem",
+    fontWeight: "500",
+    margin: "0",
+    color: "#555",
+  },
+  owner: {
+    fontSize: "1.1rem",
     fontWeight: "500",
     margin: "0 0 32px",
     color: "#555",
