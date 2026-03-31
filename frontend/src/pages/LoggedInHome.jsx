@@ -95,8 +95,31 @@ const LoggedInHome = () => {
   }, [books]);
 
   // Placeholder ordering until review counts are implemented.
-  const popularBooks = useMemo(() => booksGroupedByIsbn.slice(0, 5), [booksGroupedByIsbn]);
-  const allBooks = useMemo(() => booksGroupedByIsbn, [booksGroupedByIsbn]);
+  // Popular books
+  const [popularBooks, setPopularBooks] = useState([]);
+  useEffect(() => {
+  const fetchPopular = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/books/popular`);
+      const data = await response.json();
+      if (response.ok) {
+        setPopularBooks(data.map((item) => ({
+          ...item.bookData,
+          avgRating: item.avgRating,
+          numberOfReviews: item.numberOfReviews,
+        })));
+      }
+    } catch (_error) {
+      // silent failure
+    }
+  };
+  fetchPopular();
+}, []);
+
+  const allAvailableBooks = useMemo(
+    () => books.filter((book) => isBookAvailable(book)),
+    [books],
+  );
 
   // One shared filter that matches book titles against the current search term.
   const filterBooksByTitle = useCallback(
@@ -144,8 +167,8 @@ const LoggedInHome = () => {
         title={book.title || "Untitled"}
         author={book.author || "Unknown author"}
         genre={book.genre || "Unknown"}
-        availabilityLabel={toAvailableCopiesText(book.availableCountByIsbn || 0)}
-        rating={typeof book.rating === "number" ? book.rating : 0}
+        availabilityLabel={toAvailableCopiesText(book.availableCountByIsbn || 0
+        rating={typeof book.avgRating === "number" ? Math.round(book.avgRating) : 0}
         onClick={() => navigate(`/book?id=${book._id}`)}
       />
     ));
