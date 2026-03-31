@@ -167,6 +167,68 @@ router.get("/", async (_req, res) => {
   }
 });
 
+router.patch("/:id", authRequired, async (req, res) => {
+  // authRequired is from middleware auth.js, checks for valid token and sets req.user to the token payload 
+  try {
+    const { id } = req.params;
+    const { isbn, title, author, genre, description } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "invalid book id" });
+    }
+
+    const book = await Book.findById(id);
+    // get ID by request sent from frontend, then find the book by id in the database
+    // if book doesn't exist, return 404 not found
+    if (!book) {
+      return res.status(404).json({ message: "book not found" });
+    }
+
+    // only owner can edit book details (not holder unless they are the same)
+    if (book.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: "forbidden" });
+    }
+
+    // update only provided fields
+    if (isbn !== undefined) {
+      const normalizedIsbn = String(isbn).trim();
+      const parsedIsbn = Number(normalizedIsbn);
+
+      // convert to number, remove extra spaces, check if it is a valid number, and not empty after normalization
+      if (!normalizedIsbn || Number.isNaN(parsedIsbn)) {
+        return res.status(400).json({ message: "valid isbn is required" });
+      }
+
+      book.isbn = parsedIsbn;
+    }
+
+    if (title !== undefined) book.title = String(title).trim();
+    if (author !== undefined) book.author = String(author).trim();
+    if (genre !== undefined) book.genre = String(genre).trim();
+    if (description !== undefined) book.description = String(description).trim();
+
+    await book.save();
+
+    const updatedBook = await Book.findById(book._id)
+      .populate("owner", "_id username email role")
+      .populate("holder", "_id username email role");
+      // populate is used to replace the owner and holder ObjectIds with the actual user documents
+
+    return res.json(updatedBook);
+  } catch (error) {
+    console.error("update book error:", error);
+
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
+
+    return res.status(500).json({
+      message: "failed to update book",
+      detail: error.message,
+    });
+  }
+});
+
 // delete book: only owner or admin is allowed
 router.delete("/:id", authRequired, async (req, res) => {
   try {

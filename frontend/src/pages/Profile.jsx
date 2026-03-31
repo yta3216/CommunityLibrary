@@ -14,6 +14,17 @@ const Profile = () => {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [selectedBookIdToEdit, setSelectedBookIdToEdit] = useState("");
+  const [editFormValues, setEditFormValues] = useState({
+    isbn: "",
+    title: "",
+    author: "",
+    genre: "",
+    description: "",
+  });
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editMessage, setEditMessage] = useState("");
+  const [isUpdatingBook, setIsUpdatingBook] = useState(false);
   const [selectedBookIdToDelete, setSelectedBookIdToDelete] = useState("");
   const [deleteMessage, setDeleteMessage] = useState("");
   const [isDeletingBook, setIsDeletingBook] = useState(false);
@@ -108,6 +119,47 @@ const Profile = () => {
 
   useEffect(() => {
     if (ownedBooks.length === 0) {
+      setSelectedBookIdToEdit("");
+      setEditFormValues({
+        isbn: "",
+        title: "",
+        author: "",
+        genre: "",
+        description: "",
+      });
+      return;
+    }
+
+    const targetBookId = selectedBookIdToEdit || ownedBooks[0]._id;
+    const selectedBook = ownedBooks.find((book) => book._id === targetBookId);
+
+    if (!selectedBook) {
+      setSelectedBookIdToEdit(ownedBooks[0]._id);
+      setEditFormValues({
+        isbn: String(ownedBooks[0].isbn || ""),
+        title: ownedBooks[0].title || "",
+        author: ownedBooks[0].author || "",
+        genre: ownedBooks[0].genre || "",
+        description: ownedBooks[0].description || "",
+      });
+      return;
+    }
+
+    if (selectedBookIdToEdit !== targetBookId) {
+      setSelectedBookIdToEdit(targetBookId);
+    }
+
+    setEditFormValues({
+      isbn: String(selectedBook.isbn || ""),
+      title: selectedBook.title || "",
+      author: selectedBook.author || "",
+      genre: selectedBook.genre || "",
+      description: selectedBook.description || "",
+    });
+  }, [ownedBooks, selectedBookIdToEdit]);
+
+  useEffect(() => {
+    if (ownedBooks.length === 0) {
       setSelectedBookIdToDelete("");
       return;
     }
@@ -190,6 +242,114 @@ const Profile = () => {
     }
   };
 
+  const handleEditChange = (event) => {
+    const { name, value } = event.target;
+    setEditFormValues((previous) => ({ ...previous, [name]: value }));
+    setEditMessage("");
+  };
+
+  const getEditErrorMessage = (status, serverMessage) => {
+    const normalizedServerMessage = String(serverMessage || "").toLowerCase();
+
+    if (status === 400) {
+      return "Invalid input. ISBN must be numeric and all fields are required.";
+    }
+
+    if (status === 401) {
+      return "Your session has expired. Please log in again.";
+    }
+
+    if (status === 403) {
+      return "You do not have permission to edit this book (owner only).";
+    }
+
+    if (status === 404) {
+      if (normalizedServerMessage.includes("book not found")) {
+        return "Book not found. It may have already been deleted.";
+      }
+
+      if (normalizedServerMessage.includes("cannot patch")) {
+        return "Update endpoint was not found. Restart backend and confirm PATCH /api/books/:id is implemented.";
+      }
+
+      return "Update endpoint or target resource was not found. Please verify backend routes and restart the server.";
+    }
+
+    if (serverMessage) {
+      return `Update failed: ${serverMessage}`;
+    }
+
+    return `Update failed (status: ${status}). Please try again shortly.`;
+  };
+
+  const handleEditOwnedBook = async (event) => {
+    event.preventDefault();
+
+    if (!selectedBookIdToEdit) {
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    const payload = {
+      isbn: editFormValues.isbn.trim(),
+      title: editFormValues.title.trim(),
+      author: editFormValues.author.trim(),
+      genre: editFormValues.genre.trim(),
+      description: editFormValues.description.trim(),
+    };
+
+    if (
+      !payload.isbn ||
+      Number.isNaN(Number(payload.isbn)) ||
+      !payload.title ||
+      !payload.author ||
+      !payload.genre ||
+      !payload.description
+    ) {
+      setEditMessage("ISBN and all fields are required.");
+      return;
+    }
+
+    try {
+      setEditMessage("");
+      setIsUpdatingBook(true);
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/books/${selectedBookIdToEdit}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setEditMessage(getEditErrorMessage(response.status, result.message));
+        return;
+      }
+
+      setBooks((previousBooks) =>
+        previousBooks.map((book) => (book._id === result._id ? result : book)),
+      );
+      setEditMessage("Book updated.");
+    } catch (_error) {
+      setEditMessage(
+        "Could not reach the server. Please check that the backend is running.",
+      );
+    } finally {
+      setIsUpdatingBook(false);
+    }
+  };
+
   return (
     <>
       <Navbar isLoggedIn={true} />
@@ -237,6 +397,41 @@ const Profile = () => {
 
         <section className="books-section">
           <h2>Owned Books</h2>
+          {ownedBooks.length > 0 ? (
+            <div className="book-delete-panel">
+              <label htmlFor="edit-owned-book">Edit one of your books:</label>
+              <div className="book-delete-controls">
+                <select
+                  id="edit-owned-book"
+                  value={selectedBookIdToEdit}
+                  onChange={(event) => {
+                    setSelectedBookIdToEdit(event.target.value);
+                    setEditMessage("");
+                  }}
+                  disabled={isUpdatingBook}
+                >
+                  {ownedBooks.map((book) => (
+                    <option key={book._id} value={book._id}>
+                      {book.title || "Untitled"} -{" "}
+                      {book.author || "Unknown author"}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={!selectedBookIdToEdit || isUpdatingBook}
+                  onClick={() => {
+                    setIsEditOpen(true);
+                    setEditMessage("");
+                  }}
+                >
+                  Edit Book
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           {ownedBooks.length > 0 ? (
             <div className="book-delete-panel">
               <label htmlFor="delete-owned-book">
@@ -318,6 +513,117 @@ const Profile = () => {
             </div>
           )}
         </section>
+
+        {isEditOpen ? (
+          <div style={styles.modalBackdrop}>
+            <div style={styles.modalCard}>
+              <h3 style={styles.modalTitle}>Edit Book Listing</h3>
+
+              <form onSubmit={handleEditOwnedBook} style={styles.formGrid}>
+                <label style={styles.inputLabel} htmlFor="edit-book-isbn">
+                  ISBN
+                </label>
+                <input
+                  id="edit-book-isbn"
+                  name="isbn"
+                  required
+                  value={editFormValues.isbn}
+                  onChange={handleEditChange}
+                  style={styles.textInput}
+                  placeholder="ISBN here"
+                />
+
+                <label style={styles.inputLabel} htmlFor="edit-book-title">
+                  Title
+                </label>
+                <input
+                  id="edit-book-title"
+                  name="title"
+                  required
+                  value={editFormValues.title}
+                  onChange={handleEditChange}
+                  style={styles.textInput}
+                  placeholder="Book title here"
+                />
+
+                <label style={styles.inputLabel} htmlFor="edit-book-author">
+                  Author
+                </label>
+                <input
+                  id="edit-book-author"
+                  name="author"
+                  required
+                  value={editFormValues.author}
+                  onChange={handleEditChange}
+                  style={styles.textInput}
+                  placeholder="Author name here"
+                />
+
+                <label style={styles.inputLabel} htmlFor="edit-book-genre">
+                  Genre
+                </label>
+                <input
+                  id="edit-book-genre"
+                  name="genre"
+                  required
+                  value={editFormValues.genre}
+                  onChange={handleEditChange}
+                  style={styles.textInput}
+                  placeholder="Genre here"
+                />
+
+                <label
+                  style={styles.inputLabel}
+                  htmlFor="edit-book-description"
+                >
+                  Description
+                </label>
+                <textarea
+                  id="edit-book-description"
+                  name="description"
+                  required
+                  value={editFormValues.description}
+                  onChange={handleEditChange}
+                  style={styles.textArea}
+                  placeholder="Write a short description"
+                />
+
+                {editMessage ? (
+                  <p
+                    style={
+                      editMessage === "Book updated."
+                        ? styles.createSuccessText
+                        : styles.createErrorText
+                    }
+                  >
+                    {editMessage}
+                  </p>
+                ) : null}
+
+                <div style={styles.modalButtonRow}>
+                  <button
+                    type="submit"
+                    style={styles.primaryButton}
+                    disabled={isUpdatingBook}
+                  >
+                    {isUpdatingBook ? "Saving..." : "Save Changes"}
+                  </button>
+
+                  <button
+                    type="button"
+                    style={styles.secondaryButton}
+                    onClick={() => {
+                      setIsEditOpen(false);
+                      setEditMessage("");
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
       </div>
     </>
   );
@@ -357,6 +663,87 @@ const styles = {
     backgroundColor: "#eef2f6",
     color: "#344054",
     fontWeight: 600,
+  },
+  modalBackdrop: {
+    position: "fixed",
+    inset: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "20px",
+    zIndex: 1000,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: "640px",
+    backgroundColor: "#ffffff",
+    borderRadius: "12px",
+    padding: "20px",
+    boxShadow: "0 14px 32px rgba(0,0,0,0.22)",
+  },
+  modalTitle: {
+    margin: "0 0 14px",
+    fontSize: "24px",
+    fontWeight: 700,
+  },
+  formGrid: {
+    display: "grid",
+    gap: "10px",
+  },
+  inputLabel: {
+    fontSize: "14px",
+    color: "#344054",
+    fontWeight: 600,
+  },
+  textInput: {
+    border: "1px solid #d0d5dd",
+    borderRadius: "8px",
+    padding: "10px 12px",
+    fontSize: "14px",
+  },
+  textArea: {
+    minHeight: "90px",
+    border: "1px solid #d0d5dd",
+    borderRadius: "8px",
+    padding: "10px 12px",
+    fontSize: "14px",
+    resize: "vertical",
+  },
+  createErrorText: {
+    margin: 0,
+    color: "#b42318",
+    fontSize: "14px",
+    fontWeight: 600,
+  },
+  createSuccessText: {
+    margin: 0,
+    color: "#166534",
+    fontSize: "14px",
+    fontWeight: 600,
+  },
+  modalButtonRow: {
+    display: "flex",
+    gap: "10px",
+    justifyContent: "flex-end",
+  },
+  primaryButton: {
+    border: "none",
+    borderRadius: "8px",
+    padding: "10px 14px",
+    fontWeight: 700,
+    color: "#fff",
+    backgroundColor: "#3d4a5c",
+    cursor: "pointer",
+  },
+  secondaryButton: {
+    border: "1px solid #d0d5dd",
+    borderRadius: "8px",
+    padding: "10px 14px",
+    fontWeight: 700,
+    color: "#344054",
+    backgroundColor: "#fff",
+    cursor: "pointer",
   },
 };
 
