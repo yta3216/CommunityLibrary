@@ -67,7 +67,8 @@ const LoggedInHome = () => {
     const grouped = new Map();
 
     books.forEach((book) => {
-      const isbnKey = String(book?.isbn || "").trim() || String(book?._id || "");
+      const isbnKey =
+        String(book?.isbn || "").trim() || String(book?._id || "");
       const isAvailable = isListingAvailable(book);
 
       if (!grouped.has(isbnKey)) {
@@ -98,26 +99,28 @@ const LoggedInHome = () => {
   // Popular books
   const [popularBooks, setPopularBooks] = useState([]);
   useEffect(() => {
-  const fetchPopular = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/books/popular`);
-      const data = await response.json();
-      if (response.ok) {
-        setPopularBooks(data.map((item) => ({
-          ...item.bookData,
-          avgRating: item.avgRating,
-          numberOfReviews: item.numberOfReviews,
-        })));
+    const fetchPopular = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/books/popular`);
+        const data = await response.json();
+        if (response.ok) {
+          setPopularBooks(
+            data.map((item) => ({
+              ...item.bookData,
+              avgRating: item.avgRating,
+              numberOfReviews: item.numberOfReviews,
+            })),
+          );
+        }
+      } catch (_error) {
+        // silent failure
       }
-    } catch (_error) {
-      // silent failure
-    }
-  };
-  fetchPopular();
-}, []);
+    };
+    fetchPopular();
+  }, []);
 
   const allAvailableBooks = useMemo(
-    () => books.filter((book) => isBookAvailable(book)),
+    () => books.filter((book) => isListingAvailable(book)),
     [books],
   );
 
@@ -144,8 +147,8 @@ const LoggedInHome = () => {
     [filterBooksByTitle, popularBooks],
   );
   const filteredAllBooks = useMemo(
-    () => filterBooksByTitle(allBooks),
-    [allBooks, filterBooksByTitle],
+    () => filterBooksByTitle(allAvailableBooks),
+    [allAvailableBooks, filterBooksByTitle],
   );
 
   const renderCardRow = (bookList) => {
@@ -167,8 +170,12 @@ const LoggedInHome = () => {
         title={book.title || "Untitled"}
         author={book.author || "Unknown author"}
         genre={book.genre || "Unknown"}
-        availabilityLabel={toAvailableCopiesText(book.availableCountByIsbn || 0
-        rating={typeof book.avgRating === "number" ? Math.round(book.avgRating) : 0}
+        availabilityLabel={toAvailableCopiesText(
+          book.availableCountByIsbn || 0,
+        )}
+        rating={
+          typeof book.avgRating === "number" ? Math.round(book.avgRating) : 0
+        }
         onClick={() => navigate(`/book?id=${book._id}`)}
       />
     ));
@@ -263,9 +270,7 @@ const LoggedInHome = () => {
           </div>
 
           <h2 style={styles.sectionTitle}>All Books</h2>
-          <div style={styles.cardRow}>
-            {renderCardRow(filteredAllBooks)}
-          </div>
+          <div style={styles.cardRow}>{renderCardRow(filteredAllBooks)}</div>
         </main>
 
         <button
