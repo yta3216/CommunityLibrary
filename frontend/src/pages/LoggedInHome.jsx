@@ -5,7 +5,6 @@ import Navbar from "../components/Navbar/Navbar";
 import Sidebar from "../components/Sidebar/Sidebar";
 import {
   isListingAvailable,
-  toAvailableCopiesText,
 } from "../utils/bookAvailability";
 
 const API_BASE_URL =
@@ -62,38 +61,6 @@ const LoggedInHome = () => {
 
     loadBooks();
   }, [loadBooks, navigate]);
-
-  const booksGroupedByIsbn = useMemo(() => {
-    const grouped = new Map();
-
-    books.forEach((book) => {
-      const isbnKey =
-        String(book?.isbn || "").trim() || String(book?._id || "");
-      const isAvailable = isListingAvailable(book);
-
-      if (!grouped.has(isbnKey)) {
-        grouped.set(isbnKey, {
-          representative: book,
-          availableCount: isAvailable ? 1 : 0,
-          representativeAvailable: isAvailable,
-        });
-        return;
-      }
-
-      const existing = grouped.get(isbnKey);
-      existing.availableCount += isAvailable ? 1 : 0;
-
-      if (!existing.representativeAvailable && isAvailable) {
-        existing.representative = book;
-        existing.representativeAvailable = true;
-      }
-    });
-
-    return Array.from(grouped.values()).map((entry) => ({
-      ...entry.representative,
-      availableCountByIsbn: entry.availableCount,
-    }));
-  }, [books]);
 
   // Placeholder ordering until review counts are implemented.
   // Popular books
@@ -169,10 +136,8 @@ const LoggedInHome = () => {
         key={book._id}
         title={book.title || "Untitled"}
         author={book.author || "Unknown author"}
+        owner={book.owner?.username || "Unknown"}
         genre={book.genre || "Unknown"}
-        availabilityLabel={toAvailableCopiesText(
-          book.availableCountByIsbn || 0,
-        )}
         rating={
           typeof book.avgRating === "number" ? Math.round(book.avgRating) : 0
         }

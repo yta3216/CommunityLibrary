@@ -2,7 +2,6 @@
 
 function BookActions({
   genres,
-  borrowAvailabilityText,
   showBorrowButton,
   isBorrowEnabled,
   showViewConversationButton,
@@ -76,9 +75,6 @@ function BookActions({
               Return
             </button>
           ) : null}
-          <span style={styles.availabilityText}>
-            {borrowAvailabilityText || "0 copies available"}
-          </span>
         </div>
       </div>
 
