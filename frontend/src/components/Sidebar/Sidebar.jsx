@@ -15,16 +15,16 @@ const Sidebar = ({ isLoggedIn }) => {
         <>
           <ul>
             <li>
-              <a href="/Home">Home</a>
+              <Link to="/home">Home</Link>
             </li>
             <li>
-              <a href="./profile">My Books</a>
+              <Link to="/profile">My Books</Link>
             </li>
             <li>
-              <a href="./messages">Messages</a>
+              <Link to="/messages">Messages</Link>
             </li>
             <li>
-              <a href="./profile/edit">Settings</a>
+              <Link to="/profile/edit">Settings</Link>
             </li>
             <li>
               <Link to="/" onClick={handleLogout}>
@@ -38,7 +38,7 @@ const Sidebar = ({ isLoggedIn }) => {
         <>
           <ul>
             <li>
-              <a href="/login">Login to access all features</a>
+              <Link to="/login">Login to access all features</Link>
             </li>
           </ul>
         </>

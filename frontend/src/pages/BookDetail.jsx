@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
+import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import BookCover from "../components/BookDetail/BookCover";
 import BookActions from "../components/BookDetail/BookTags";
 import ReviewSection from "../components/BookDetail/ReviewSection";
 import MessageComposer from "../components/Messages/MessageComposer";
-import {
-  getBookUserId,
-  isListingAvailable,
-} from "../utils/bookAvailability";
+import { getBookUserId, isListingAvailable } from "../utils/bookAvailability";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
@@ -195,7 +193,9 @@ function BookDetail() {
 
   const currentUserId = currentUser?._id || "";
   const isBookAvailable = book?.status === "available";
-  const existingRequesterChatId = book ? requesterChatByBook[book.id] || "" : "";
+  const existingRequesterChatId = book
+    ? requesterChatByBook[book.id] || ""
+    : "";
   const hasExistingConversation = Boolean(existingRequesterChatId);
   const ownsCopyWithSameIsbn = useMemo(() => {
     if (!currentUserId || !book?.isbn) {
@@ -231,26 +231,30 @@ function BookDetail() {
   }, [book?.isbn, books, currentUserId]);
   const isCurrentHolder = Boolean(
     currentUserId &&
-      book &&
-      currentUserId === book.holderId &&
-      currentUserId !== book.ownerId,
+    book &&
+    currentUserId === book.holderId &&
+    currentUserId !== book.ownerId,
   );
-  const isCurrentOwner = Boolean(currentUserId && book && currentUserId === book.ownerId);
+  const isCurrentOwner = Boolean(
+    currentUserId && book && currentUserId === book.ownerId,
+  );
 
   const canBorrow = Boolean(
     book &&
-      currentUserId &&
-      !ownsCopyWithSameIsbn &&
-      !holdsBorrowedCopyWithSameIsbn &&
-      isBookAvailable &&
-      !hasExistingConversation &&
-      !isCurrentHolder,
+    currentUserId &&
+    !ownsCopyWithSameIsbn &&
+    !holdsBorrowedCopyWithSameIsbn &&
+    isBookAvailable &&
+    !hasExistingConversation &&
+    !isCurrentHolder,
   );
   const canReturn = Boolean(book && isCurrentHolder);
 
   const showBorrowButton = Boolean(
     !isCurrentHolder &&
-      (ownsCopyWithSameIsbn || holdsBorrowedCopyWithSameIsbn || !hasExistingConversation),
+    (ownsCopyWithSameIsbn ||
+      holdsBorrowedCopyWithSameIsbn ||
+      !hasExistingConversation),
   );
   const showViewConversationButton = Boolean(
     !isCurrentHolder && !ownsCopyWithSameIsbn && hasExistingConversation,
@@ -309,16 +313,21 @@ function BookDetail() {
     setIsBookActionPending(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/books/${book.id}/return`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${API_BASE_URL}/api/books/${book.id}/return`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       const result = await response.json();
       if (!response.ok) {
-        setBookActionError(result.message || "Could not update this book right now.");
+        setBookActionError(
+          result.message || "Could not update this book right now.",
+        );
         return;
       }
 
@@ -435,6 +444,9 @@ function BookDetail() {
   return (
     <div>
       <Navbar isLoggedIn={true} />
+      <Breadcrumbs
+        items={[{ label: "Home", to: "/home" }, { label: "Book Item" }]}
+      />
 
       <div style={styles.page}>
         {/* Book title */}
@@ -449,7 +461,9 @@ function BookDetail() {
         <BookActions
           genres={book.genres}
           listedBookAvailabilityText={
-            isBookAvailable ? "This listing: Available" : "This listing: Not available"
+            isBookAvailable
+              ? "This listing: Available"
+              : "This listing: Not available"
           }
           showBorrowButton={showBorrowButton}
           isBorrowEnabled={canBorrow}
@@ -478,11 +492,19 @@ function BookDetail() {
         ) : null}
 
         {borrowError ? <p style={styles.errorText}>{borrowError}</p> : null}
-        {bookActionError ? <p style={styles.errorText}>{bookActionError}</p> : null}
-        {borrowFeedback ? <p style={styles.successText}>{borrowFeedback}</p> : null}
+        {bookActionError ? (
+          <p style={styles.errorText}>{bookActionError}</p>
+        ) : null}
+        {borrowFeedback ? (
+          <p style={styles.successText}>{borrowFeedback}</p>
+        ) : null}
 
         {/*Comments section*/}
-        <ReviewSection bookId={book.id} currentUser={currentUser?._id} postedBy={book.ownerId} />
+        <ReviewSection
+          bookId={book.id}
+          currentUser={currentUser?._id}
+          postedBy={book.ownerId}
+        />
 
         {errorMessage ? <p style={styles.errorText}>{errorMessage}</p> : null}
       </div>

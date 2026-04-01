@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
+import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import ChatListSection from "../components/Messages/ChatListSection";
 import MessageComposer from "../components/Messages/MessageComposer";
 import MessageThread from "../components/Messages/MessageThread";
@@ -75,7 +76,9 @@ function MyMessages() {
       }
 
       const nextChats = {
-        myBooks: Array.isArray(data.myBooks) ? data.myBooks.sort(sortByRecent) : [],
+        myBooks: Array.isArray(data.myBooks)
+          ? data.myBooks.sort(sortByRecent)
+          : [],
         theirBooks: Array.isArray(data.theirBooks)
           ? data.theirBooks.sort(sortByRecent)
           : [],
@@ -99,7 +102,9 @@ function MyMessages() {
         }
       }
 
-      const activeStillExists = flattened.some((chat) => chat.id === activeChatId);
+      const activeStillExists = flattened.some(
+        (chat) => chat.id === activeChatId,
+      );
       if (!activeStillExists) {
         setActiveChatId(flattened[0].id);
       }
@@ -165,14 +170,17 @@ function MyMessages() {
     setIsSending(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/chats/${activeChat.id}/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${API_BASE_URL}/api/chats/${activeChat.id}/messages`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ text }),
         },
-        body: JSON.stringify({ text }),
-      });
+      );
 
       const result = await response.json();
       if (!response.ok) {
@@ -233,6 +241,13 @@ function MyMessages() {
   return (
     <div>
       <Navbar isLoggedIn={true} />
+      <Breadcrumbs
+        items={[
+          { label: "Home", to: "/home" },
+          { label: "Profile", to: "/profile" },
+          { label: "Messages" },
+        ]}
+      />
 
       <div style={styles.page}>
         <h1 style={styles.pageTitle}>My Messages</h1>
@@ -314,7 +329,9 @@ function MyMessages() {
                 </div>
               </>
             ) : (
-              <p style={styles.meta}>Select a conversation to start messaging.</p>
+              <p style={styles.meta}>
+                Select a conversation to start messaging.
+              </p>
             )}
           </section>
         </div>

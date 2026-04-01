@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
+import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import avatar_placeholder from "../resources/avatar_placeholder.png";
 import "./EditProfile.css";
 
@@ -136,6 +137,13 @@ const EditProfile = () => {
   return (
     <>
       <Navbar isLoggedIn={true} />
+      <Breadcrumbs
+        items={[
+          { label: "Home", to: "/home" },
+          { label: "Profile", to: "/profile" },
+          { label: "Settings" },
+        ]}
+      />
       <div className="edit-profile-container">
         <h1>Edit Profile</h1>
         <form className="edit-profile-form" onSubmit={handleSubmit}>

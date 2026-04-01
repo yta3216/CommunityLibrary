@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
+import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import BookCard from "../components/BookCard/BookCard";
 import avatar_placeholder from "../resources/avatar_placeholder.png";
 import "./Profile.css";
@@ -353,6 +354,9 @@ const Profile = () => {
   return (
     <>
       <Navbar isLoggedIn={true} />
+      <Breadcrumbs
+        items={[{ label: "Home", to: "/home" }, { label: "Profile" }]}
+      />
       <div className="profile-container">
         <section className="profile-info">
           <div>
