@@ -7,7 +7,6 @@ const User = require("../models/User");
 const Review = require("../models/Review");
 const { authRequired, requireRole } = require("../middleware/auth");
 
-// router groups all book-related endpoints
 const router = express.Router();
 
 // create book: logged-in user becomes both owner and current holder at start
@@ -128,8 +127,8 @@ router.get("/", async (_req, res) => {
       .populate("holder", "_id username email role")
       .sort({ createdAt: -1 });
 
-      //get average rating for each book
-      const ratings = await Review.aggregate([
+    //get average rating for each book
+    const ratings = await Review.aggregate([
       {
         $group: {
           _id: "$book",
@@ -168,7 +167,7 @@ router.get("/", async (_req, res) => {
 });
 
 router.patch("/:id", authRequired, async (req, res) => {
-  // authRequired is from middleware auth.js, checks for valid token and sets req.user to the token payload 
+  // authRequired is from middleware auth.js, checks for valid token and sets req.user to the token payload
   try {
     const { id } = req.params;
     const { isbn, title, author, genre, description } = req.body;
@@ -205,14 +204,15 @@ router.patch("/:id", authRequired, async (req, res) => {
     if (title !== undefined) book.title = String(title).trim();
     if (author !== undefined) book.author = String(author).trim();
     if (genre !== undefined) book.genre = String(genre).trim();
-    if (description !== undefined) book.description = String(description).trim();
+    if (description !== undefined)
+      book.description = String(description).trim();
 
     await book.save();
 
     const updatedBook = await Book.findById(book._id)
       .populate("owner", "_id username email role")
       .populate("holder", "_id username email role");
-      // populate is used to replace the owner and holder ObjectIds with the actual user documents
+    // populate is used to replace the owner and holder ObjectIds with the actual user documents
 
     return res.json(updatedBook);
   } catch (error) {
@@ -278,7 +278,11 @@ router.patch("/:id/return", authRequired, async (req, res) => {
     const ownerCanMarkAvailable = actorId === ownerId && holderId !== ownerId;
 
     if (!requesterCanReturn && !ownerCanMarkAvailable) {
-      return res.status(403).json({ message: "you cannot return this book from the current state" });
+      return res
+        .status(403)
+        .json({
+          message: "you cannot return this book from the current state",
+        });
     }
 
     book.holder = book.owner;
@@ -290,7 +294,9 @@ router.patch("/:id/return", authRequired, async (req, res) => {
 
     return res.json(populatedBook);
   } catch (error) {
-    return res.status(500).json({ message: "failed to return book", detail: error.message });
+    return res
+      .status(500)
+      .json({ message: "failed to return book", detail: error.message });
   }
 });
 

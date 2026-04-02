@@ -35,7 +35,7 @@ router.post("/register", async (req, res) => {
       role: "user",
     });
 
-    // sign jwt token so user can stay logged in on next requests
+    // sign jwt token so user can stay logged in on next requests since we redirect to log in this seems a bit redundant but it allows us to immediately log in after registering instead of forcing a separate login step
     const token = signToken(createdUser);
 
     return res.status(201).json({
