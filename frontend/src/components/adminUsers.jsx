@@ -1,14 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { NavLink } from "react-router-dom";
 import logo from "../resources/logo.png";
+import { useAuth } from "../context/AuthContext";
+import { deleteUser, getUsers, toggleUserStatus, cycleUserRole } from "../api/users";
+import { getBooks } from "../api/books";
 import "./adminPages.css";
 
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
-
 export default function AdminUsers() {
-  const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: currentUser, signOut } = useAuth();
   const [users, setUsers] = useState([]);
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,166 +15,82 @@ export default function AdminUsers() {
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [userSearch, setUserSearch] = useState("");
 
-  const loadAdminUsersPage = async (token, isMountedRef) => {
+  const loadAdminUsersPage = useCallback(async (isMountedRef) => {
     try {
       setIsLoading(true);
 
-      const [meResponse, usersResponse, booksResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-        fetch(`${API_BASE_URL}/api/users`),
-        fetch(`${API_BASE_URL}/api/books`),
+      const [usersData, booksData] = await Promise.all([
+        getUsers(),
+        getBooks(),
       ]);
-
-      if (!meResponse.ok) {
-        localStorage.removeItem("token");
-        navigate("/login", { replace: true });
-        return;
-      }
-
-      const meData = await meResponse.json();
-      const usersData = usersResponse.ok ? await usersResponse.json() : [];
-      const booksData = booksResponse.ok ? await booksResponse.json() : [];
 
       if (!isMountedRef()) {
         return;
       }
 
-      setCurrentUser(meData);
       setUsers(Array.isArray(usersData) ? usersData : []);
       setBooks(Array.isArray(booksData) ? booksData : []);
-
-      if (!usersResponse.ok || !booksResponse.ok) {
-        alert("Could not load all admin data.");
-      }
     } catch (_error) {
       if (isMountedRef()) {
-        alert("Could not reach server.");
+        alert(_error?.message || "Could not reach server.");
       }
     } finally {
       if (isMountedRef()) {
         setIsLoading(false);
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/login", { replace: true });
-      return;
-    }
-
-    loadAdminUsersPage(token, () => isMounted);
+    loadAdminUsersPage(() => isMounted);
 
     return () => {
       isMounted = false;
     };
-  }, [navigate]);
+  }, [loadAdminUsersPage]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    signOut();
     window.location.assign("/login");
   };
 
   const handleCycleRole = async (userId) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      handleLogout();
-      return;
-    }
-
     setIsActing(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/users/${userId}/cycle-role`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      const result = await response.json();
-
-      if (!response.ok) {
-        alert(result.message || "Could not cycle role.");
-        return;
-      }
+      const result = await cycleUserRole(userId);
 
       setUsers((prev) =>
         prev.map((user) => (user._id === userId ? result : user)),
       );
       alert("User role updated.");
     } catch (_error) {
-      alert("Could not reach server.");
+      alert(_error?.message || "Could not reach server.");
     } finally {
       setIsActing(false);
     }
   };
 
   const handleToggleStatus = async (userId) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      handleLogout();
-      return;
-    }
-
     setIsActing(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/users/${userId}/toggle-status`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      const result = await response.json();
-
-      if (!response.ok) {
-        alert(result.message || "Could not toggle status.");
-        return;
-      }
+      const result = await toggleUserStatus(userId);
 
       setUsers((prev) =>
         prev.map((user) => (user._id === userId ? result : user)),
       );
       alert("User status updated.");
     } catch (_error) {
-      alert("Could not reach server.");
+      alert(_error?.message || "Could not reach server.");
     } finally {
       setIsActing(false);
     }
   };
 
   const handleDeleteUser = async (userId) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      handleLogout();
-      return;
-    }
-
     setIsActing(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const result = await response.json();
-
-      if (!response.ok) {
-        alert(result.message || "Could not delete user.");
-        return;
-      }
+      await deleteUser(userId);
 
       setUsers((prev) => prev.filter((user) => user._id !== userId));
       setBooks((prev) =>
@@ -189,7 +104,7 @@ export default function AdminUsers() {
       );
       alert("User deleted.");
     } catch (_error) {
-      alert("Could not reach server.");
+      alert(_error?.message || "Could not reach server.");
     } finally {
       setIsActing(false);
     }

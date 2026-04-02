@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
+import { createReview, getReviews } from "../../api/reviews";
 
 // Star rating input — lets user click to select 1-5 stars
 function StarInput({ value, onChange }) {
@@ -67,13 +65,9 @@ function ReviewSection({ bookId, currentUser, postedBy }) {
 
     try {
       setIsLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/reviews/${bookId}`);
-      const data = await response.json();
-
-      if (response.ok) {
-        setReviews(data.reviews || []);
-        setAvgRating(data.avgRating || 0);
-      }
+      const data = await getReviews(bookId);
+      setReviews(data.reviews || []);
+      setAvgRating(data.avgRating || 0);
     } catch (_error) {
       // silently fail — reviews are not critical to page load
     } finally {
@@ -99,34 +93,14 @@ function ReviewSection({ bookId, currentUser, postedBy }) {
       return;
     }
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setErrorMessage("You must be logged in to leave a review.");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/reviews`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          bookId,
-          rating,
-          comment: reviewText.trim(),
-        }),
+      await createReview({
+        bookId,
+        rating,
+        comment: reviewText.trim(),
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        setErrorMessage(result.message || "Failed to submit review.");
-        return;
-      }
 
       // Reset form and reload reviews to show the new one
       setReviewText("");
@@ -137,7 +111,7 @@ function ReviewSection({ bookId, currentUser, postedBy }) {
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (_error) {
-      setErrorMessage("Could not reach server. Please try again.");
+      setErrorMessage(_error?.message || "Could not reach server. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

@@ -4,7 +4,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useAuth, AuthProvider } from "./context/AuthContext";
 
 import UnregisteredHome from "./pages/UnregisteredHome";
 import Login from "./components/Form/Login";
@@ -20,14 +20,13 @@ import AdminHome from "./components/adminHome";
 import AdminBooks from "./components/adminBooks";
 import AdminUsers from "./components/adminUsers";
 
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
-
 const getHomeRouteForRole = (role) => {
   return role === "admin" ? "/admin/home" : "/home";
 };
 
-const RequireAuth = ({ children, isAuthLoading, isAuthenticated }) => {
+const RequireAuth = ({ children }) => {
+  const { isAuthLoading, isAuthenticated } = useAuth();
+
   if (isAuthLoading) {
     return null;
   }
@@ -35,7 +34,9 @@ const RequireAuth = ({ children, isAuthLoading, isAuthenticated }) => {
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
-const PublicOnly = ({ children, isAuthLoading, isAuthenticated, userRole }) => {
+const PublicOnly = ({ children }) => {
+  const { isAuthLoading, isAuthenticated, userRole } = useAuth();
+
   if (isAuthLoading) {
     return null;
   }
@@ -47,12 +48,9 @@ const PublicOnly = ({ children, isAuthLoading, isAuthenticated, userRole }) => {
   );
 };
 
-const RequireAdmin = ({
-  children,
-  isAuthLoading,
-  isAuthenticated,
-  userRole,
-}) => {
+const RequireAdmin = ({ children }) => {
+  const { isAuthLoading, isAuthenticated, userRole } = useAuth();
+
   if (isAuthLoading) {
     return null;
   }
@@ -64,211 +62,84 @@ const RequireAdmin = ({
   return userRole === "admin" ? children : <Navigate to="/home" replace />;
 };
 
-function App() {
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setIsAuthLoading(false);
-      return;
-    }
-
-    const bootstrapSession = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Invalid session");
-        }
-
-        const currentUser = await response.json();
-        if (!isMounted) {
-          return;
-        }
-
-        setUser(currentUser);
-      } catch (_error) {
-        localStorage.removeItem("token");
-        if (isMounted) {
-          setUser(null);
-        }
-      } finally {
-        if (isMounted) {
-          setIsAuthLoading(false);
-        }
-      }
-    };
-
-    bootstrapSession();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const isAuthenticated = useMemo(() => Boolean(user), [user]);
-  const userRole = user?.role;
-
-  if (isAuthLoading) {
-    return null;
-  }
+const AppRedirect = () => {
+  const { isAuthenticated, userRole } = useAuth();
 
   return (
-    <Router>
-      <Routes>
+    <Navigate
+      to={isAuthenticated ? getHomeRouteForRole(userRole) : "/"}
+      replace
+    />
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
         {/* Public pages - unregistered users */}
         <Route
           path="/"
           element={
-            <PublicOnly
-              isAuthLoading={isAuthLoading}
-              isAuthenticated={isAuthenticated}
-              userRole={userRole}
-            >
+            <PublicOnly>
               <UnregisteredHome />
             </PublicOnly>
           }
         />
         <Route
           path="/login"
-          element={
-            <PublicOnly
-              isAuthLoading={isAuthLoading}
-              isAuthenticated={isAuthenticated}
-              userRole={userRole}
-            >
-              <Login />
-            </PublicOnly>
-          }
+          element={<PublicOnly><Login /></PublicOnly>}
         />
         <Route
           path="/register"
-          element={
-            <PublicOnly
-              isAuthLoading={isAuthLoading}
-              isAuthenticated={isAuthenticated}
-              userRole={userRole}
-            >
-              <Register />
-            </PublicOnly>
-          }
+          element={<PublicOnly><Register /></PublicOnly>}
         />
 
         {/* Registered users pages */}
         <Route
           path="/home"
-          element={
-            <RequireAuth
-              isAuthLoading={isAuthLoading}
-              isAuthenticated={isAuthenticated}
-            >
-              <LoggedInHome />
-            </RequireAuth>
-          }
+          element={<RequireAuth><LoggedInHome /></RequireAuth>}
         />
         <Route
           path="/book"
-          element={
-            <RequireAuth
-              isAuthLoading={isAuthLoading}
-              isAuthenticated={isAuthenticated}
-            >
-              <BookDetail />
-            </RequireAuth>
-          }
+          element={<RequireAuth><BookDetail /></RequireAuth>}
         />
         <Route
           path="/profile"
-          element={
-            <RequireAuth
-              isAuthLoading={isAuthLoading}
-              isAuthenticated={isAuthenticated}
-            >
-              <Profile />
-            </RequireAuth>
-          }
+          element={<RequireAuth><Profile /></RequireAuth>}
         />
         <Route
           path="/profile/edit"
-          element={
-            <RequireAuth
-              isAuthLoading={isAuthLoading}
-              isAuthenticated={isAuthenticated}
-            >
-              <EditProfile />
-            </RequireAuth>
-          }
+          element={<RequireAuth><EditProfile /></RequireAuth>}
         />
         <Route
           path="/messages"
-          element={
-            <RequireAuth
-              isAuthLoading={isAuthLoading}
-              isAuthenticated={isAuthenticated}
-            >
-              <MyMessages />
-            </RequireAuth>
-          }
+          element={<RequireAuth><MyMessages /></RequireAuth>}
         />
 
         {/* Admin Pages */}
         <Route
           path="/admin/home"
-          element={
-            <RequireAdmin
-              isAuthLoading={isAuthLoading}
-              isAuthenticated={isAuthenticated}
-              userRole={userRole}
-            >
-              <AdminHome />
-            </RequireAdmin>
-          }
+          element={<RequireAdmin><AdminHome /></RequireAdmin>}
         />
         <Route
           path="/admin/books"
-          element={
-            <RequireAdmin
-              isAuthLoading={isAuthLoading}
-              isAuthenticated={isAuthenticated}
-              userRole={userRole}
-            >
-              <AdminBooks />
-            </RequireAdmin>
-          }
+          element={<RequireAdmin><AdminBooks /></RequireAdmin>}
         />
         <Route
           path="/admin/users"
-          element={
-            <RequireAdmin
-              isAuthLoading={isAuthLoading}
-              isAuthenticated={isAuthenticated}
-              userRole={userRole}
-            >
-              <AdminUsers />
-            </RequireAdmin>
-          }
+          element={<RequireAdmin><AdminUsers /></RequireAdmin>}
         />
 
         {/* Redirect for undefined routes */}
         <Route
           path="*"
-          element={
-            <Navigate
-              to={isAuthenticated ? getHomeRouteForRole(userRole) : "/"}
-              replace
-            />
-          }
+          element={<AppRedirect />}
         />
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 

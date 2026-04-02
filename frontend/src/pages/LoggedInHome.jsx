@@ -3,12 +3,8 @@ import { useNavigate } from "react-router-dom";
 import BookCard from "../components/BookCard/BookCard";
 import Navbar from "../components/Navbar/Navbar";
 import Sidebar from "../components/Sidebar/Sidebar";
-import {
-  isListingAvailable,
-} from "../utils/bookAvailability";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
+import { createBook, getBooks, getPopularBooks } from "../api/books";
+import { isListingAvailable } from "../utils/bookAvailability";
 
 const LoggedInHome = () => {
   const navigate = useNavigate();
@@ -29,23 +25,18 @@ const LoggedInHome = () => {
     description: "",
   });
 
-  const loadBooks = useCallback(async () => {
+  const loadBooks = useCallback(async (queryText = "") => {
     try {
       setErrorMessage("");
       setIsLoading(true);
 
-      const response = await fetch(`${API_BASE_URL}/api/books`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        setErrorMessage(data.message || "Failed to load books.");
-        setBooks([]);
-        return;
-      }
+      const data = await getBooks(queryText);
 
       setBooks(Array.isArray(data) ? data : []);
     } catch (_error) {
-      setErrorMessage("Could not reach server. Please try again later.");
+      setErrorMessage(
+        _error?.message || "Could not reach server. Please try again later.",
+      );
       setBooks([]);
     } finally {
       setIsLoading(false);
@@ -53,14 +44,14 @@ const LoggedInHome = () => {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login", { replace: true });
-      return;
-    }
+    const debounceTimerId = window.setTimeout(() => {
+      loadBooks(searchQuery);
+    }, 300);
 
-    loadBooks();
-  }, [loadBooks, navigate]);
+    return () => {
+      window.clearTimeout(debounceTimerId);
+    };
+  }, [loadBooks, navigate, searchQuery]);
 
   // Placeholder ordering until review counts are implemented.
   // Popular books
@@ -68,54 +59,30 @@ const LoggedInHome = () => {
   useEffect(() => {
     const fetchPopular = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/books/popular`);
-        const data = await response.json();
-        if (response.ok) {
-          setPopularBooks(
-            data.map((item) => ({
-              ...item.bookData,
-              avgRating: item.avgRating,
-              numberOfReviews: item.numberOfReviews,
-            })),
-          );
-        }
+        const data = await getPopularBooks(searchQuery);
+        setPopularBooks(
+          Array.isArray(data)
+            ? data.map((item) => ({
+                ...item.bookData,
+                avgRating: item.avgRating,
+                numberOfReviews: item.numberOfReviews,
+              }))
+            : [],
+        );
       } catch (_error) {
-        // silent failure
+        setPopularBooks([]);
       }
     };
-    fetchPopular();
-  }, []);
+    const debounceTimerId = window.setTimeout(fetchPopular, 300);
+
+    return () => {
+      window.clearTimeout(debounceTimerId);
+    };
+  }, [searchQuery]);
 
   const allAvailableBooks = useMemo(
     () => books.filter((book) => isListingAvailable(book)),
     [books],
-  );
-
-  // One shared filter that matches book titles against the current search term.
-  const filterBooksByTitle = useCallback(
-    (bookList) => {
-      const normalizedQuery = searchQuery.trim().toLowerCase();
-      if (!normalizedQuery) {
-        return bookList;
-      }
-
-      return bookList.filter((book) =>
-        String(book.title || "")
-          .toLowerCase()
-          .includes(normalizedQuery),
-      );
-    },
-    [searchQuery],
-  );
-
-  // Filter each section so typing in Navbar updates both rows immediately.
-  const filteredPopularBooks = useMemo(
-    () => filterBooksByTitle(popularBooks),
-    [filterBooksByTitle, popularBooks],
-  );
-  const filteredAllBooks = useMemo(
-    () => filterBooksByTitle(allAvailableBooks),
-    [allAvailableBooks, filterBooksByTitle],
   );
 
   const renderCardRow = (bookList) => {
@@ -167,13 +134,6 @@ const LoggedInHome = () => {
       return;
     }
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      localStorage.removeItem("token");
-      navigate("/login", { replace: true });
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -185,21 +145,7 @@ const LoggedInHome = () => {
         description,
       };
 
-      const response = await fetch(`${API_BASE_URL}/api/books`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        setCreateErrorMessage(result.message || "Failed to create book.");
-        return;
-      }
+      const result = await createBook(payload);
 
       setBooks((prev) => [result, ...prev]);
       setFormValues({
@@ -212,7 +158,9 @@ const LoggedInHome = () => {
       setCreateSuccessMessage("Book posted successfully.");
       setIsCreateOpen(false);
     } catch (_error) {
-      setCreateErrorMessage("Could not reach server. Please try again.");
+      setCreateErrorMessage(
+        _error?.message || "Could not reach server. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -231,11 +179,11 @@ const LoggedInHome = () => {
         <main style={styles.main}>
           <h2 style={styles.sectionTitle}>Most Popular</h2>
           <div style={styles.cardRow}>
-            {renderCardRow(filteredPopularBooks)}
+            {renderCardRow(popularBooks)}
           </div>
 
           <h2 style={styles.sectionTitle}>All Books</h2>
-          <div style={styles.cardRow}>{renderCardRow(filteredAllBooks)}</div>
+          <div style={styles.cardRow}>{renderCardRow(allAvailableBooks)}</div>
         </main>
 
         <button

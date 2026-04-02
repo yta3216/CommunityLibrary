@@ -1,65 +1,38 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import logo from "../resources/logo.png";
+import { useAuth } from "../context/AuthContext";
+import { getBooks } from "../api/books";
+import { getUsers } from "../api/users";
 import "./adminPages.css";
 
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
-
 export default function AdminHome() {
-  const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: currentUser, signOut } = useAuth();
   const [users, setUsers] = useState([]);
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/login", { replace: true });
-      return;
-    }
 
     const loadAdminHome = async () => {
       try {
         setIsLoading(true);
 
-        const [meResponse, usersResponse, booksResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/auth/me`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-          fetch(`${API_BASE_URL}/api/users`),
-          fetch(`${API_BASE_URL}/api/books`),
+        const [usersData, booksData] = await Promise.all([
+          getUsers(),
+          getBooks(),
         ]);
-
-        if (!meResponse.ok) {
-          localStorage.removeItem("token");
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        const meData = await meResponse.json();
-        const usersData = usersResponse.ok ? await usersResponse.json() : [];
-        const booksData = booksResponse.ok ? await booksResponse.json() : [];
 
         if (!isMounted) {
           return;
         }
 
-        setCurrentUser(meData);
         setUsers(Array.isArray(usersData) ? usersData : []);
         setBooks(Array.isArray(booksData) ? booksData : []);
-
-        if (!usersResponse.ok || !booksResponse.ok) {
-          alert("Could not load all dashboard data.");
-        }
       } catch (_error) {
         if (isMounted) {
-          alert("Could not reach server.");
+          alert(_error?.message || "Could not reach server.");
         }
       } finally {
         if (isMounted) {
@@ -73,7 +46,7 @@ export default function AdminHome() {
     return () => {
       isMounted = false;
     };
-  }, [navigate]);
+  }, []);
 
   const metrics = useMemo(() => {
     const availableBooks = books.filter(
@@ -91,7 +64,7 @@ export default function AdminHome() {
   const recentBooks = useMemo(() => books.slice(0, 5), [books]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    signOut();
     window.location.assign("/login");
   };
 

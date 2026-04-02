@@ -4,14 +4,13 @@ import Navbar from "../components/Navbar/Navbar";
 import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import BookCard from "../components/BookCard/BookCard";
 import avatar_placeholder from "../resources/avatar_placeholder.png";
+import { useAuth } from "../context/AuthContext";
+import { deleteBook, getBooks, updateBook } from "../api/books";
 import "./Profile.css";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, signOut } = useAuth();
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -32,46 +31,19 @@ const Profile = () => {
 
   useEffect(() => {
     let isMounted = true;
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/login", { replace: true });
-      return;
-    }
 
     const loadProfile = async () => {
       try {
         setErrorMessage("");
         setIsLoading(true);
 
-        const [userResponse, booksResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/auth/me`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-          fetch(`${API_BASE_URL}/api/books`),
-        ]);
-
-        if (!userResponse.ok) {
-          localStorage.removeItem("token");
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        const currentUser = await userResponse.json();
-        const bookData = booksResponse.ok ? await booksResponse.json() : [];
+        const bookData = await getBooks();
 
         if (!isMounted) {
           return;
         }
 
-        setUser(currentUser);
         setBooks(Array.isArray(bookData) ? bookData : []);
-
-        if (!booksResponse.ok) {
-          setErrorMessage("Profile loaded, but books could not be fetched.");
-        }
       } catch (_error) {
         if (!isMounted) {
           return;
@@ -90,7 +62,7 @@ const Profile = () => {
     return () => {
       isMounted = false;
     };
-  }, [navigate]);
+  }, []);
 
   const ownedBooks = useMemo(() => {
     if (!user?._id) {
@@ -180,7 +152,7 @@ const Profile = () => {
   }, [ownedBooks, selectedBookIdToDelete]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    signOut();
     window.location.assign("/");
   };
 
@@ -190,12 +162,6 @@ const Profile = () => {
 
   const handleDeleteOwnedBook = async () => {
     if (!selectedBookIdToDelete) {
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login", { replace: true });
       return;
     }
 
@@ -215,22 +181,7 @@ const Profile = () => {
       setDeleteMessage("");
       setIsDeletingBook(true);
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/books/${selectedBookIdToDelete}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        setDeleteMessage(result.message || "Could not delete this book.");
-        return;
-      }
+      await deleteBook(selectedBookIdToDelete);
 
       setBooks((previousBooks) =>
         previousBooks.filter((book) => book._id !== selectedBookIdToDelete),
@@ -249,50 +200,10 @@ const Profile = () => {
     setEditMessage("");
   };
 
-  const getEditErrorMessage = (status, serverMessage) => {
-    const normalizedServerMessage = String(serverMessage || "").toLowerCase();
-
-    if (status === 400) {
-      return "Invalid input. ISBN must be numeric and all fields are required.";
-    }
-
-    if (status === 401) {
-      return "Your session has expired. Please log in again.";
-    }
-
-    if (status === 403) {
-      return "You do not have permission to edit this book (owner only).";
-    }
-
-    if (status === 404) {
-      if (normalizedServerMessage.includes("book not found")) {
-        return "Book not found. It may have already been deleted.";
-      }
-
-      if (normalizedServerMessage.includes("cannot patch")) {
-        return "Update endpoint was not found. Restart backend and confirm PATCH /api/books/:id is implemented.";
-      }
-
-      return "Update endpoint or target resource was not found. Please verify backend routes and restart the server.";
-    }
-
-    if (serverMessage) {
-      return `Update failed: ${serverMessage}`;
-    }
-
-    return `Update failed (status: ${status}). Please try again shortly.`;
-  };
-
   const handleEditOwnedBook = async (event) => {
     event.preventDefault();
 
     if (!selectedBookIdToEdit) {
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login", { replace: true });
       return;
     }
 
@@ -320,23 +231,7 @@ const Profile = () => {
       setEditMessage("");
       setIsUpdatingBook(true);
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/books/${selectedBookIdToEdit}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        },
-      );
-
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setEditMessage(getEditErrorMessage(response.status, result.message));
-        return;
-      }
+      const result = await updateBook(selectedBookIdToEdit, payload);
 
       setBooks((previousBooks) =>
         previousBooks.map((book) => (book._id === result._id ? result : book)),

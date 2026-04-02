@@ -6,29 +6,21 @@ import BookCover from "../components/BookDetail/BookCover";
 import BookActions from "../components/BookDetail/BookTags";
 import ReviewSection from "../components/BookDetail/ReviewSection";
 import MessageComposer from "../components/Messages/MessageComposer";
-import { getBookUserId, isListingAvailable } from "../utils/bookAvailability";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
-
-function mapRequesterChatsByBook(chatsPayload) {
-  const requesterChats = Array.isArray(chatsPayload?.theirBooks)
-    ? chatsPayload.theirBooks
-    : [];
-
-  return requesterChats.reduce((accumulator, chat) => {
-    if (chat?.bookId && chat?.id) {
-      accumulator[String(chat.bookId)] = String(chat.id);
-    }
-    return accumulator;
-  }, {});
-}
+import { useAuth } from "../context/AuthContext";
+import { getBooks, returnBook } from "../api/books";
+import { getChats, sendBorrowRequest } from "../api/chats";
+import {
+  buildBookActionState,
+  mapRequesterChatsByBook,
+  selectBookFromCollection,
+  toBookDetailModel,
+} from "../api/bookDetail";
 
 function BookDetail() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [books, setBooks] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: currentUser } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [isBorrowComposerOpen, setIsBorrowComposerOpen] = useState(false);
@@ -42,56 +34,28 @@ function BookDetail() {
 
   useEffect(() => {
     let isMounted = true;
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/login", { replace: true });
-      return;
-    }
 
     const loadPage = async () => {
       try {
         setErrorMessage("");
         setIsLoading(true);
 
-        const [userResponse, booksResponse, chatsResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/auth/me`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-          fetch(`${API_BASE_URL}/api/books`),
-          fetch(`${API_BASE_URL}/api/chats`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
+        const [booksData, chatsData] = await Promise.all([
+          getBooks(),
+          getChats(),
         ]);
-
-        if (!userResponse.ok) {
-          localStorage.removeItem("token");
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        const userData = await userResponse.json();
-        const booksData = booksResponse.ok ? await booksResponse.json() : [];
-        const chatsData = chatsResponse.ok ? await chatsResponse.json() : null;
 
         if (!isMounted) {
           return;
         }
 
-        setCurrentUser(userData);
         setBooks(Array.isArray(booksData) ? booksData : []);
         setRequesterChatByBook(mapRequesterChatsByBook(chatsData));
-
-        if (!booksResponse.ok) {
-          setErrorMessage("Could not load books for this page.");
-        }
       } catch (_error) {
         if (isMounted) {
-          setErrorMessage("Could not load book details right now.");
+          setErrorMessage(
+            _error?.message || "Could not load book details right now.",
+          );
         }
       } finally {
         if (isMounted) {
@@ -105,38 +69,21 @@ function BookDetail() {
     return () => {
       isMounted = false;
     };
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
 
     const refreshBooksAndChats = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          return;
-        }
-
-        const [booksResponse, chatsResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/books`),
-          fetch(`${API_BASE_URL}/api/chats`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
+        const [booksData, chatsData] = await Promise.all([
+          getBooks(),
+          getChats(),
         ]);
 
-        if (!booksResponse.ok) {
-          return;
-        }
-
-        const booksData = await booksResponse.json();
         if (isMounted && Array.isArray(booksData)) {
           setBooks(booksData);
-          if (chatsResponse.ok) {
-            const chatsData = await chatsResponse.json();
-            setRequesterChatByBook(mapRequesterChatsByBook(chatsData));
-          }
+          setRequesterChatByBook(mapRequesterChatsByBook(chatsData));
         }
       } catch (_error) {
         // Polling failures are ignored; next interval retry will attempt again.
@@ -153,142 +100,35 @@ function BookDetail() {
 
   const selectedBookId = searchParams.get("id");
 
-  const selectedBook = useMemo(() => {
-    if (books.length === 0) {
-      return null;
-    }
+  const selectedBook = useMemo(
+    () => selectBookFromCollection(books, selectedBookId),
+    [books, selectedBookId],
+  );
 
-    if (!selectedBookId) {
-      return books[0];
-    }
-
-    return books.find((book) => book._id === selectedBookId) || books[0];
-  }, [books, selectedBookId]);
-
-  const book = useMemo(() => {
-    if (!selectedBook) {
-      return null;
-    }
-    const genres = (selectedBook.genre || "")
-      .split(",")
-      .map((entry) => entry.trim())
-      .filter(Boolean);
-
-    return {
-      id: selectedBook._id,
-      title: selectedBook.title || "Untitled",
-      author: selectedBook.author || "Unknown author",
-      isbn: selectedBook.isbn,
-      ownerId: getBookUserId(selectedBook.owner),
-      holderId: getBookUserId(selectedBook.holder),
-      ownerName:
-        typeof selectedBook.owner === "object"
-          ? selectedBook.owner?.username || "Book owner"
-          : "Book owner",
-      genres: genres.length > 0 ? genres : ["Unknown"],
-      status: isListingAvailable(selectedBook) ? "available" : "not_available",
-      description: selectedBook.description || "",
-    };
-  }, [selectedBook]);
+  const book = useMemo(() => toBookDetailModel(selectedBook), [selectedBook]);
 
   const currentUserId = currentUser?._id || "";
-  const isBookAvailable = book?.status === "available";
-  const existingRequesterChatId = book
-    ? requesterChatByBook[book.id] || ""
-    : "";
-  const hasExistingConversation = Boolean(existingRequesterChatId);
-  const ownsCopyWithSameIsbn = useMemo(() => {
-    if (!currentUserId || !book?.isbn) {
-      return false;
-    }
 
-    const normalizedIsbn = String(book.isbn).trim();
-    return books.some((listedBook) => {
-      const listedIsbn = String(listedBook?.isbn || "").trim();
-      return (
-        listedIsbn === normalizedIsbn &&
-        getBookUserId(listedBook.owner) === currentUserId
-      );
-    });
-  }, [book?.isbn, books, currentUserId]);
-  const holdsBorrowedCopyWithSameIsbn = useMemo(() => {
-    if (!currentUserId || !book?.isbn) {
-      return false;
-    }
-
-    const normalizedIsbn = String(book.isbn).trim();
-    return books.some((listedBook) => {
-      const listedIsbn = String(listedBook?.isbn || "").trim();
-      const listedOwnerId = getBookUserId(listedBook.owner);
-      const listedHolderId = getBookUserId(listedBook.holder);
-
-      return (
-        listedIsbn === normalizedIsbn &&
-        listedHolderId === currentUserId &&
-        listedOwnerId !== currentUserId
-      );
-    });
-  }, [book?.isbn, books, currentUserId]);
-  const isCurrentHolder = Boolean(
-    currentUserId &&
-    book &&
-    currentUserId === book.holderId &&
-    currentUserId !== book.ownerId,
-  );
-  const isCurrentOwner = Boolean(
-    currentUserId && book && currentUserId === book.ownerId,
-  );
-
-  const canBorrow = Boolean(
-    book &&
-    currentUserId &&
-    !ownsCopyWithSameIsbn &&
-    !holdsBorrowedCopyWithSameIsbn &&
-    isBookAvailable &&
-    !hasExistingConversation &&
-    !isCurrentHolder,
-  );
-  const canReturn = Boolean(book && isCurrentHolder);
-
-  const showBorrowButton = Boolean(
-    !isCurrentHolder &&
-    (ownsCopyWithSameIsbn ||
-      holdsBorrowedCopyWithSameIsbn ||
-      !hasExistingConversation),
-  );
-  const showViewConversationButton = Boolean(
-    !isCurrentHolder && !ownsCopyWithSameIsbn && hasExistingConversation,
-  );
-
-  const actionHintText = useMemo(() => {
-    if (isCurrentOwner) {
-      return "You are the owner of this book.";
-    }
-
-    if (ownsCopyWithSameIsbn) {
-      return "You already own a copy of this book.";
-    }
-
-    if (holdsBorrowedCopyWithSameIsbn) {
-      return "You are already borrowing another copy with this ISBN.";
-    }
-
-    if (showViewConversationButton) {
-      return "You already started a conversation for this listing.";
-    }
-
-    if (!isBookAvailable && !isCurrentHolder) {
-      return "This listing is currently not available for borrowing.";
-    }
-
-    return "";
-  }, [
-    ownsCopyWithSameIsbn,
-    holdsBorrowedCopyWithSameIsbn,
-    showViewConversationButton,
+  const {
     isBookAvailable,
+    existingRequesterChatId,
+    hasExistingConversation,
     isCurrentHolder,
-  ]);
+    canBorrow,
+    canReturn,
+    showBorrowButton,
+    showViewConversationButton,
+    actionHintText,
+  } = useMemo(
+    () =>
+      buildBookActionState({
+        book,
+        books,
+        currentUserId,
+        requesterChatByBook,
+      }),
+    [book, books, currentUserId, requesterChatByBook],
+  );
 
   useEffect(() => {
     if (hasExistingConversation && isBorrowComposerOpen) {
@@ -301,35 +141,12 @@ function BookDetail() {
       return;
     }
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      localStorage.removeItem("token");
-      navigate("/login", { replace: true });
-      return;
-    }
-
     setBookActionError("");
     setBorrowFeedback("");
     setIsBookActionPending(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/books/${book.id}/return`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      const result = await response.json();
-      if (!response.ok) {
-        setBookActionError(
-          result.message || "Could not update this book right now.",
-        );
-        return;
-      }
+      const result = await returnBook(book.id);
 
       setBooks((currentBooks) =>
         currentBooks.map((listedBook) =>
@@ -370,13 +187,6 @@ function BookDetail() {
       return;
     }
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      localStorage.removeItem("token");
-      navigate("/login", { replace: true });
-      return;
-    }
-
     const messageText = borrowDraft.trim();
     if (!messageText) {
       setBorrowError("Type a message before sending.");
@@ -388,30 +198,13 @@ function BookDetail() {
     setIsSendingBorrowMessage(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/chats/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          bookId: book.id,
-          text: messageText,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        setBorrowError(result.message || "Could not send your message.");
-        return;
-      }
+      const result = await sendBorrowRequest(book.id, messageText);
 
       setBorrowDraft("");
       setIsBorrowComposerOpen(false);
       navigate(`/messages?chatId=${result.id}`);
     } catch (_error) {
-      setBorrowError("Could not send your message.");
+      setBorrowError(_error?.message || "Could not send your message.");
     } finally {
       setIsSendingBorrowMessage(false);
     }

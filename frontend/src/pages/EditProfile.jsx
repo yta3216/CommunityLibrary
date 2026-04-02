@@ -3,10 +3,9 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import avatar_placeholder from "../resources/avatar_placeholder.png";
+import { useAuth } from "../context/AuthContext";
+import { updateCurrentUser } from "../api/users";
 import "./EditProfile.css";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
 
 //validation consts... the same as backend. only adding this because it is a requirement
 const USERNAME_REGEX = /^[A-Za-z0-9]{3,20}$/;
@@ -14,6 +13,7 @@ const DESCRIPTION_MAX_LENGTH = 300;
 
 const EditProfile = () => {
   const navigate = useNavigate();
+  const { user, updateUser } = useAuth();
   const [username, setUsername] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -22,53 +22,10 @@ const EditProfile = () => {
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    let isMounted = true;
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/login", { replace: true });
-      return;
-    }
-
-    const loadProfile = async () => {
-      try {
-        setErrorMessage("");
-        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          localStorage.removeItem("token");
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        const user = await response.json();
-        if (!isMounted) {
-          return;
-        }
-
-        setUsername(user.username || "");
-        setDescription(user.description || "");
-      } catch (_error) {
-        if (isMounted) {
-          setErrorMessage("Could not load your profile.");
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadProfile();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [navigate]);
+    setUsername(user?.username || "");
+    setDescription(user?.description || "");
+    setIsLoading(false);
+  }, [user]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -95,40 +52,21 @@ const EditProfile = () => {
       return;
     }
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login", { replace: true });
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/users/me`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          username: trimmedUsername,
-          description: trimmedDescription,
-        }),
+      const result = await updateCurrentUser({
+        username: trimmedUsername,
+        description: trimmedDescription,
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        setErrorMessage(result.message || "Failed to update profile.");
-        return;
-      }
 
       setUsername(result.username || trimmedUsername);
       setDescription(result.description || "");
       setSuccessMessage("Profile updated successfully.");
+      updateUser(result);
       setTimeout(() => navigate("/profile"), 700);
     } catch (_error) {
-      setErrorMessage("Could not update your profile right now.");
+      setErrorMessage(_error?.message || "Could not update your profile right now.");
     } finally {
       setIsSubmitting(false);
     }

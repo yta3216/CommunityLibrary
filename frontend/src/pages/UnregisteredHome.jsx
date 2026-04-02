@@ -2,9 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import BookCard from "../components/BookCard/BookCard";
 import Navbar from "../components/Navbar/Navbar";
 import Sidebar from "../components/Sidebar/Sidebar";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
+import { getBooks, getPopularBooks } from "../api/books";
 
 const Home = () => {
   const [books, setBooks] = useState([]);
@@ -13,23 +11,18 @@ const Home = () => {
   // Search state used by Navbar to filter books by title.
   const [searchQuery, setSearchQuery] = useState("");
 
-  const loadBooks = useCallback(async () => {
+  const loadBooks = useCallback(async (queryText = "") => {
     try {
       setErrorMessage("");
       setIsLoading(true);
 
-      const response = await fetch(`${API_BASE_URL}/api/books`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        setErrorMessage(data.message || "Failed to load books.");
-        setBooks([]);
-        return;
-      }
+      const data = await getBooks(queryText);
 
       setBooks(Array.isArray(data) ? data : []);
     } catch (_error) {
-      setErrorMessage("Could not reach server. Please try again later.");
+      setErrorMessage(
+        _error?.message || "Could not reach server. Please try again later.",
+      );
       setBooks([]);
     } finally {
       setIsLoading(false);
@@ -37,55 +30,38 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    loadBooks();
-  }, [loadBooks]);
+    const debounceTimerId = window.setTimeout(() => {
+      loadBooks(searchQuery);
+    }, 300);
+
+    return () => {
+      window.clearTimeout(debounceTimerId);
+    };
+  }, [loadBooks, searchQuery]);
 
   const [popularBooks, setPopularBooks] = useState([]);
 
   useEffect(() => {
     const fetchPopular = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/books/popular`);
-        const data = await response.json();
-        if (response.ok) {
-          setPopularBooks(data.map((item) => ({
+        const data = await getPopularBooks(searchQuery);
+        setPopularBooks((Array.isArray(data) ? data : []).map((item) => ({
             ...item.bookData,
             avgRating: item.avgRating,
           })));
         }
-      } catch (_error) {}
+      catch (_error) {
+        setPopularBooks([]);
+      }
     };
-    fetchPopular();
-  }, []);
+    const debounceTimerId = window.setTimeout(fetchPopular, 300);
+
+    return () => {
+      window.clearTimeout(debounceTimerId);
+    };
+  }, [searchQuery]);
 
   const newBooks = useMemo(() => books.slice(), [books]);
-
-  // Reusable title-based filter so both sections respond to the same search term.
-  const filterBooksByTitle = useCallback(
-    (bookList) => {
-      const normalizedQuery = searchQuery.trim().toLowerCase();
-      if (!normalizedQuery) {
-        return bookList;
-      }
-
-      return bookList.filter((book) =>
-        String(book.title || "")
-          .toLowerCase()
-          .includes(normalizedQuery),
-      );
-    },
-    [searchQuery],
-  );
-
-  // Filtered datasets used by UI rendering.
-  const filteredPopularBooks = useMemo(
-    () => filterBooksByTitle(popularBooks),
-    [filterBooksByTitle, popularBooks],
-  );
-  const filteredNewBooks = useMemo(
-    () => filterBooksByTitle(newBooks),
-    [filterBooksByTitle, newBooks],
-  );
 
   const renderCardRow = (bookList) => {
     if (isLoading) {
@@ -124,11 +100,11 @@ const Home = () => {
         <main style={styles.main}>
           <h2 style={styles.sectionTitle}>Most Popular</h2>
           <div style={styles.cardRow}>
-            {renderCardRow(filteredPopularBooks)}
+            {renderCardRow(popularBooks)}
           </div>
 
           <h2 style={styles.sectionTitle}>New Additions</h2>
-          <div style={styles.cardRow}>{renderCardRow(filteredNewBooks)}</div>
+          <div style={styles.cardRow}>{renderCardRow(newBooks)}</div>
           <p style={styles.metaText}>
             To open book details or create listings, please log in or register.
           </p>

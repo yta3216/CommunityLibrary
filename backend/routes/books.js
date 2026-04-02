@@ -10,6 +10,8 @@ const { authRequired, requireRole } = require("../middleware/auth");
 // router groups all book-related endpoints
 const router = express.Router();
 
+const normalizeQuery = (value) => String(value || "").trim();
+
 // create book: logged-in user becomes both owner and current holder at start
 router.post("/", authRequired, async (req, res) => {
   try {
@@ -80,8 +82,10 @@ router.post("/", authRequired, async (req, res) => {
   }
 });
 // Popular book endpoints
-router.get("/popular", async (_req, res) => {
+router.get("/popular", async (req, res) => {
   try {
+    const normalizedQuery = normalizeQuery(req.query.q);
+
     const popular = await Review.aggregate([
       {
         $group: {
@@ -111,6 +115,11 @@ router.get("/popular", async (_req, res) => {
         },
       },
       { $unwind: "$bookData.owner" },
+      ...(normalizedQuery
+        ? [{ $match: { "bookData.title": { $regex: normalizedQuery, $options: "i" } } }]
+        : []),
+      { $sort: { avgRating: -1 } },
+      { $limit: 5 },
     ]);
 
     return res.json(popular);
@@ -121,9 +130,14 @@ router.get("/popular", async (_req, res) => {
 });
 
 // list all books with lightweight owner/holder info
-router.get("/", async (_req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const books = await Book.find()
+    const normalizedQuery = normalizeQuery(req.query.q);
+    const findQuery = normalizedQuery
+      ? { title: { $regex: normalizedQuery, $options: "i" } }
+      : {};
+
+    const books = await Book.find(findQuery)
       .populate("owner", "_id username email role")
       .populate("holder", "_id username email role")
       .sort({ createdAt: -1 });

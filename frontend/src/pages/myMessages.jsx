@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import ChatListSection from "../components/Messages/ChatListSection";
 import MessageComposer from "../components/Messages/MessageComposer";
 import MessageThread from "../components/Messages/MessageThread";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
+import { getChats, lendBook, returnBorrowedBook, sendChatMessage } from "../api/chats";
 
 const EMPTY_CHATS = {
   myBooks: [],
@@ -15,7 +13,6 @@ const EMPTY_CHATS = {
 };
 
 function MyMessages() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const requestedChatId = searchParams.get("chatId") || "";
   const [chats, setChats] = useState(EMPTY_CHATS);
@@ -54,34 +51,12 @@ function MyMessages() {
   );
 
   const fetchChats = useCallback(async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      localStorage.removeItem("token");
-      navigate("/login", { replace: true });
-      return;
-    }
-
     try {
-      const response = await fetch(`${API_BASE_URL}/api/chats`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setErrorMessage(data.message || "Could not load messages.");
-        return;
-      }
+      const data = await getChats();
 
       const nextChats = {
-        myBooks: Array.isArray(data.myBooks)
-          ? data.myBooks.sort(sortByRecent)
-          : [],
-        theirBooks: Array.isArray(data.theirBooks)
-          ? data.theirBooks.sort(sortByRecent)
-          : [],
+        myBooks: Array.isArray(data.myBooks) ? data.myBooks.sort(sortByRecent) : [],
+        theirBooks: Array.isArray(data.theirBooks) ? data.theirBooks.sort(sortByRecent) : [],
       };
 
       setChats(nextChats);
@@ -109,11 +84,11 @@ function MyMessages() {
         setActiveChatId(flattened[0].id);
       }
     } catch (_error) {
-      setErrorMessage("Could not load messages.");
+      setErrorMessage(_error?.message || "Could not load messages.");
     } finally {
       setIsLoading(false);
     }
-  }, [activeChatId, navigate, requestedChatId, sortByRecent]);
+  }, [activeChatId, requestedChatId, sortByRecent]);
 
   useEffect(() => {
     fetchChats();
@@ -154,13 +129,6 @@ function MyMessages() {
       return;
     }
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      localStorage.removeItem("token");
-      navigate("/login", { replace: true });
-      return;
-    }
-
     const text = composerText.trim();
     if (!text) {
       return;
@@ -170,28 +138,12 @@ function MyMessages() {
     setIsSending(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/chats/${activeChat.id}/messages`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ text }),
-        },
-      );
-
-      const result = await response.json();
-      if (!response.ok) {
-        setErrorMessage(result.message || "Could not send message.");
-        return;
-      }
+      const result = await sendChatMessage(activeChat.id, text);
 
       setComposerText("");
       upsertChat(result);
     } catch (_error) {
-      setErrorMessage("Could not send message.");
+      setErrorMessage(_error?.message || "Could not send message.");
     } finally {
       setIsSending(false);
     }
@@ -202,37 +154,18 @@ function MyMessages() {
       return;
     }
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      localStorage.removeItem("token");
-      navigate("/login", { replace: true });
-      return;
-    }
-
     setErrorMessage("");
     setIsActionPending(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/chats/${activeChat.id}/${actionName}`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        setErrorMessage(result.message || "Could not update this book.");
-        return;
-      }
+      const result =
+        actionName === "lend"
+          ? await lendBook(activeChat.id)
+          : await returnBorrowedBook(activeChat.id);
 
       upsertChat(result);
     } catch (_error) {
-      setErrorMessage("Could not update this book.");
+      setErrorMessage(_error?.message || "Could not update this book.");
     } finally {
       setIsActionPending(false);
     }

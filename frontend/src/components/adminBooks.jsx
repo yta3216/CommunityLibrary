@@ -1,14 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { NavLink } from "react-router-dom";
 import logo from "../resources/logo.png";
+import { useAuth } from "../context/AuthContext";
+import { createBook, deleteBook, getBooks, toggleBookStatus } from "../api/books";
 import "./adminPages.css";
 
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
-
 export default function AdminBooks() {
-  const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: currentUser, signOut } = useAuth();
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isActing, setIsActing] = useState(false);
@@ -24,64 +22,36 @@ export default function AdminBooks() {
     description: "",
   });
 
-  const loadAdminBooks = async (token, isMountedRef) => {
+  const loadAdminBooks = useCallback(async (isMountedRef) => {
     try {
       setIsLoading(true);
 
-      const [meResponse, booksResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-        fetch(`${API_BASE_URL}/api/books`),
-      ]);
-
-      if (!meResponse.ok) {
-        localStorage.removeItem("token");
-        navigate("/login", { replace: true });
-        return;
-      }
-
-      const meData = await meResponse.json();
-      const booksData = booksResponse.ok ? await booksResponse.json() : [];
+      const booksData = await getBooks();
 
       if (!isMountedRef()) {
         return;
       }
 
-      setCurrentUser(meData);
       setBooks(Array.isArray(booksData) ? booksData : []);
-
-      if (!booksResponse.ok) {
-        alert("Could not load books.");
-      }
     } catch (_error) {
       if (isMountedRef()) {
-        alert("Could not reach server.");
+        alert(_error?.message || "Could not reach server.");
       }
     } finally {
       if (isMountedRef()) {
         setIsLoading(false);
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/login", { replace: true });
-      return;
-    }
-
-    loadAdminBooks(token, () => isMounted);
+    loadAdminBooks(() => isMounted);
 
     return () => {
       isMounted = false;
     };
-  }, [navigate]);
+  }, [loadAdminBooks]);
 
   const rows = useMemo(() => {
     return books.map((book) => {
@@ -128,7 +98,7 @@ export default function AdminBooks() {
   }, [availabilityFilter, rows, searchQuery]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    signOut();
     window.location.assign("/login");
   };
 
@@ -151,28 +121,9 @@ export default function AdminBooks() {
       return;
     }
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      handleLogout();
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/books`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ isbn, title, author, genre, description }),
-      });
-      const result = await response.json();
-
-      if (!response.ok) {
-        alert(result.message || "Failed to add listing.");
-        return;
-      }
+      const result = await createBook({ isbn, title, author, genre, description });
 
       setBooks((prev) => [result, ...prev]);
       setFormValues({
@@ -184,57 +135,30 @@ export default function AdminBooks() {
       });
       setIsCreateOpen(false);
     } catch (_error) {
-      alert("Could not reach server.");
+      alert(_error?.message || "Could not reach server.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleToggleBook = async (bookId) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      handleLogout();
-      return;
-    }
-
     setIsActing(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/books/${bookId}/toggle-status`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      const result = await response.json();
-
-      if (!response.ok) {
-        alert("Could not toggle book status.");
-        return;
-      }
+      const result = await toggleBookStatus(bookId);
 
       setBooks((prev) =>
         prev.map((book) => (book._id === bookId ? result : book)),
       );
     } catch (_error) {
-      alert("Could not reach server.");
+      alert(_error?.message || "Could not reach server.");
     } finally {
       setIsActing(false);
     }
   };
 
   const handleDeleteBook = async (bookId) => {
-    const token = localStorage.getItem("token");
-    if (!token) return handleLogout();
     try {
-      const response = await fetch(`${API_BASE_URL}/api/books/${bookId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error("Could not delete book.");
+      await deleteBook(bookId);
       setBooks((prev) => prev.filter((book) => book._id !== bookId));
       alert("Book deleted.");
     } catch (error) {
