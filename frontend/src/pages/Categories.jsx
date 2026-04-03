@@ -194,12 +194,6 @@ const styles = {
     gap: "10px",
     margin: "0 0 24px",
   },
-  sectionAccent: {
-    width: "8px",
-    height: "32px",
-    borderRadius: "999px",
-    backgroundColor: "#166534",
-  },
   metaText: {
     color: "#667085",
     fontSize: "18px",
