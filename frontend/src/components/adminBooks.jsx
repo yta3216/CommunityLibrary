@@ -4,6 +4,7 @@ import logo from "../resources/logo.png";
 import { useAuth } from "../context/AuthContext";
 import { createBook, deleteBook, getBooks, toggleBookStatus } from "../api/books";
 import "./adminPages.css";
+import BookForm from "./BookForm";
 
 export default function AdminBooks() {
   const { user: currentUser, signOut } = useAuth();
@@ -11,16 +12,8 @@ export default function AdminBooks() {
   const [isLoading, setIsLoading] = useState(true);
   const [isActing, setIsActing] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
-  const [formValues, setFormValues] = useState({
-    isbn: "",
-    title: "",
-    author: "",
-    genre: "",
-    description: "",
-  });
 
   const loadAdminBooks = useCallback(async (isMountedRef) => {
     try {
@@ -89,9 +82,9 @@ export default function AdminBooks() {
         normalizedQuery.length === 0
           ? true
           : [row.title, row.owner, row.holder, row.id]
-              .join(" ")
-              .toLowerCase()
-              .includes(normalizedQuery);
+            .join(" ")
+            .toLowerCase()
+            .includes(normalizedQuery);
 
       return matchesAvailability && matchesSearch;
     });
@@ -102,43 +95,10 @@ export default function AdminBooks() {
     window.location.assign("/login");
   };
 
-  const handleCreateChange = (event) => {
-    const { name, value } = event.target;
-    setFormValues((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleCreateSubmit = async (event) => {
-    event.preventDefault();
-
-    const isbn = formValues.isbn.trim();
-    const title = formValues.title.trim();
-    const author = formValues.author.trim();
-    const genre = formValues.genre.trim();
-    const description = formValues.description.trim();
-
-    if (!isbn || !title || !author || !genre || !description) {
-      alert("All fields are required.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const result = await createBook({ isbn, title, author, genre, description });
-
-      setBooks((prev) => [result, ...prev]);
-      setFormValues({
-        isbn: "",
-        title: "",
-        author: "",
-        genre: "",
-        description: "",
-      });
-      setIsCreateOpen(false);
-    } catch (_error) {
-      alert(_error?.message || "Could not reach server.");
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleCreateBook = async (values) => {
+    const result = await createBook(values);
+    setBooks((prev) => [result, ...prev]);
+    setIsCreateOpen(false);
   };
 
   const handleToggleBook = async (bookId) => {
@@ -327,64 +287,11 @@ export default function AdminBooks() {
           <div style={styles.modalBackdrop}>
             <div style={styles.modalCard}>
               <h3 style={styles.modalTitle}>Add Listing</h3>
-
-              <form onSubmit={handleCreateSubmit} style={styles.formGrid}>
-                <input
-                  name="isbn"
-                  value={formValues.isbn}
-                  onChange={handleCreateChange}
-                  placeholder="ISBN"
-                  style={styles.textInput}
-                />
-                <input
-                  name="title"
-                  value={formValues.title}
-                  onChange={handleCreateChange}
-                  placeholder="Title"
-                  style={styles.textInput}
-                />
-                <input
-                  name="author"
-                  value={formValues.author}
-                  onChange={handleCreateChange}
-                  placeholder="Author"
-                  style={styles.textInput}
-                />
-                <input
-                  name="genre"
-                  value={formValues.genre}
-                  onChange={handleCreateChange}
-                  placeholder="Genre"
-                  style={styles.textInput}
-                />
-                <textarea
-                  name="description"
-                  value={formValues.description}
-                  onChange={handleCreateChange}
-                  placeholder="Description"
-                  style={styles.textArea}
-                />
-
-                <div
-                  className="admin-actions"
-                  style={{ justifyContent: "flex-end" }}
-                >
-                  <button
-                    type="button"
-                    className="admin-button light"
-                    onClick={() => setIsCreateOpen(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="admin-button"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Adding..." : "Add Listing"}
-                  </button>
-                </div>
-              </form>
+              <BookForm
+                onSubmit={handleCreateBook}
+                onCancel={() => setIsCreateOpen(false)}
+                submitLabel="Add Listing"
+              />
             </div>
           </div>
         ) : null}
@@ -416,23 +323,5 @@ const styles = {
     margin: "0 0 14px",
     fontSize: "24px",
     fontWeight: 700,
-  },
-  formGrid: {
-    display: "grid",
-    gap: "10px",
-  },
-  textInput: {
-    border: "1px solid #d0d5dd",
-    borderRadius: "8px",
-    padding: "10px 12px",
-    fontSize: "14px",
-  },
-  textArea: {
-    minHeight: "90px",
-    border: "1px solid #d0d5dd",
-    borderRadius: "8px",
-    padding: "10px 12px",
-    fontSize: "14px",
-    resize: "vertical",
   },
 };

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { deleteBook, getBooks, updateBook } from "../api/books";
 import Navbar from "../components/Navbar/Navbar";
 import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import BookCard from "../components/BookCard/BookCard";
 import avatar_placeholder from "../resources/avatar_placeholder.png";
-import { useAuth } from "../context/AuthContext";
-import { deleteBook, getBooks, updateBook } from "../api/books";
+import BookForm from "../components/BookForm";
 import "./Profile.css";
 
 const Profile = () => {
@@ -15,16 +16,7 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedBookIdToEdit, setSelectedBookIdToEdit] = useState("");
-  const [editFormValues, setEditFormValues] = useState({
-    isbn: "",
-    title: "",
-    author: "",
-    genre: "",
-    description: "",
-  });
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editMessage, setEditMessage] = useState("");
-  const [isUpdatingBook, setIsUpdatingBook] = useState(false);
   const [selectedBookIdToDelete, setSelectedBookIdToDelete] = useState("");
   const [deleteMessage, setDeleteMessage] = useState("");
   const [isDeletingBook, setIsDeletingBook] = useState(false);
@@ -90,45 +82,27 @@ const Profile = () => {
     });
   }, [books, user]);
 
+  const editInitialValues = useMemo(() => {
+    const book = ownedBooks.find((b) => b._id === selectedBookIdToEdit) || ownedBooks[0];
+    if (!book) return { isbn: "", title: "", author: "", genre: "", description: "" };
+    return {
+      isbn: String(book.isbn || ""),
+      title: book.title || "",
+      author: book.author || "",
+      genre: book.genre || "",
+      description: book.description || "",
+    };
+  }, [ownedBooks, selectedBookIdToEdit]);
+
   useEffect(() => {
     if (ownedBooks.length === 0) {
       setSelectedBookIdToEdit("");
-      setEditFormValues({
-        isbn: "",
-        title: "",
-        author: "",
-        genre: "",
-        description: "",
-      });
       return;
     }
-
-    const targetBookId = selectedBookIdToEdit || ownedBooks[0]._id;
-    const selectedBook = ownedBooks.find((book) => book._id === targetBookId);
-
-    if (!selectedBook) {
+    const selectedStillExists = ownedBooks.some((b) => b._id === selectedBookIdToEdit);
+    if (!selectedStillExists) {
       setSelectedBookIdToEdit(ownedBooks[0]._id);
-      setEditFormValues({
-        isbn: String(ownedBooks[0].isbn || ""),
-        title: ownedBooks[0].title || "",
-        author: ownedBooks[0].author || "",
-        genre: ownedBooks[0].genre || "",
-        description: ownedBooks[0].description || "",
-      });
-      return;
     }
-
-    if (selectedBookIdToEdit !== targetBookId) {
-      setSelectedBookIdToEdit(targetBookId);
-    }
-
-    setEditFormValues({
-      isbn: String(selectedBook.isbn || ""),
-      title: selectedBook.title || "",
-      author: selectedBook.author || "",
-      genre: selectedBook.genre || "",
-      description: selectedBook.description || "",
-    });
   }, [ownedBooks, selectedBookIdToEdit]);
 
   useEffect(() => {
@@ -194,56 +168,10 @@ const Profile = () => {
     }
   };
 
-  const handleEditChange = (event) => {
-    const { name, value } = event.target;
-    setEditFormValues((previous) => ({ ...previous, [name]: value }));
-    setEditMessage("");
-  };
-
-  const handleEditOwnedBook = async (event) => {
-    event.preventDefault();
-
-    if (!selectedBookIdToEdit) {
-      return;
-    }
-
-    const payload = {
-      isbn: editFormValues.isbn.trim(),
-      title: editFormValues.title.trim(),
-      author: editFormValues.author.trim(),
-      genre: editFormValues.genre.trim(),
-      description: editFormValues.description.trim(),
-    };
-
-    if (
-      !payload.isbn ||
-      Number.isNaN(Number(payload.isbn)) ||
-      !payload.title ||
-      !payload.author ||
-      !payload.genre ||
-      !payload.description
-    ) {
-      setEditMessage("ISBN and all fields are required.");
-      return;
-    }
-
-    try {
-      setEditMessage("");
-      setIsUpdatingBook(true);
-
-      const result = await updateBook(selectedBookIdToEdit, payload);
-
-      setBooks((previousBooks) =>
-        previousBooks.map((book) => (book._id === result._id ? result : book)),
-      );
-      setEditMessage("Book updated.");
-    } catch (_error) {
-      setEditMessage(
-        "Could not reach the server. Please check that the backend is running.",
-      );
-    } finally {
-      setIsUpdatingBook(false);
-    }
+  const handleEditBook = async (event) => {
+    const result = await updateBook(selectedBookIdToEdit, event);
+    setBooks((prev) => prev.map((book) => (book._id === result._id ? result : book)));
+    setIsEditOpen(false);
   };
 
   return (
@@ -305,9 +233,8 @@ const Profile = () => {
                   value={selectedBookIdToEdit}
                   onChange={(event) => {
                     setSelectedBookIdToEdit(event.target.value);
-                    setEditMessage("");
                   }}
-                  disabled={isUpdatingBook}
+                  disabled={isEditOpen}
                 >
                   {ownedBooks.map((book) => (
                     <option key={book._id} value={book._id}>
@@ -319,10 +246,9 @@ const Profile = () => {
                 <button
                   type="button"
                   className="btn"
-                  disabled={!selectedBookIdToEdit || isUpdatingBook}
+                  disabled={!selectedBookIdToEdit || isEditOpen}
                   onClick={() => {
                     setIsEditOpen(true);
-                    setEditMessage("");
                   }}
                 >
                   Edit Book
@@ -417,109 +343,13 @@ const Profile = () => {
           <div style={styles.modalBackdrop}>
             <div style={styles.modalCard}>
               <h3 style={styles.modalTitle}>Edit Book Listing</h3>
-
-              <form onSubmit={handleEditOwnedBook} style={styles.formGrid}>
-                <label style={styles.inputLabel} htmlFor="edit-book-isbn">
-                  ISBN
-                </label>
-                <input
-                  id="edit-book-isbn"
-                  name="isbn"
-                  required
-                  value={editFormValues.isbn}
-                  onChange={handleEditChange}
-                  style={styles.textInput}
-                  placeholder="ISBN here"
-                />
-
-                <label style={styles.inputLabel} htmlFor="edit-book-title">
-                  Title
-                </label>
-                <input
-                  id="edit-book-title"
-                  name="title"
-                  required
-                  value={editFormValues.title}
-                  onChange={handleEditChange}
-                  style={styles.textInput}
-                  placeholder="Book title here"
-                />
-
-                <label style={styles.inputLabel} htmlFor="edit-book-author">
-                  Author
-                </label>
-                <input
-                  id="edit-book-author"
-                  name="author"
-                  required
-                  value={editFormValues.author}
-                  onChange={handleEditChange}
-                  style={styles.textInput}
-                  placeholder="Author name here"
-                />
-
-                <label style={styles.inputLabel} htmlFor="edit-book-genre">
-                  Genre
-                </label>
-                <input
-                  id="edit-book-genre"
-                  name="genre"
-                  required
-                  value={editFormValues.genre}
-                  onChange={handleEditChange}
-                  style={styles.textInput}
-                  placeholder="Genre here"
-                />
-
-                <label
-                  style={styles.inputLabel}
-                  htmlFor="edit-book-description"
-                >
-                  Description
-                </label>
-                <textarea
-                  id="edit-book-description"
-                  name="description"
-                  required
-                  value={editFormValues.description}
-                  onChange={handleEditChange}
-                  style={styles.textArea}
-                  placeholder="Write a short description"
-                />
-
-                {editMessage ? (
-                  <p
-                    style={
-                      editMessage === "Book updated."
-                        ? styles.createSuccessText
-                        : styles.createErrorText
-                    }
-                  >
-                    {editMessage}
-                  </p>
-                ) : null}
-
-                <div style={styles.modalButtonRow}>
-                  <button
-                    type="submit"
-                    style={styles.primaryButton}
-                    disabled={isUpdatingBook}
-                  >
-                    {isUpdatingBook ? "Saving..." : "Save Changes"}
-                  </button>
-
-                  <button
-                    type="button"
-                    style={styles.secondaryButton}
-                    onClick={() => {
-                      setIsEditOpen(false);
-                      setEditMessage("");
-                    }}
-                  >
-                    Close
-                  </button>
-                </div>
-              </form>
+              <BookForm
+                key={selectedBookIdToEdit}
+                initialValues={editInitialValues}
+                onSubmit={handleEditBook}
+                onCancel={() => setIsEditOpen(false)}
+                submitLabel="Save Changes"
+              />
             </div>
           </div>
         ) : null}
@@ -585,64 +415,6 @@ const styles = {
     margin: "0 0 14px",
     fontSize: "24px",
     fontWeight: 700,
-  },
-  formGrid: {
-    display: "grid",
-    gap: "10px",
-  },
-  inputLabel: {
-    fontSize: "14px",
-    color: "#344054",
-    fontWeight: 600,
-  },
-  textInput: {
-    border: "1px solid #d0d5dd",
-    borderRadius: "8px",
-    padding: "10px 12px",
-    fontSize: "14px",
-  },
-  textArea: {
-    minHeight: "90px",
-    border: "1px solid #d0d5dd",
-    borderRadius: "8px",
-    padding: "10px 12px",
-    fontSize: "14px",
-    resize: "vertical",
-  },
-  createErrorText: {
-    margin: 0,
-    color: "#b42318",
-    fontSize: "14px",
-    fontWeight: 600,
-  },
-  createSuccessText: {
-    margin: 0,
-    color: "#166534",
-    fontSize: "14px",
-    fontWeight: 600,
-  },
-  modalButtonRow: {
-    display: "flex",
-    gap: "10px",
-    justifyContent: "flex-end",
-  },
-  primaryButton: {
-    border: "none",
-    borderRadius: "8px",
-    padding: "10px 14px",
-    fontWeight: 700,
-    color: "#fff",
-    backgroundColor: "#3d4a5c",
-    cursor: "pointer",
-  },
-  secondaryButton: {
-    border: "1px solid #d0d5dd",
-    borderRadius: "8px",
-    padding: "10px 14px",
-    fontWeight: 700,
-    color: "#344054",
-    backgroundColor: "#fff",
-    cursor: "pointer",
   },
 };
 

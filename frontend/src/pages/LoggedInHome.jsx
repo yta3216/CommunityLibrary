@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createBook, getBooks, getPopularBooks } from "../api/books";
+import { isListingAvailable } from "../utils/bookAvailability";
 import BookCard from "../components/BookCard/BookCard";
 import Navbar from "../components/Navbar/Navbar";
 import Sidebar from "../components/Sidebar/Sidebar";
-import { createBook, getBooks, getPopularBooks } from "../api/books";
-import { isListingAvailable } from "../utils/bookAvailability";
+import BookForm from "../components/BookForm";
 
 const LoggedInHome = () => {
   const navigate = useNavigate();
@@ -14,16 +15,6 @@ const LoggedInHome = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [createErrorMessage, setCreateErrorMessage] = useState("");
-  const [createSuccessMessage, setCreateSuccessMessage] = useState("");
-  const [formValues, setFormValues] = useState({
-    isbn: "",
-    title: "",
-    author: "",
-    genre: "",
-    description: "",
-  });
 
   const loadBooks = useCallback(async (queryText = "") => {
     try {
@@ -63,10 +54,10 @@ const LoggedInHome = () => {
         setPopularBooks(
           Array.isArray(data)
             ? data.map((item) => ({
-                ...item.bookData,
-                avgRating: item.avgRating,
-                numberOfReviews: item.numberOfReviews,
-              }))
+              ...item.bookData,
+              avgRating: item.avgRating,
+              numberOfReviews: item.numberOfReviews,
+            }))
             : [],
         );
       } catch (_error) {
@@ -112,58 +103,10 @@ const LoggedInHome = () => {
       />
     ));
   };
-
-  const handleCreateChange = (event) => {
-    const { name, value } = event.target;
-    setFormValues((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleCreateSubmit = async (event) => {
-    event.preventDefault();
-    setCreateErrorMessage("");
-    setCreateSuccessMessage("");
-
-    const isbn = formValues.isbn.trim();
-    const title = formValues.title.trim();
-    const author = formValues.author.trim();
-    const genre = formValues.genre.trim();
-    const description = formValues.description.trim();
-
-    if (!isbn || !title || !author || !genre || !description) {
-      setCreateErrorMessage("All fields are required.");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const payload = {
-        isbn,
-        title,
-        author,
-        genre,
-        description,
-      };
-
-      const result = await createBook(payload);
-
-      setBooks((prev) => [result, ...prev]);
-      setFormValues({
-        isbn: "",
-        title: "",
-        author: "",
-        genre: "",
-        description: "",
-      });
-      setCreateSuccessMessage("Book posted successfully.");
-      setIsCreateOpen(false);
-    } catch (_error) {
-      setCreateErrorMessage(
-        _error?.message || "Could not reach server. Please try again.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleCreateBook = async (values) => {
+    const result = await createBook(values);
+    setBooks((prev) => [result, ...prev]);
+    setIsCreateOpen(false);
   };
 
   return (
@@ -190,8 +133,6 @@ const LoggedInHome = () => {
           style={styles.fab}
           onClick={() => {
             setIsCreateOpen(true);
-            setCreateErrorMessage("");
-            setCreateSuccessMessage("");
           }}
         >
           Create New Listing
@@ -201,99 +142,11 @@ const LoggedInHome = () => {
           <div style={styles.modalBackdrop}>
             <div style={styles.modalCard}>
               <h3 style={styles.modalTitle}>Create New Book Listing</h3>
-
-              <form onSubmit={handleCreateSubmit} style={styles.formGrid}>
-                <label style={styles.inputLabel} htmlFor="book-isbn">
-                  ISBN
-                </label>
-                <input
-                  id="book-isbn"
-                  name="isbn"
-                  required
-                  value={formValues.isbn}
-                  onChange={handleCreateChange}
-                  style={styles.textInput}
-                  placeholder="ISBN here"
-                />
-
-                <label style={styles.inputLabel} htmlFor="book-title">
-                  Title
-                </label>
-                <input
-                  id="book-title"
-                  name="title"
-                  required
-                  value={formValues.title}
-                  onChange={handleCreateChange}
-                  style={styles.textInput}
-                  placeholder="Book title here"
-                />
-
-                <label style={styles.inputLabel} htmlFor="book-author">
-                  Author
-                </label>
-                <input
-                  id="book-author"
-                  name="author"
-                  required
-                  value={formValues.author}
-                  onChange={handleCreateChange}
-                  style={styles.textInput}
-                  placeholder="Author name here"
-                />
-
-                <label style={styles.inputLabel} htmlFor="book-genre">
-                  Genre
-                </label>
-                <input
-                  id="book-genre"
-                  name="genre"
-                  required
-                  value={formValues.genre}
-                  onChange={handleCreateChange}
-                  style={styles.textInput}
-                  placeholder="Genre here"
-                />
-
-                <label style={styles.inputLabel} htmlFor="book-description">
-                  Description
-                </label>
-                <textarea
-                  id="book-description"
-                  name="description"
-                  required
-                  value={formValues.description}
-                  onChange={handleCreateChange}
-                  style={styles.textArea}
-                  placeholder="Write a short description"
-                />
-
-                {createErrorMessage ? (
-                  <p style={styles.createErrorText}>{createErrorMessage}</p>
-                ) : null}
-
-                {createSuccessMessage ? (
-                  <p style={styles.createSuccessText}>{createSuccessMessage}</p>
-                ) : null}
-
-                <div style={styles.modalButtonRow}>
-                  <button
-                    type="submit"
-                    style={styles.primaryButton}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Posting..." : "Post Book"}
-                  </button>
-
-                  <button
-                    type="button"
-                    style={styles.secondaryButton}
-                    onClick={() => setIsCreateOpen(false)}
-                  >
-                    Close
-                  </button>
-                </div>
-              </form>
+              <BookForm
+                onSubmit={handleCreateBook}
+                onCancel={() => setIsCreateOpen(false)}
+                submitLabel="Post Book"
+              />
             </div>
           </div>
         ) : null}
@@ -373,64 +226,6 @@ const styles = {
     margin: "0 0 14px",
     fontSize: "24px",
     fontWeight: 700,
-  },
-  formGrid: {
-    display: "grid",
-    gap: "10px",
-  },
-  inputLabel: {
-    fontSize: "14px",
-    color: "#344054",
-    fontWeight: 600,
-  },
-  textInput: {
-    border: "1px solid #d0d5dd",
-    borderRadius: "8px",
-    padding: "10px 12px",
-    fontSize: "14px",
-  },
-  textArea: {
-    minHeight: "90px",
-    border: "1px solid #d0d5dd",
-    borderRadius: "8px",
-    padding: "10px 12px",
-    fontSize: "14px",
-    resize: "vertical",
-  },
-  createErrorText: {
-    margin: 0,
-    color: "#b42318",
-    fontSize: "14px",
-    fontWeight: 600,
-  },
-  createSuccessText: {
-    margin: 0,
-    color: "#166534",
-    fontSize: "14px",
-    fontWeight: 600,
-  },
-  modalButtonRow: {
-    display: "flex",
-    gap: "10px",
-    justifyContent: "flex-end",
-  },
-  primaryButton: {
-    border: "none",
-    borderRadius: "8px",
-    padding: "10px 14px",
-    fontWeight: 700,
-    color: "#fff",
-    backgroundColor: "#3d4a5c",
-    cursor: "pointer",
-  },
-  secondaryButton: {
-    border: "1px solid #d0d5dd",
-    borderRadius: "8px",
-    padding: "10px 14px",
-    fontWeight: 700,
-    color: "#344054",
-    backgroundColor: "#fff",
-    cursor: "pointer",
   },
 };
 
