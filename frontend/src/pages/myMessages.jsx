@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
+import Sidebar from "../components/Sidebar/Sidebar";
 import ChatListSection from "../components/Messages/ChatListSection";
 import MessageComposer from "../components/Messages/MessageComposer";
 import MessageThread from "../components/Messages/MessageThread";
@@ -241,108 +242,125 @@ function MyMessages() {
   return (
     <div>
       <Navbar isLoggedIn={true} />
-      <Breadcrumbs
-        items={[
-          { label: "Home", to: "/home" },
-          { label: "Profile", to: "/profile" },
-          { label: "Messages" },
-        ]}
-      />
+      <div style={styles.pageShell}>
+        <Sidebar isLoggedIn={true} />
 
-      <div style={styles.page}>
-        <h1 style={styles.pageTitle}>My Messages</h1>
+        <main style={styles.mainContent}>
+          <Breadcrumbs
+            items={[
+              { label: "Home", to: "/home" },
+              { label: "Profile", to: "/profile" },
+              { label: "Messages" },
+            ]}
+          />
 
-        {isLoading ? <p style={styles.meta}>Loading messages...</p> : null}
+          <div style={styles.page}>
+            <h1 style={styles.pageTitle}>My Messages</h1>
 
-        <div style={styles.layout}>
-          <aside style={styles.listColumn}>
-            <ChatListSection
-              label="My Books"
-              sectionKey="myBooks"
-              chats={chats.myBooks}
-              activeChatId={activeChatId}
-              onSelect={setActiveChatId}
-              formatTime={formatTime}
-            />
-            <ChatListSection
-              label="Their Books"
-              sectionKey="theirBooks"
-              chats={chats.theirBooks}
-              activeChatId={activeChatId}
-              onSelect={setActiveChatId}
-              formatTime={formatTime}
-            />
-          </aside>
+            {isLoading ? <p style={styles.meta}>Loading messages...</p> : null}
 
-          <section style={styles.contentColumn}>
-            {activeChat ? (
-              <>
-                <div style={styles.threadHeader}>
-                  <div>
-                    <h2 style={styles.threadTitle}>{activeChat.bookTitle}</h2>
-                    <p style={styles.threadMeta}>
-                      {activeChat.bookStatus === "available"
-                        ? "Available"
-                        : "Not Available"}
-                    </p>
-                  </div>
-
-                  <div style={styles.headerActions}>
-                    {activeChat.canLend ? (
-                      <button
-                        type="button"
-                        style={styles.primaryAction}
-                        disabled={isActionPending}
-                        onClick={() => runBookAction("lend")}
-                      >
-                        Lend Book
-                      </button>
-                    ) : null}
-                    {activeChat.canReturn ? (
-                      <button
-                        type="button"
-                        style={styles.secondaryAction}
-                        disabled={isActionPending}
-                        onClick={() => runBookAction("return")}
-                      >
-                        Return Book
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-
-                <MessageThread
-                  messages={activeChat.messages || []}
-                  emptyText="Start this conversation by sending a message."
+            <div style={styles.layout}>
+              <aside style={styles.listColumn}>
+                <ChatListSection
+                  label="My Books"
+                  sectionKey="myBooks"
+                  chats={chats.myBooks}
+                  activeChatId={activeChatId}
+                  onSelect={setActiveChatId}
+                  formatTime={formatTime}
                 />
+                <ChatListSection
+                  label="Their Books"
+                  sectionKey="theirBooks"
+                  chats={chats.theirBooks}
+                  activeChatId={activeChatId}
+                  onSelect={setActiveChatId}
+                  formatTime={formatTime}
+                />
+              </aside>
 
-                <div style={styles.composerWrap}>
-                  <MessageComposer
-                    value={composerText}
-                    onChange={setComposerText}
-                    onSubmit={sendToActiveChat}
-                    isSubmitting={isSending}
-                    placeholder="Type your message..."
-                    buttonLabel="Send"
-                    disabled={!activeChat}
-                  />
-                </div>
-              </>
-            ) : (
-              <p style={styles.meta}>
-                Select a conversation to start messaging.
-              </p>
-            )}
-          </section>
-        </div>
+              <section style={styles.contentColumn}>
+                {activeChat ? (
+                  <>
+                    <div style={styles.threadHeader}>
+                      <div>
+                        <h2 style={styles.threadTitle}>
+                          {activeChat.bookTitle}
+                        </h2>
+                        <p style={styles.threadMeta}>
+                          {activeChat.bookStatus === "available"
+                            ? "Available"
+                            : "Not Available"}
+                        </p>
+                      </div>
 
-        {errorMessage ? <p style={styles.error}>{errorMessage}</p> : null}
+                      <div style={styles.headerActions}>
+                        {activeChat.canLend ? (
+                          <button
+                            type="button"
+                            style={styles.primaryAction}
+                            disabled={isActionPending}
+                            onClick={() => runBookAction("lend")}
+                          >
+                            Lend Book
+                          </button>
+                        ) : null}
+                        {activeChat.canReturn ? (
+                          <button
+                            type="button"
+                            style={styles.secondaryAction}
+                            disabled={isActionPending}
+                            onClick={() => runBookAction("return")}
+                          >
+                            Return Book
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <MessageThread
+                      messages={activeChat.messages || []}
+                      emptyText="Start this conversation by sending a message."
+                    />
+
+                    <div style={styles.composerWrap}>
+                      <MessageComposer
+                        value={composerText}
+                        onChange={setComposerText}
+                        onSubmit={sendToActiveChat}
+                        isSubmitting={isSending}
+                        placeholder="Type your message..."
+                        buttonLabel="Send"
+                        disabled={!activeChat}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <p style={styles.meta}>
+                    Select a conversation to start messaging.
+                  </p>
+                )}
+              </section>
+            </div>
+
+            {errorMessage ? <p style={styles.error}>{errorMessage}</p> : null}
+          </div>
+        </main>
       </div>
     </div>
   );
 }
 
 const styles = {
+  pageShell: {
+    display: "flex",
+    minHeight: "calc(100vh - 72px)",
+    backgroundColor: "#fff",
+  },
+  mainContent: {
+    flex: 1,
+    minWidth: 0,
+  },
   page: {
     maxWidth: "1180px",
     margin: "0 auto",
