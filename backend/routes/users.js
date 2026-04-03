@@ -162,5 +162,4 @@ router.delete("/:id", authRequired, requireRole("admin"), async (req, res) => {
   }
 });
 
-// export router so server can mount users routes
 module.exports = router;
