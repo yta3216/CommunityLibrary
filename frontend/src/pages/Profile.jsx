@@ -353,7 +353,11 @@ const Profile = () => {
 
   return (
     <>
-      <Navbar isLoggedIn={true} />
+      <Navbar
+        isLoggedIn={true}
+        onSearchClick={() => navigate("/home")}
+        onSearchFocus={() => navigate("/home")}
+      />
       <Breadcrumbs
         items={[{ label: "Home", to: "/home" }, { label: "Profile" }]}
       />

@@ -3,7 +3,13 @@ import logo from "../../resources/logo.png";
 import avatar_placeholder from "../../resources/avatar_placeholder.png";
 import "./Navbar.css";
 
-function Navbar({ isLoggedIn, searchValue = "", onSearchChange }) {
+function Navbar({
+  isLoggedIn,
+  searchValue = "",
+  onSearchChange,
+  onSearchClick,
+  onSearchFocus,
+}) {
   const searchInputProps = onSearchChange
     ? {
         value: searchValue,
@@ -30,6 +36,8 @@ function Navbar({ isLoggedIn, searchValue = "", onSearchChange }) {
           type="text"
           placeholder="Search for a book"
           className="search"
+          onClick={onSearchClick}
+          onFocus={onSearchFocus}
           {...searchInputProps}
         />
       </div>

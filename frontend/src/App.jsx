@@ -15,6 +15,7 @@ import BookDetail from "./pages/BookDetail";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import MyMessages from "./pages/myMessages";
+import Categories from "./pages/Categories";
 
 import AdminHome from "./components/adminHome";
 import AdminBooks from "./components/adminBooks";
@@ -215,6 +216,17 @@ function App() {
               isAuthenticated={isAuthenticated}
             >
               <MyMessages />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/categories"
+          element={
+            <RequireAuth
+              isAuthLoading={isAuthLoading}
+              isAuthenticated={isAuthenticated}
+            >
+              <Categories />
             </RequireAuth>
           }
         />
