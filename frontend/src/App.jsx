@@ -14,7 +14,7 @@ import LoggedInHome from "./pages/LoggedInHome";
 import BookDetail from "./pages/BookDetail";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
-import MyMessages from "./pages/myMessages";
+import Messages from "./pages/Messages";
 
 import AdminHome from "./components/adminHome";
 import AdminBooks from "./components/adminBooks";
@@ -115,7 +115,7 @@ function App() {
         />
         <Route
           path="/messages"
-          element={<RequireAuth><MyMessages /></RequireAuth>}
+          element={<RequireAuth><Messages /></RequireAuth>}
         />
 
         {/* Admin Pages */}

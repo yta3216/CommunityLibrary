@@ -12,7 +12,7 @@ const EMPTY_CHATS = {
   theirBooks: [],
 };
 
-function MyMessages() {
+function Messages() {
   const [searchParams] = useSearchParams();
   const requestedChatId = searchParams.get("chatId") || "";
   const [chats, setChats] = useState(EMPTY_CHATS);
@@ -369,4 +369,4 @@ const styles = {
   },
 };
 
-export default MyMessages;
+export default Messages;
