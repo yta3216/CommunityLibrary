@@ -100,16 +100,7 @@ export async function apiRequest(path, options = {}) {
   return data;
 }
 
-export function buildQueryString(params = {}) {
-  const searchParams = new URLSearchParams();
-
-  Object.entries(params).forEach(([key, value]) => {
-    const normalizedValue = String(value || "").trim();
-    if (normalizedValue) {
-      searchParams.set(key, normalizedValue);
-    }
-  });
-
-  const query = searchParams.toString();
-  return query ? `?${query}` : "";
+export function toQueryString(q = "") {
+  const trimmed = String(q || "").trim();
+  return trimmed ? `?q=${encodeURIComponent(trimmed)}` : "";
 }

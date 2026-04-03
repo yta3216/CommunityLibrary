@@ -79,7 +79,7 @@ const EditProfile = () => {
         items={[
           { label: "Home", to: "/home" },
           { label: "Profile", to: "/profile" },
-          { label: "Settings" },
+          { label: "Edit Profile" },
         ]}
       />
       <div className="edit-profile-container">

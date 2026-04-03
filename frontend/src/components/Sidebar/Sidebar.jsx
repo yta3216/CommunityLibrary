@@ -24,7 +24,7 @@ const Sidebar = ({ isLoggedIn }) => {
               <Link to="/messages">Messages</Link>
             </li>
             <li>
-              <Link to="/profile/edit">Settings</Link>
+              <Link to="/profile">Profile</Link>
             </li>
             <li>
               <Link to="/" onClick={handleLogout}>

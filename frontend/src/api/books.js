@@ -1,11 +1,11 @@
-import { apiRequest, buildQueryString } from "./client";
+import { apiRequest, toQueryString } from "./client";
 
 export function getBooks(query = "") {
-  return apiRequest(`/api/books${buildQueryString({ q: query })}`);
+  return apiRequest(`/api/books${toQueryString({ q: query })}`);
 }
 
 export function getPopularBooks(query = "") {
-  return apiRequest(`/api/books/popular${buildQueryString({ q: query })}`);
+  return apiRequest(`/api/books/popular${toQueryString({ q: query })}`);
 }
 
 export function createBook(payload) {
