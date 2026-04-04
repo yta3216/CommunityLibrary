@@ -19,8 +19,7 @@ export function isListingAvailable(listing) {
   const holderId = getBookUserId(listing.holder);
   const normalizedStatus = String(listing.status || "").toLowerCase();
 
-  const availableByStatus =
-    normalizedStatus === "available" || normalizedStatus === "with_owner";
+  const availableByStatus = normalizedStatus === "available";
   const availableByOwnership =
     ownerId && holderId && ownerId.toString() === holderId.toString();
 

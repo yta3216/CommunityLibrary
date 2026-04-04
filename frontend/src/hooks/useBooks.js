@@ -16,7 +16,7 @@ export default function useBooks(searchTerm) {
             setErrorMessage(null);
 
             try {
-                const bookData = await getBooks();
+                const bookData = await getBooks(searchTerm);
                 if (isMounted) {
                     setBooks(Array.isArray(bookData) ? bookData : []);
                 }

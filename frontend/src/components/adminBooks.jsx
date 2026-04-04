@@ -40,7 +40,7 @@ export default function AdminBooks() {
 
     return rows.filter((row) => {
       const isAvailable =
-        row.status === "AVAILABLE" || row.status === "WITH_OWNER";
+        row.status === "AVAILABLE";
       const matchesAvailability =
         availabilityFilter === "all"
           ? true
