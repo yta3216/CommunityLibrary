@@ -42,8 +42,8 @@ export function useChats(requestedChatId = "") {
             const data = await getChats();
 
             const nextChats = {
-                myBooks: Array.isArray(data.myBooks) ? data.myBooks.sort(sortByRecent) : [],
-                theirBooks: Array.isArray(data.theirBooks) ? data.theirBooks.sort(sortByRecent) : [],
+                myBooks: Array.isArray(data.myBooks) ? [...data.myBooks].sort(sortByRecent) : [],
+                theirBooks: Array.isArray(data.theirBooks) ? [...data.theirBooks].sort(sortByRecent) : [],
             };
 
             setChats(nextChats);
@@ -92,5 +92,5 @@ export function useChats(requestedChatId = "") {
         );
     }, [activeChatId, chats]);
 
-    return { chats, activeChatId, setActiveChatId, activeChat, isLoading, errorMessage, updateInsertChat };
+    return { chats, activeChatId, setActiveChatId, activeChat, isLoading, errorMessage, setErrorMessage, updateInsertChat };
 }

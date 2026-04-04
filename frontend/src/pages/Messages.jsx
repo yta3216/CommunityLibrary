@@ -55,8 +55,8 @@ function Messages() {
       setIsActionPending(false);
     }
   };
-  const handleLend = () => runBookAction(() => lendBook(activeChat.id));
-  const handleReturn = () => runBookAction(() => returnBorrowedBook(activeChat.id));
+  const handleLend = async () => runBookAction(() => lendBook(activeChat.id));
+  const handleReturn = async () => runBookAction(() => returnBorrowedBook(activeChat.id));
   return (
     <div>
       <Navbar isLoggedIn={true} />
