@@ -26,11 +26,3 @@ export function isListingAvailable(listing) {
 
   return Boolean(availableByStatus || availableByOwnership);
 }
-
-export function toAvailableCopiesText(count) {
-  if (count === 1) {
-    return "1 copy available";
-  }
-
-  return `${count} copies available`;
-}

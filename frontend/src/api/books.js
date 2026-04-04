@@ -1,5 +1,9 @@
 import { apiRequest, toQueryString } from "./client";
 
+export function getBook(bookId) {
+  return apiRequest(`/api/books/${bookId}`);
+}
+
 export function getBooks(query = "") {
   return apiRequest(`/api/books${toQueryString({ q: query })}`);
 }

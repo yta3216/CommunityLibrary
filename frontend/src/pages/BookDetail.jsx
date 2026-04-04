@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
@@ -7,22 +7,18 @@ import BookActions from "../components/BookDetail/BookTags";
 import ReviewSection from "../components/BookDetail/ReviewSection";
 import MessageComposer from "../components/Messages/MessageComposer";
 import { useAuth } from "../context/AuthContext";
-import { getBooks, returnBook } from "../api/books";
-import { getChats, sendBorrowRequest } from "../api/chats";
-import {
-  buildBookActionState,
-  mapRequesterChatsByBook,
-  selectBookFromCollection,
-  toBookDetailModel,
-} from "../api/bookDetail";
+import { getBook, returnBook } from "../api/books";
+import { sendBorrowRequest } from "../api/chats";
+import { useBookDetail } from "../hooks/useBookDetail";
 
 function BookDetail() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [books, setBooks] = useState([]);
   const { user: currentUser } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+
+  const selectedBookId = searchParams.get("id");
+  const { book, updateBook, isLoading, errorMessage } = useBookDetail(selectedBookId);
+
   const [isBorrowComposerOpen, setIsBorrowComposerOpen] = useState(false);
   const [borrowDraft, setBorrowDraft] = useState("");
   const [borrowFeedback, setBorrowFeedback] = useState("");
@@ -30,141 +26,29 @@ function BookDetail() {
   const [isSendingBorrowMessage, setIsSendingBorrowMessage] = useState(false);
   const [isBookActionPending, setIsBookActionPending] = useState(false);
   const [bookActionError, setBookActionError] = useState("");
-  const [requesterChatByBook, setRequesterChatByBook] = useState({});
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadPage = async () => {
-      try {
-        setErrorMessage("");
-        setIsLoading(true);
-
-        const [booksData, chatsData] = await Promise.all([
-          getBooks(),
-          getChats(),
-        ]);
-
-        if (!isMounted) {
-          return;
-        }
-
-        setBooks(Array.isArray(booksData) ? booksData : []);
-        setRequesterChatByBook(mapRequesterChatsByBook(chatsData));
-      } catch (_error) {
-        if (isMounted) {
-          setErrorMessage(
-            _error?.message || "Could not load book details right now.",
-          );
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadPage();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const refreshBooksAndChats = async () => {
-      try {
-        const [booksData, chatsData] = await Promise.all([
-          getBooks(),
-          getChats(),
-        ]);
-
-        if (isMounted && Array.isArray(booksData)) {
-          setBooks(booksData);
-          setRequesterChatByBook(mapRequesterChatsByBook(chatsData));
-        }
-      } catch (_error) {
-        // Polling failures are ignored; next interval retry will attempt again.
-      }
-    };
-
-    const pollTimerId = window.setInterval(refreshBooksAndChats, 10000);
-
-    return () => {
-      isMounted = false;
-      window.clearInterval(pollTimerId);
-    };
-  }, []);
-
-  const selectedBookId = searchParams.get("id");
-
-  const selectedBook = useMemo(
-    () => selectBookFromCollection(books, selectedBookId),
-    [books, selectedBookId],
-  );
-
-  const book = useMemo(() => toBookDetailModel(selectedBook), [selectedBook]);
-
-  const currentUserId = currentUser?._id || "";
-
-  const {
-    isBookAvailable,
-    existingRequesterChatId,
-    hasExistingConversation,
-    isCurrentHolder,
-    canBorrow,
-    canReturn,
-    showBorrowButton,
-    showViewConversationButton,
-    actionHintText,
-  } = useMemo(
-    () =>
-      buildBookActionState({
-        book,
-        books,
-        currentUserId,
-        requesterChatByBook,
-      }),
-    [book, books, currentUserId, requesterChatByBook],
-  );
-
-  useEffect(() => {
-    if (hasExistingConversation && isBorrowComposerOpen) {
-      setIsBorrowComposerOpen(false);
-    }
-  }, [hasExistingConversation, isBorrowComposerOpen]);
-
-  async function updateBookByReturnEndpoint() {
-    if (!book) {
-      return;
-    }
+  const handleReturn = async () => {
+    if (!book) return;
 
     setBookActionError("");
     setBorrowFeedback("");
     setIsBookActionPending(true);
 
     try {
-      const result = await returnBook(book.id);
-
-      setBooks((currentBooks) =>
-        currentBooks.map((listedBook) =>
-          listedBook._id === result._id ? result : listedBook,
-        ),
-      );
+      await returnBook(book.id);
+      // Re-fetch the enriched book so all flags reflect the new state.
+      const updated = await getBook(book.id);
+      updateBook(updated);
       setBorrowFeedback("Book availability updated.");
     } catch (_error) {
       setBookActionError("Could not update this book right now.");
     } finally {
       setIsBookActionPending(false);
     }
-  }
+  };
 
-  function handleBorrowClick() {
-    if (!canBorrow) {
-      return;
-    }
+  const handleBorrowClick = () => {
+    if (!book?.canBorrow) return;
 
     setBorrowError("");
     setBorrowFeedback("");
@@ -172,20 +56,15 @@ function BookDetail() {
     if (!borrowDraft.trim()) {
       setBorrowDraft("Hi, I would like to borrow this book.");
     }
-  }
+  };
 
-  function handleViewConversation() {
-    if (!existingRequesterChatId) {
-      return;
-    }
+  const handleViewConversation = () => {
+    if (!book?.existingChatId) return;
+    navigate(`/messages?chatId=${book.existingChatId}`);
+  };
 
-    navigate(`/messages?chatId=${existingRequesterChatId}`);
-  }
-
-  async function handleSendBorrowMessage() {
-    if (!book || !canBorrow) {
-      return;
-    }
+  const handleSendBorrowMessage = async () => {
+    if (!book?.canBorrow) return;
 
     const messageText = borrowDraft.trim();
     if (!messageText) {
@@ -199,7 +78,6 @@ function BookDetail() {
 
     try {
       const result = await sendBorrowRequest(book.id, messageText);
-
       setBorrowDraft("");
       setIsBorrowComposerOpen(false);
       navigate(`/messages?chatId=${result.id}`);
@@ -208,7 +86,7 @@ function BookDetail() {
     } finally {
       setIsSendingBorrowMessage(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -226,8 +104,8 @@ function BookDetail() {
       <div>
         <Navbar isLoggedIn={true} />
         <div style={styles.page}>
-          <p style={styles.errorText}>
-            {errorMessage || "No books are available yet."}
+          <p className="text-error">
+            {errorMessage || "This book could not be found."}
           </p>
         </div>
       </div>
@@ -242,30 +120,27 @@ function BookDetail() {
       />
 
       <div style={styles.page}>
-        {/* Book title */}
         <h1 style={styles.title}>{book.title}</h1>
         <h3 style={styles.author}>{book.author}</h3>
-        <h3 style={styles.owner}>Owned by: {book.ownerName || "Unknown"}</h3>
+        <h3 style={styles.owner}>Owned by: {book.ownerName}</h3>
 
-        {/* Cover image + synopsis */}
         <BookCover synopsis={book.description} />
 
-        {/* Genre tags + action buttons */}
         <BookActions
           genres={book.genres}
           listedBookAvailabilityText={
-            isBookAvailable
+            book.status === "available"
               ? "This listing: Available"
               : "This listing: Not available"
           }
-          showBorrowButton={showBorrowButton}
-          isBorrowEnabled={canBorrow}
-          showViewConversationButton={showViewConversationButton}
-          showReturnButton={canReturn}
-          actionHintText={actionHintText}
+          showBorrowButton={book.showBorrowButton}
+          isBorrowEnabled={book.canBorrow}
+          showViewConversationButton={book.showViewConversationButton}
+          showReturnButton={book.canReturn}
+          actionHintText={book.actionHintText}
           onBorrow={handleBorrowClick}
           onViewConversation={handleViewConversation}
-          onReturn={updateBookByReturnEndpoint}
+          onReturn={handleReturn}
           isActionPending={isBookActionPending}
         />
 
@@ -279,27 +154,22 @@ function BookDetail() {
               isSubmitting={isSendingBorrowMessage}
               placeholder="Hi, I would like to borrow this book."
               buttonLabel="Send"
-              disabled={!canBorrow}
+              disabled={!book.canBorrow}
             />
           </div>
         ) : null}
 
-        {borrowError ? <p style={styles.errorText}>{borrowError}</p> : null}
-        {bookActionError ? (
-          <p style={styles.errorText}>{bookActionError}</p>
-        ) : null}
-        {borrowFeedback ? (
-          <p style={styles.successText}>{borrowFeedback}</p>
-        ) : null}
+        {borrowError ? <p className="text-error">{borrowError}</p> : null}
+        {bookActionError ? <p className="text-error">{bookActionError}</p> : null}
+        {borrowFeedback ? <p className="text-success">{borrowFeedback}</p> : null}
 
-        {/*Comments section*/}
         <ReviewSection
           bookId={book.id}
           currentUser={currentUser?._id}
           postedBy={book.ownerId}
         />
 
-        {errorMessage ? <p style={styles.errorText}>{errorMessage}</p> : null}
+        {errorMessage ? <p className="text-error">{errorMessage}</p> : null}
       </div>
     </div>
   );
@@ -333,16 +203,6 @@ const styles = {
     color: "#667085",
     fontSize: "18px",
     margin: 0,
-  },
-  errorText: {
-    color: "#b42318",
-    fontSize: "18px",
-    margin: "8px 0 0",
-  },
-  successText: {
-    color: "#067647",
-    fontSize: "16px",
-    margin: "8px 0 0",
   },
   borrowComposerBlock: {
     marginBottom: "14px",

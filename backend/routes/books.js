@@ -2,6 +2,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 
+const Chat = require("../models/Chat");
 const Book = require("../models/Book");
 const User = require("../models/User");
 const Review = require("../models/Review");
@@ -125,6 +126,110 @@ router.get("/popular", async (req, res) => {
   } catch (error) {
     console.error("popular books error:", error);
     return res.status(500).json({ message: "failed to fetch popular books" });
+  }
+});
+
+
+router.get("/:id", authRequired, async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.id)
+      .populate("owner", "username")
+      .populate("holder", "username");
+
+    if (!book) {
+      return res.status(404).json({ message: "Book not found." });
+    }
+
+    const currentUserId = req.user.id.toString();
+    const ownerId = book.owner._id.toString();
+    const holderId = book.holder._id.toString();
+
+    const ownsCopyWithSameIsbn = await Book.exists({
+      isbn: book.isbn,
+      owner: currentUserId,
+    });
+
+    const holdsBorrowedCopyWithSameIsbn = await Book.exists({
+      isbn: book.isbn,
+      holder: currentUserId,
+      owner: { $ne: currentUserId },
+    });
+
+    const existingChat = await Chat.findOne({
+      book: book._id,
+      requester: currentUserId,
+    }).select("_id");
+
+    const existingChatId = existingChat ? existingChat._id.toString() : null;
+
+    const isCurrentOwner = currentUserId === ownerId;
+    const isCurrentHolder = currentUserId === holderId && currentUserId !== ownerId;
+    const isBookAvailable = book.status === "available";
+    const hasExistingConversation = Boolean(existingChatId);
+
+    const canBorrow = Boolean(
+      !isCurrentOwner &&
+      !ownsCopyWithSameIsbn &&
+      !holdsBorrowedCopyWithSameIsbn &&
+      isBookAvailable &&
+      !hasExistingConversation &&
+      !isCurrentHolder,
+    );
+
+    const canReturn = isCurrentHolder;
+
+    const showBorrowButton = Boolean(
+      !isCurrentHolder &&
+      (ownsCopyWithSameIsbn ||
+        holdsBorrowedCopyWithSameIsbn ||
+        !hasExistingConversation),
+    );
+
+    const showViewConversationButton = Boolean(
+      !isCurrentHolder && !ownsCopyWithSameIsbn && hasExistingConversation,
+    );
+
+    let actionHintText = "";
+    if (isCurrentOwner) {
+      actionHintText = "You are the owner of this book.";
+    } else if (ownsCopyWithSameIsbn) {
+      actionHintText = "You already own a copy of this book.";
+    } else if (holdsBorrowedCopyWithSameIsbn) {
+      actionHintText = "You are already borrowing another copy with this ISBN.";
+    } else if (showViewConversationButton) {
+      actionHintText = "You already started a conversation for this listing.";
+    } else if (!isBookAvailable && !isCurrentHolder) {
+      actionHintText = "This listing is currently not available for borrowing.";
+    }
+
+    const genres = (book.genre || "")
+      .split(",")
+      .map((g) => g.trim())
+      .filter(Boolean);
+
+    res.json({
+      id: book._id,
+      isbn: book.isbn,
+      title: book.title,
+      author: book.author,
+      description: book.description,
+      status: book.status,
+      genres: genres.length > 0 ? genres : ["Unknown"],
+      ownerName: book.owner?.username || "Unknown",
+      ownerId,
+      holderId,
+      numberOfReviews: book.numberOfReviews,
+      existingChatId,
+      canBorrow,
+      canReturn,
+      showBorrowButton,
+      showViewConversationButton,
+      actionHintText,
+      isCurrentOwner,
+      isCurrentHolder,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Could not load book details." });
   }
 });
 
