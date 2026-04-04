@@ -18,6 +18,14 @@ PLEASE USE THESE! DON'T EMBED STYLES DIRECTLY IN THE COMPONENTS!
   --color-error: #b42318;
   --color-border: #d0d5dd;
   --color-brand: #4f7f7c;
+
+  --color-bg-primary-hover: #0e1010;
+  --color-bg-secondary-hover: #d5d5d5;
+  --color-text-primary-hover: #ffffff;
+  --color-text-secondary-hover: #101111;
+  --color-brand-hover: #3e6b69;
+
+  --transition-duration: 0.2s;
 }
 
 body {
@@ -27,6 +35,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100vh;
+  width: 100vw;
 }
 
 code {
@@ -61,6 +71,7 @@ code {
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 14px;
+  width: 100%;
 }
 
 .form-textarea {
@@ -80,6 +91,11 @@ code {
   color: var(--color-text-primary);
   background-color: var(--color-brand);
   cursor: pointer;
+  transition: var(--transition-duration) ease-in-out;
+}
+.button-primary:hover {
+  background-color: var(--color-brand-hover);
+  color: var(--color-text-primary-hover);
 }
 
 .button-secondary {
@@ -89,6 +105,11 @@ code {
   color: var(--color-text-secondary);
   background-color: var(--color-bg-secondary);
   cursor: pointer;
+  transition: var(--transition-duration) ease-in-out;
+}
+.button-secondary:hover {
+  background-color: var(--color-bg-secondary-hover);
+  color: var(--color-text-secondary-hover);
 }
 
 /* Utilities: Modal */

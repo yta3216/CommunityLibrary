@@ -74,7 +74,7 @@ function Messages() {
         {isLoading ? <p style={styles.meta}>Loading messages...</p> : null}
 
         <div style={styles.layout}>
-          <aside style={styles.listColumn}>
+          <section style={styles.listColumn}>
             <ChatListSection
               label="My Books"
               sectionKey="myBooks"
@@ -89,7 +89,7 @@ function Messages() {
               activeChatId={activeChatId}
               onSelect={setActiveChatId}
             />
-          </aside>
+          </section>
 
           <section style={styles.contentColumn}>
             {activeChat ? (
@@ -108,7 +108,7 @@ function Messages() {
                     {activeChat.canLend ? (
                       <button
                         type="button"
-                        style={styles.primaryAction}
+                        className="button-primary"
                         disabled={isActionPending}
                         onClick={handleLend}
                       >
@@ -118,7 +118,7 @@ function Messages() {
                     {activeChat.canReturn ? (
                       <button
                         type="button"
-                        style={styles.secondaryAction}
+                        className="button-secondary"
                         disabled={isActionPending}
                         onClick={handleReturn}
                       >
@@ -133,17 +133,15 @@ function Messages() {
                   emptyText="Start this conversation by sending a message."
                 />
 
-                <div style={styles.composerWrap}>
-                  <MessageComposer
-                    value={composerText}
-                    onChange={setComposerText}
-                    onSubmit={sendToActiveChat}
-                    isSubmitting={isSending}
-                    placeholder="Type your message..."
-                    buttonLabel="Send"
-                    disabled={!activeChat}
-                  />
-                </div>
+                <MessageComposer
+                  value={composerText}
+                  onChange={setComposerText}
+                  onSubmit={sendToActiveChat}
+                  isSubmitting={isSending}
+                  placeholder="Type your message..."
+                  buttonLabel="Send"
+                  disabled={!activeChat}
+                />
               </>
             ) : (
               <p style={styles.meta}>
@@ -153,16 +151,16 @@ function Messages() {
           </section>
         </div>
 
-        {errorMessage ? <p style={styles.error}>{errorMessage}</p> : null}
+        {errorMessage ? <p className="text-error">{errorMessage}</p> : null}
       </div>
     </div>
   );
 }
-
+// TODO: Fix styling and also extract them into index.css or something.
 const styles = {
   page: {
     maxWidth: "1180px",
-    margin: "0 auto",
+    margin: "0",
     padding: "30px 20px 34px",
   },
   pageTitle: {
@@ -185,6 +183,8 @@ const styles = {
     border: "1px solid #e4e7ec",
     borderRadius: "16px",
     backgroundColor: "#f9fafb",
+    maxHeight: "600px",
+    height: "auto",
   },
   contentColumn: {
     flex: "2 1 520px",
@@ -196,12 +196,14 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: "14px",
+    maxHeight: "600px",
+    overflow: "scroll",
   },
   threadHeader: {
     display: "flex",
     justifyContent: "space-between",
     gap: "10px",
-    alignItems: "flex-start",
+    alignItems: "center",
   },
   threadTitle: {
     margin: 0,
@@ -218,26 +220,6 @@ const styles = {
     gap: "8px",
     flexWrap: "wrap",
   },
-  primaryAction: {
-    border: "none",
-    borderRadius: "10px",
-    backgroundColor: "#386f6d",
-    color: "#fff",
-    padding: "8px 12px",
-    fontSize: "0.84rem",
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  secondaryAction: {
-    border: "1px solid #d0d5dd",
-    borderRadius: "10px",
-    backgroundColor: "#fff",
-    color: "#344054",
-    padding: "8px 12px",
-    fontSize: "0.84rem",
-    fontWeight: 600,
-    cursor: "pointer",
-  },
   composerWrap: {
     marginTop: "2px",
   },
@@ -245,11 +227,6 @@ const styles = {
     margin: "0 0 14px",
     color: "#667085",
     fontSize: "0.95rem",
-  },
-  error: {
-    margin: "12px 0 0",
-    color: "#b42318",
-    fontSize: "0.92rem",
   },
 };
 

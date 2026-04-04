@@ -27,7 +27,7 @@ const styles = {
     flexDirection: "column",
     gap: "10px",
     overflowY: "auto",
-    maxHeight: "560px",
+    height: "100%",
     paddingRight: "6px",
   },
   empty: {
