@@ -148,21 +148,14 @@ function Messages() {
       setIsSending(false);
     }
   };
-
-  const runBookAction = async (actionName) => {
-    if (!activeChat) {
-      return;
-    }
+  const runBookAction = async (action) => {
+    if (!activeChat) return;
 
     setErrorMessage("");
     setIsActionPending(true);
 
     try {
-      const result =
-        actionName === "lend"
-          ? await lendBook(activeChat.id)
-          : await returnBorrowedBook(activeChat.id);
-
+      const result = await action();
       upsertChat(result);
     } catch (_error) {
       setErrorMessage(_error?.message || "Could not update this book.");
@@ -170,7 +163,8 @@ function Messages() {
       setIsActionPending(false);
     }
   };
-
+  const handleLend = () => runBookAction(() => lendBook(activeChat.id));
+  const handleReturn = () => runBookAction(() => returnBorrowedBook(activeChat.id));
   return (
     <div>
       <Navbar isLoggedIn={true} />
@@ -226,7 +220,7 @@ function Messages() {
                         type="button"
                         style={styles.primaryAction}
                         disabled={isActionPending}
-                        onClick={() => runBookAction("lend")}
+                        onClick={handleLend}
                       >
                         Lend Book
                       </button>
@@ -236,7 +230,7 @@ function Messages() {
                         type="button"
                         style={styles.secondaryAction}
                         disabled={isActionPending}
-                        onClick={() => runBookAction("return")}
+                        onClick={handleReturn}
                       >
                         Return Book
                       </button>

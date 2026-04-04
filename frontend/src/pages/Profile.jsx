@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { deleteBook, updateBook } from "../api/books";
@@ -19,7 +19,7 @@ const Profile = () => {
   const [deleteMessage, setDeleteMessage] = useState("");
   const [isDeletingBook, setIsDeletingBook] = useState(false);
 
-  const [books, setBooks, isLoading, errorMessage] = useBooks();
+  const { books, setBooks, isLoading, errorMessage } = useBooks();
 
   const ownedBooks = useMemo(() => {
     if (!user?._id) {

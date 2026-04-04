@@ -14,7 +14,7 @@ export default function AdminBooks() {
   const [searchQuery, setSearchQuery] = useState("");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
 
-  const [books, setBooks, isLoading] = useBooks();
+  const { books, setBooks, isLoading } = useBooks();
 
   const rows = useMemo(() => {
     return books.map((book) => {
