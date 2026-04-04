@@ -1,128 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import ChatListSection from "../components/Messages/ChatListSection";
 import MessageComposer from "../components/Messages/MessageComposer";
 import MessageThread from "../components/Messages/MessageThread";
-import { getChats, lendBook, returnBorrowedBook, sendChatMessage } from "../api/chats";
-
-const EMPTY_CHATS = {
-  myBooks: [],
-  theirBooks: [],
-};
+import { lendBook, returnBorrowedBook, sendChatMessage } from "../api/chats";
+import { useChats } from "../hooks/useChats";
 
 function Messages() {
   const [searchParams] = useSearchParams();
   const requestedChatId = searchParams.get("chatId") || "";
-  const [chats, setChats] = useState(EMPTY_CHATS);
-  const [activeChatId, setActiveChatId] = useState(null);
   const [composerText, setComposerText] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [isActionPending, setIsActionPending] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const sortByRecent = useCallback((left, right) => {
-    const leftTime = new Date(left.lastMessageAt || 0).getTime();
-    const rightTime = new Date(right.lastMessageAt || 0).getTime();
-    return rightTime - leftTime;
-  }, []);
-
-  const upsertChat = useCallback(
-    (chatDto) => {
-      if (!chatDto?.id) {
-        return;
-      }
-
-      setChats((prev) => {
-        const next = {
-          myBooks: prev.myBooks.filter((chat) => chat.id !== chatDto.id),
-          theirBooks: prev.theirBooks.filter((chat) => chat.id !== chatDto.id),
-        };
-
-        const sectionKey =
-          chatDto.section === "theirBooks" ? "theirBooks" : "myBooks";
-        next[sectionKey] = [chatDto, ...next[sectionKey]].sort(sortByRecent);
-        return next;
-      });
-    },
-    [sortByRecent],
-  );
-
-  const fetchChats = useCallback(async () => {
-    try {
-      const data = await getChats();
-
-      const nextChats = {
-        myBooks: Array.isArray(data.myBooks) ? data.myBooks.sort(sortByRecent) : [],
-        theirBooks: Array.isArray(data.theirBooks) ? data.theirBooks.sort(sortByRecent) : [],
-      };
-
-      setChats(nextChats);
-
-      const flattened = [...nextChats.myBooks, ...nextChats.theirBooks];
-      if (flattened.length === 0) {
-        setActiveChatId(null);
-        return;
-      }
-
-      if (requestedChatId) {
-        const requestedChatExists = flattened.some(
-          (chat) => chat.id === requestedChatId,
-        );
-        if (requestedChatExists) {
-          setActiveChatId(requestedChatId);
-          return;
-        }
-      }
-
-      const activeStillExists = flattened.some(
-        (chat) => chat.id === activeChatId,
-      );
-      if (!activeStillExists) {
-        setActiveChatId(flattened[0].id);
-      }
-    } catch (_error) {
-      setErrorMessage(_error?.message || "Could not load messages.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activeChatId, requestedChatId, sortByRecent]);
-
-  useEffect(() => {
-    fetchChats();
-
-    const pollTimer = window.setInterval(fetchChats, 10000);
-    return () => window.clearInterval(pollTimer);
-  }, [fetchChats]);
-
-  const activeChat = useMemo(() => {
-    if (!activeChatId) {
-      return null;
-    }
-
-    return [...chats.myBooks, ...chats.theirBooks].find(
-      (chat) => chat.id === activeChatId,
-    );
-  }, [activeChatId, chats.myBooks, chats.theirBooks]);
-
-  const formatTime = (timeValue) => {
-    const timestamp = new Date(timeValue || 0).getTime();
-    if (!timestamp) {
-      return "Now";
-    }
-
-    const diffMs = Date.now() - timestamp;
-    const mins = Math.floor(diffMs / 60000);
-    const hrs = Math.floor(diffMs / 3600000);
-    const days = Math.floor(diffMs / 86400000);
-
-    if (mins < 1) return "Just now";
-    if (mins < 60) return `${mins}m ago`;
-    if (hrs < 24) return `${hrs}h ago`;
-    return `${days}d ago`;
-  };
+  const { chats, activeChatId, setActiveChatId, activeChat, isLoading, errorMessage, setErrorMessage, updateInsertChat } = useChats(requestedChatId);
 
   const sendToActiveChat = async () => {
     if (!activeChat) {
@@ -141,7 +33,7 @@ function Messages() {
       const result = await sendChatMessage(activeChat.id, text);
 
       setComposerText("");
-      upsertChat(result);
+      updateInsertChat(result);
     } catch (_error) {
       setErrorMessage(_error?.message || "Could not send message.");
     } finally {
@@ -156,7 +48,7 @@ function Messages() {
 
     try {
       const result = await action();
-      upsertChat(result);
+      updateInsertChat(result);
     } catch (_error) {
       setErrorMessage(_error?.message || "Could not update this book.");
     } finally {
@@ -189,7 +81,6 @@ function Messages() {
               chats={chats.myBooks}
               activeChatId={activeChatId}
               onSelect={setActiveChatId}
-              formatTime={formatTime}
             />
             <ChatListSection
               label="Their Books"
@@ -197,7 +88,6 @@ function Messages() {
               chats={chats.theirBooks}
               activeChatId={activeChatId}
               onSelect={setActiveChatId}
-              formatTime={formatTime}
             />
           </aside>
 

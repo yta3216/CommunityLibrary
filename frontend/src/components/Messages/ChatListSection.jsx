@@ -1,10 +1,11 @@
+import { formatTime } from "../../utils/formatTime";
+
 function ChatListSection({
   label,
   sectionKey,
   chats,
   activeChatId,
   onSelect,
-  formatTime,
 }) {
   return (
     <section style={styles.section}>

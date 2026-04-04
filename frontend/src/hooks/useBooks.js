@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getBooks } from "../api/books";
 
-const DEBOUNCE_DELAY = 300;
+const DEBOUNCE_DELAY = 300; // TODO: migrate to websockets
 
 export default function useBooks(searchTerm) {
     const [books, setBooks] = useState([]);
