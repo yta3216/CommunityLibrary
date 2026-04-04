@@ -1,60 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { deleteBook, getBooks, updateBook } from "../api/books";
+import { deleteBook, updateBook } from "../api/books";
 import Navbar from "../components/Navbar/Navbar";
 import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import BookCard from "../components/BookCard/BookCard";
 import avatar_placeholder from "../resources/avatar_placeholder.png";
 import BookForm from "../components/BookForm";
+import useBooks from "../hooks/useBooks";
 import "./Profile.css";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const [books, setBooks] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
   const [selectedBookIdToEdit, setSelectedBookIdToEdit] = useState("");
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedBookIdToDelete, setSelectedBookIdToDelete] = useState("");
   const [deleteMessage, setDeleteMessage] = useState("");
   const [isDeletingBook, setIsDeletingBook] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadProfile = async () => {
-      try {
-        setErrorMessage("");
-        setIsLoading(true);
-
-        const bookData = await getBooks();
-
-        if (!isMounted) {
-          return;
-        }
-
-        setBooks(Array.isArray(bookData) ? bookData : []);
-      } catch (_error) {
-        if (!isMounted) {
-          return;
-        }
-
-        setErrorMessage("Could not load your profile right now.");
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadProfile();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const [books, setBooks, isLoading, errorMessage] = useBooks();
 
   const ownedBooks = useMemo(() => {
     if (!user?._id) {
@@ -185,13 +150,9 @@ const Profile = () => {
           <div>
             <h1>Your Profile</h1>
             <p style={styles.identityText}>
-              {isLoading
-                ? "Loading account..."
-                : user
-                  ? user.username
-                  : "Could not load your account."}
+              {user?.username || "Could not load username"}
             </p>
-            <p style={styles.subtleText}>{user?.email || ""}</p>
+            <p style={styles.subtleText}>{user?.email || "Could not load email"}</p>
             <p style={styles.subtleText}>
               {user?.description || "Profile description can be added later."}
             </p>
@@ -340,9 +301,9 @@ const Profile = () => {
         </section>
 
         {isEditOpen ? (
-          <div style={styles.modalBackdrop}>
-            <div style={styles.modalCard}>
-              <h3 style={styles.modalTitle}>Edit Book Listing</h3>
+          <div className="modal-backdrop">
+            <div className="modal-card">
+              <h3 className="modal-title">Edit Book Listing</h3>
               <BookForm
                 key={selectedBookIdToEdit}
                 initialValues={editInitialValues}
@@ -392,29 +353,6 @@ const styles = {
     backgroundColor: "#eef2f6",
     color: "#344054",
     fontWeight: 600,
-  },
-  modalBackdrop: {
-    position: "fixed",
-    inset: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.35)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "20px",
-    zIndex: 1000,
-  },
-  modalCard: {
-    width: "100%",
-    maxWidth: "640px",
-    backgroundColor: "#ffffff",
-    borderRadius: "12px",
-    padding: "20px",
-    boxShadow: "0 14px 32px rgba(0,0,0,0.22)",
-  },
-  modalTitle: {
-    margin: "0 0 14px",
-    fontSize: "24px",
-    fontWeight: 700,
   },
 };
 

@@ -1,50 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import logo from "../resources/logo.png";
 import { useAuth } from "../context/AuthContext";
-import { createBook, deleteBook, getBooks, toggleBookStatus } from "../api/books";
-import "./adminPages.css";
+import { createBook, deleteBook, toggleBookStatus } from "../api/books";
 import BookForm from "./BookForm";
+import "./adminPages.css";
+import useBooks from "../hooks/useBooks";
 
 export default function AdminBooks() {
   const { user: currentUser, signOut } = useAuth();
-  const [books, setBooks] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isActing, setIsActing] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
 
-  const loadAdminBooks = useCallback(async (isMountedRef) => {
-    try {
-      setIsLoading(true);
-
-      const booksData = await getBooks();
-
-      if (!isMountedRef()) {
-        return;
-      }
-
-      setBooks(Array.isArray(booksData) ? booksData : []);
-    } catch (_error) {
-      if (isMountedRef()) {
-        alert(_error?.message || "Could not reach server.");
-      }
-    } finally {
-      if (isMountedRef()) {
-        setIsLoading(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-    loadAdminBooks(() => isMounted);
-
-    return () => {
-      isMounted = false;
-    };
-  }, [loadAdminBooks]);
+  const [books, setBooks, isLoading] = useBooks();
 
   const rows = useMemo(() => {
     return books.map((book) => {
@@ -284,9 +254,9 @@ export default function AdminBooks() {
         </div>
 
         {isCreateOpen ? (
-          <div style={styles.modalBackdrop}>
-            <div style={styles.modalCard}>
-              <h3 style={styles.modalTitle}>Add Listing</h3>
+          <div className="modal-backdrop">
+            <div className="modal-card">
+              <h3 className="modal-title">Add Listing</h3>
               <BookForm
                 onSubmit={handleCreateBook}
                 onCancel={() => setIsCreateOpen(false)}
@@ -299,29 +269,3 @@ export default function AdminBooks() {
     </div>
   );
 }
-
-const styles = {
-  modalBackdrop: {
-    position: "fixed",
-    inset: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.35)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "20px",
-    zIndex: 1000,
-  },
-  modalCard: {
-    width: "100%",
-    maxWidth: "560px",
-    backgroundColor: "#ffffff",
-    borderRadius: "12px",
-    padding: "20px",
-    boxShadow: "0 14px 32px rgba(0,0,0,0.22)",
-  },
-  modalTitle: {
-    margin: "0 0 14px",
-    fontSize: "24px",
-    fontWeight: 700,
-  },
-};

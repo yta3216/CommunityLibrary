@@ -91,7 +91,33 @@ code {
   cursor: pointer;
 }
 
-/* Utilities - Other */
+/* Utilities: Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 560px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
+}
+
+.modal-title {
+  margin: 0 0 14px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
 .modal-button-row {
   display: flex;
   gap: 10px;

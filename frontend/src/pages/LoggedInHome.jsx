@@ -1,51 +1,21 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createBook, getBooks, getPopularBooks } from "../api/books";
+import { createBook, getPopularBooks } from "../api/books";
 import { isListingAvailable } from "../utils/bookAvailability";
 import BookCard from "../components/BookCard/BookCard";
 import Navbar from "../components/Navbar/Navbar";
 import Sidebar from "../components/Sidebar/Sidebar";
 import BookForm from "../components/BookForm";
+import useBooks from "../hooks/useBooks";
 
 const LoggedInHome = () => {
   const navigate = useNavigate();
-  const [books, setBooks] = useState([]);
-  // search state used by Navibar to filter the lists shown below
+
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  const loadBooks = useCallback(async (queryText = "") => {
-    try {
-      setErrorMessage("");
-      setIsLoading(true);
+  const { books, setBooks, isLoading, errorMessage } = useBooks(searchQuery);
 
-      const data = await getBooks(queryText);
-
-      setBooks(Array.isArray(data) ? data : []);
-    } catch (_error) {
-      setErrorMessage(
-        _error?.message || "Could not reach server. Please try again later.",
-      );
-      setBooks([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const debounceTimerId = window.setTimeout(() => {
-      loadBooks(searchQuery);
-    }, 300);
-
-    return () => {
-      window.clearTimeout(debounceTimerId);
-    };
-  }, [loadBooks, navigate, searchQuery]);
-
-  // Placeholder ordering until review counts are implemented.
-  // Popular books
   const [popularBooks, setPopularBooks] = useState([]);
   useEffect(() => {
     const fetchPopular = async () => {
@@ -139,9 +109,9 @@ const LoggedInHome = () => {
         </button>
 
         {isCreateOpen ? (
-          <div style={styles.modalBackdrop}>
-            <div style={styles.modalCard}>
-              <h3 style={styles.modalTitle}>Create New Book Listing</h3>
+          <div className="modal-backdrop">
+            <div className="modal-card">
+              <h3 className="modal-title">Create New Book Listing</h3>
               <BookForm
                 onSubmit={handleCreateBook}
                 onCancel={() => setIsCreateOpen(false)}
@@ -203,29 +173,6 @@ const styles = {
     fontSize: "0.9rem",
     cursor: "pointer",
     boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-  },
-  modalBackdrop: {
-    position: "fixed",
-    inset: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.35)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "20px",
-    zIndex: 1000,
-  },
-  modalCard: {
-    width: "100%",
-    maxWidth: "640px",
-    backgroundColor: "#ffffff",
-    borderRadius: "12px",
-    padding: "20px",
-    boxShadow: "0 14px 32px rgba(0,0,0,0.22)",
-  },
-  modalTitle: {
-    margin: "0 0 14px",
-    fontSize: "24px",
-    fontWeight: 700,
   },
 };
 
