@@ -55,7 +55,7 @@ const Profile = () => {
   return (
     <>
       <Navbar isLoggedIn={true} />
-      <div className="main-container">
+      <div className="sidebar-layout">
         <Sidebar isLoggedIn={true} />
         <div className="content">
           <Breadcrumbs
@@ -67,7 +67,7 @@ const Profile = () => {
                 <h1>Your Profile</h1>
                 <p className="heading-md">{user?.username || "Could not load username"}</p>
                 <p className="text-muted-sm">{user?.email || "Could not load email"}</p>
-                <p className="text-muted-sm">{user?.description || "Profile description can be added later."}</p>
+                <p className="text-muted-sm">{user?.description || "Add a profile description."}</p>
                 {errorMessage ? <p className="text-error">{errorMessage}</p> : null}
               </div>
               <div className="profile-meta">

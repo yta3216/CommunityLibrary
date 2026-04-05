@@ -93,7 +93,7 @@ function BookDetail() {
     return (
       <div>
         <Navbar isLoggedIn={true} />
-        <div className="main-container">
+        <div className="sidebar-layout">
           <Sidebar isLoggedIn={true} />
           <div className="content">
             <div className="book-detail-loading">
@@ -109,7 +109,7 @@ function BookDetail() {
     return (
       <div>
         <Navbar isLoggedIn={true} />
-        <div className="main-container">
+        <div className="sidebar-layout">
           <Sidebar isLoggedIn={true} />
           <div className="content">
             <div className="book-detail-loading">
@@ -126,7 +126,7 @@ function BookDetail() {
   return (
     <div>
       <Navbar isLoggedIn={true} />
-      <div className="main-container">
+      <div className="sidebar-layout">
         <Sidebar isLoggedIn={true} />
         <div className="content">
           <Breadcrumbs

@@ -44,9 +44,9 @@ const LoggedInHome = () => {
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
       />
-      <div className="page-shell logged-in-home">
+      <div className="page-shell logged-in-home sidebar-layout">
         <Sidebar isLoggedIn={true} />
-        <main className="page-content">
+        <main className="page-content content">
           <h2 className="heading-lg">Most Popular</h2>
           <div className="card-row">{renderCardRow(popularBooks)}</div>
 

@@ -1,5 +1,6 @@
 .sidebar {
   width: 120px;
+  height: 55px;
   background: #ffffff;
   padding: 24px 16px;
   border-right: 1px solid #f0f0f0;
@@ -36,6 +37,8 @@
     border-right: none;
     border-bottom: 1px solid #f0f0f0;
     padding: 16px 14px;
+    position: fixed;
+    z-index: 999;
   }
 
   .sidebar ul {

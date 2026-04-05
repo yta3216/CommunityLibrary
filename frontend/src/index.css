@@ -68,7 +68,7 @@ code {
     monospace;
 }
 
-.main-container {
+.sidebar-layout {
   display: flex;
   align-items: stretch;
   justify-content: flex-start;
@@ -112,7 +112,7 @@ code {
 }
 
 .heading-md {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   font-size: 1.2rem;
   font-weight: 700;
   color: var(--color-text-strong);
@@ -205,8 +205,11 @@ code {
   }
 
   .page-shell,
-  .main-container {
+  .sidebar-layout {
     flex-direction: column;
+  }
+  .content {
+    margin-top: 55px;
   }
 }
 
