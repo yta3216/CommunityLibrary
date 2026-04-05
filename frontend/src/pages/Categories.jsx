@@ -59,12 +59,11 @@ function Categories() {
   return (
     <div>
       <Navbar
-        isLoggedIn={true}
         onSearchClick={() => navigate("/home")}
         onSearchFocus={() => navigate("/home")}
       />
       <div className="sidebar-layout">
-        <Sidebar isLoggedIn={true} />
+        <Sidebar />
         <main className="content">
           <Breadcrumbs
             items={[{ label: "Home", to: "/home" }, { label: "Categories" }]}

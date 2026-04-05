@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./Sidebar.css";
 
-const Sidebar = ({ isLoggedIn }) => {
-  const { signOut } = useAuth();
+const Sidebar = () => {
+  const { signOut, isAuthenticated } = useAuth();
 
   const handleLogout = () => {
     signOut();
@@ -13,7 +13,7 @@ const Sidebar = ({ isLoggedIn }) => {
 
   return (
     <div className="sidebar">
-      {isLoggedIn ? (
+      {isAuthenticated ? (
         //Registered User View
         <>
           <ul>

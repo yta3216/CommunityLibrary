@@ -55,12 +55,11 @@ const Profile = () => {
   return (
     <>
       <Navbar
-        isLoggedIn={true}
         onSearchClick={() => navigate("/home")}
         onSearchFocus={() => navigate("/home")}
       />
       <div className="sidebar-layout">
-        <Sidebar isLoggedIn={true} />
+        <Sidebar />
         <div className="content">
           <Breadcrumbs
             items={[{ label: "Home", to: "/home" }, { label: "Profile" }]}

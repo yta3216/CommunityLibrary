@@ -86,12 +86,11 @@ const Home = () => {
   return (
     <div>
       <Navbar
-        isLoggedIn={false}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
       />
       <div className="page-shell unregistered-home">
-        <Sidebar isLoggedIn={false} />
+        <Sidebar />
         <main className="page-content">
           <h2 className="heading-md">Most Popular</h2>
           <div className="card-row">{renderCardRow(popularBooks)}</div>

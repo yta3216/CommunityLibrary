@@ -171,9 +171,9 @@ function BookDetail() {
 
   return (
     <div>
-      <Navbar isLoggedIn={true} />
+      <Navbar />
       <div className="sidebar-layout">
-        <Sidebar isLoggedIn={true} />
+        <Sidebar />
         <div className="content">
           {renderContent()}
         </div>

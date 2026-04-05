@@ -75,9 +75,9 @@ const EditProfile = () => {
 
   return (
     <>
-      <Navbar isLoggedIn={true} />
+      <Navbar />
       <div className="sidebar-layout">
-        <Sidebar isLoggedIn={true} />
+        <Sidebar />
         <div className="content">
           <Breadcrumbs
             items={[
