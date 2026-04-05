@@ -89,39 +89,85 @@ function BookDetail() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div>
-        <Navbar isLoggedIn={true} />
-        <div className="sidebar-layout">
-          <Sidebar isLoggedIn={true} />
-          <div className="content">
-            <div className="book-detail-loading">
-              <p className="text-muted-sm">Loading book...</p>
-            </div>
-          </div>
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="book-detail-loading">
+          <p className="text-muted-sm">Loading book...</p>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  if (!book) {
-    return (
-      <div>
-        <Navbar isLoggedIn={true} />
-        <div className="sidebar-layout">
-          <Sidebar isLoggedIn={true} />
-          <div className="content">
-            <div className="book-detail-loading">
-              <p className="text-error">
-                {errorMessage || "This book could not be found."}
-              </p>
-            </div>
-          </div>
+    if (!book) {
+      return (
+        <div className="book-detail-loading">
+          <p className="text-error">
+            {errorMessage || "This book could not be found."}
+          </p>
         </div>
-      </div>
+      );
+    }
+
+    return (
+      <>
+        <Breadcrumbs
+          items={[{ label: "Home", to: "/home" }, { label: "Book Item" }]}
+        />
+        <div className="book-detail-content">
+          <h1 className="heading-lg">{book.title}</h1>
+          <h3 className="text-muted book-detail-author">{book.author}</h3>
+          <h3 className="text-muted book-detail-owner">Owned by: {book.ownerName}</h3>
+
+          <BookCover synopsis={book.description} />
+
+          <BookActions
+            genres={book.genres}
+            listedBookAvailabilityText={
+              book.status === "available"
+                ? "This listing: Available"
+                : "This listing: Not available"
+            }
+            showBorrowButton={book.showBorrowButton}
+            isBorrowEnabled={book.canBorrow}
+            showViewConversationButton={book.showViewConversationButton}
+            showReturnButton={book.canReturn}
+            actionHintText={book.actionHintText}
+            onBorrow={handleBorrowClick}
+            onViewConversation={handleViewConversation}
+            onReturn={handleReturn}
+            isActionPending={isBookActionPending}
+          />
+
+          {isBorrowComposerOpen ? (
+            <div className="book-detail-borrow-composer">
+              <h4 className="heading-md book-detail-borrow-title">Start Borrow Request</h4>
+              <MessageComposer
+                value={borrowDraft}
+                onChange={setBorrowDraft}
+                onSubmit={handleSendBorrowMessage}
+                isSubmitting={isSendingBorrowMessage}
+                placeholder="Hi, I would like to borrow this book."
+                buttonLabel="Send"
+                disabled={!book.canBorrow}
+              />
+            </div>
+          ) : null}
+
+          {borrowError ? <p className="text-error">{borrowError}</p> : null}
+          {bookActionError ? <p className="text-error">{bookActionError}</p> : null}
+          {borrowFeedback ? <p className="text-success">{borrowFeedback}</p> : null}
+
+          <ReviewSection
+            bookId={book.id}
+            currentUser={currentUser?._id}
+            postedBy={book.ownerId}
+          />
+
+          {errorMessage ? <p className="text-error">{errorMessage}</p> : null}
+        </div>
+      </>
     );
-  }
+  };
 
   return (
     <div>
@@ -129,61 +175,7 @@ function BookDetail() {
       <div className="sidebar-layout">
         <Sidebar isLoggedIn={true} />
         <div className="content">
-          <Breadcrumbs
-            items={[{ label: "Home", to: "/home" }, { label: "Book Item" }]}
-          />
-          <div className="book-detail-content">
-            <h1 className="heading-lg">{book.title}</h1>
-            <h3 className="text-muted book-detail-author">{book.author}</h3>
-            <h3 className="text-muted book-detail-owner">Owned by: {book.ownerName}</h3>
-
-            <BookCover synopsis={book.description} />
-
-            <BookActions
-              genres={book.genres}
-              listedBookAvailabilityText={
-                book.status === "available"
-                  ? "This listing: Available"
-                  : "This listing: Not available"
-              }
-              showBorrowButton={book.showBorrowButton}
-              isBorrowEnabled={book.canBorrow}
-              showViewConversationButton={book.showViewConversationButton}
-              showReturnButton={book.canReturn}
-              actionHintText={book.actionHintText}
-              onBorrow={handleBorrowClick}
-              onViewConversation={handleViewConversation}
-              onReturn={handleReturn}
-              isActionPending={isBookActionPending}
-            />
-
-            {isBorrowComposerOpen ? (
-              <div className="book-detail-borrow-composer">
-                <h4 className="heading-md book-detail-borrow-title">Start Borrow Request</h4>
-                <MessageComposer
-                  value={borrowDraft}
-                  onChange={setBorrowDraft}
-                  onSubmit={handleSendBorrowMessage}
-                  isSubmitting={isSendingBorrowMessage}
-                  placeholder="Hi, I would like to borrow this book."
-                  buttonLabel="Send"
-                  disabled={!book.canBorrow}
-                />
-              </div>
-            ) : null}
-
-            {borrowError ? <p className="text-error">{borrowError}</p> : null}
-            {bookActionError ? <p className="text-error">{bookActionError}</p> : null}
-            {borrowFeedback ? <p className="text-success">{borrowFeedback}</p> : null}
-
-            <ReviewSection
-              bookId={book.id}
-              currentUser={currentUser?._id}
-              postedBy={book.ownerId}
-            />
-
-            {errorMessage ? <p className="text-error">{errorMessage}</p> : null}
-          </div>
+          {renderContent()}
         </div>
       </div>
     </div>

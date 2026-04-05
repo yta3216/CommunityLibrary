@@ -1,10 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "./Sidebar.css";
-// logout handler... same as profile page logout
+
 const Sidebar = ({ isLoggedIn }) => {
+  const { signOut } = useAuth();
+
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    signOut();
     window.location.assign("/");
   };
 
