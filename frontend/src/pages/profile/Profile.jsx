@@ -54,7 +54,11 @@ const Profile = () => {
 
   return (
     <>
-      <Navbar isLoggedIn={true} />
+      <Navbar
+        isLoggedIn={true}
+        onSearchClick={() => navigate("/home")}
+        onSearchFocus={() => navigate("/home")}
+      />
       <div className="sidebar-layout">
         <Sidebar isLoggedIn={true} />
         <div className="content">

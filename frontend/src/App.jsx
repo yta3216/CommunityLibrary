@@ -15,6 +15,7 @@ import BookDetail from "./pages/BookDetail";
 import Profile from "./pages/profile/Profile";
 import EditProfile from "./pages/profile/EditProfile";
 import Messages from "./pages/Messages";
+import Categories from "./pages/Categories";
 
 import AdminHome from "./pages/admin/AdminHome";
 import AdminBooks from "./pages/admin/AdminBooks";
@@ -80,65 +81,69 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-        {/* Public pages - unregistered users */}
-        <Route
-          path="/"
-          element={
-            <PublicOnly>
-              <UnregisteredHome />
-            </PublicOnly>
-          }
-        />
-        <Route
-          path="/login"
-          element={<PublicOnly><Login /></PublicOnly>}
-        />
-        <Route
-          path="/register"
-          element={<PublicOnly><Register /></PublicOnly>}
-        />
+          {/* Public pages - unregistered users */}
+          <Route
+            path="/"
+            element={
+              <PublicOnly>
+                <UnregisteredHome />
+              </PublicOnly>
+            }
+          />
+          <Route
+            path="/login"
+            element={<PublicOnly><Login /></PublicOnly>}
+          />
+          <Route
+            path="/register"
+            element={<PublicOnly><Register /></PublicOnly>}
+          />
 
-        {/* Registered users pages */}
-        <Route
-          path="/home"
-          element={<RequireAuth><LoggedInHome /></RequireAuth>}
-        />
-        <Route
-          path="/book"
-          element={<RequireAuth><BookDetail /></RequireAuth>}
-        />
-        <Route
-          path="/profile"
-          element={<RequireAuth><Profile /></RequireAuth>}
-        />
-        <Route
-          path="/profile/edit"
-          element={<RequireAuth><EditProfile /></RequireAuth>}
-        />
-        <Route
-          path="/messages"
-          element={<RequireAuth><Messages /></RequireAuth>}
-        />
+          {/* Registered users pages */}
+          <Route
+            path="/home"
+            element={<RequireAuth><LoggedInHome /></RequireAuth>}
+          />
+          <Route
+            path="/book"
+            element={<RequireAuth><BookDetail /></RequireAuth>}
+          />
+          <Route
+            path="/profile"
+            element={<RequireAuth><Profile /></RequireAuth>}
+          />
+          <Route
+            path="/profile/edit"
+            element={<RequireAuth><EditProfile /></RequireAuth>}
+          />
+          <Route
+            path="/messages"
+            element={<RequireAuth><Messages /></RequireAuth>}
+          />
+          <Route
+            path="/categories"
+            element={<RequireAuth><Categories /></RequireAuth>}
+          />
 
-        {/* Admin Pages */}
-        <Route
-          path="/admin/home"
-          element={<RequireAdmin><AdminHome /></RequireAdmin>}
-        />
-        <Route
-          path="/admin/books"
-          element={<RequireAdmin><AdminBooks /></RequireAdmin>}
-        />
-        <Route
-          path="/admin/users"
-          element={<RequireAdmin><AdminUsers /></RequireAdmin>}
-        />
+          {/* Admin Pages */}
+          <Route
+            path="/admin/home"
+            element={<RequireAdmin><AdminHome /></RequireAdmin>}
+          />
+          <Route
+            path="/admin/books"
+            element={<RequireAdmin><AdminBooks /></RequireAdmin>}
+          />
+          <Route
+            path="/admin/users"
+            element={<RequireAdmin><AdminUsers /></RequireAdmin>}
+          />
 
-        {/* Redirect for undefined routes */}
-        <Route
-          path="*"
-          element={<AppRedirect />}
-        />
+          {/* Redirect for undefined routes */}
+          <Route
+            path="*"
+            element={<AppRedirect />}
+          />
         </Routes>
       </Router>
     </AuthProvider>
