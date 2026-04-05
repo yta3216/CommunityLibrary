@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
+import Sidebar from "../components/Sidebar/Sidebar";
 import BookCard from "../components/BookCard/BookCard";
 import avatar_placeholder from "../resources/avatar_placeholder.png";
 import "./Profile.css";
@@ -353,287 +354,308 @@ const Profile = () => {
 
   return (
     <>
-      <Navbar isLoggedIn={true} />
-      <Breadcrumbs
-        items={[{ label: "Home", to: "/home" }, { label: "Profile" }]}
+      <Navbar
+        isLoggedIn={true}
+        onSearchClick={() => navigate("/home")}
+        onSearchFocus={() => navigate("/home")}
       />
-      <div className="profile-container">
-        <section className="profile-info">
-          <div>
-            <h1>Your Profile</h1>
-            <p style={styles.identityText}>
-              {isLoading
-                ? "Loading account..."
-                : user
-                  ? user.username
-                  : "Could not load your account."}
-            </p>
-            <p style={styles.subtleText}>{user?.email || ""}</p>
-            <p style={styles.subtleText}>
-              {user?.description || "Profile description can be added later."}
-            </p>
-            {errorMessage ? (
-              <p style={styles.errorText}>{errorMessage}</p>
-            ) : null}
-          </div>
+      <div style={styles.pageShell}>
+        <Sidebar isLoggedIn={true} />
 
-          <div style={styles.profileMeta}>
-            <img
-              src={avatar_placeholder}
-              alt="Profile"
-              className="profile-pic-large"
-            />
-            <p style={styles.statusBadge}>Status: {user?.status || "active"}</p>
-          </div>
-        </section>
-
-        <div className="profile-actions">
-          <Link to="/messages" className="btn">
-            My Messages
-          </Link>
-          <Link to="/profile/edit" className="btn">
-            Edit Profile
-          </Link>
-          <button type="button" className="btn" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
-
-        <section className="books-section">
-          <h2>Owned Books</h2>
-          {ownedBooks.length > 0 ? (
-            <div className="book-delete-panel">
-              <label htmlFor="edit-owned-book">Edit one of your books:</label>
-              <div className="book-delete-controls">
-                <select
-                  id="edit-owned-book"
-                  value={selectedBookIdToEdit}
-                  onChange={(event) => {
-                    setSelectedBookIdToEdit(event.target.value);
-                    setEditMessage("");
-                  }}
-                  disabled={isUpdatingBook}
-                >
-                  {ownedBooks.map((book) => (
-                    <option key={book._id} value={book._id}>
-                      {book.title || "Untitled"} -{" "}
-                      {book.author || "Unknown author"}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  className="btn"
-                  disabled={!selectedBookIdToEdit || isUpdatingBook}
-                  onClick={() => {
-                    setIsEditOpen(true);
-                    setEditMessage("");
-                  }}
-                >
-                  Edit Book
-                </button>
+        <main style={styles.mainContent}>
+          <Breadcrumbs
+            items={[{ label: "Home", to: "/home" }, { label: "Profile" }]}
+          />
+          <div className="profile-container">
+            <section className="profile-info">
+              <div>
+                <h1>Your Profile</h1>
+                <p style={styles.identityText}>
+                  {isLoading
+                    ? "Loading account..."
+                    : user
+                      ? user.username
+                      : "Could not load your account."}
+                </p>
+                <p style={styles.subtleText}>{user?.email || ""}</p>
+                <p style={styles.subtleText}>
+                  {user?.description ||
+                    "Profile description can be added later."}
+                </p>
+                {errorMessage ? (
+                  <p style={styles.errorText}>{errorMessage}</p>
+                ) : null}
               </div>
+
+              <div style={styles.profileMeta}>
+                <img
+                  src={avatar_placeholder}
+                  alt="Profile"
+                  className="profile-pic-large"
+                />
+                <p style={styles.statusBadge}>
+                  Status: {user?.status || "active"}
+                </p>
+              </div>
+            </section>
+
+            <div className="profile-actions">
+              <Link to="/messages" className="btn">
+                My Messages
+              </Link>
+              <Link to="/profile/edit" className="btn">
+                Edit Profile
+              </Link>
+              <button type="button" className="btn" onClick={handleLogout}>
+                Logout
+              </button>
             </div>
-          ) : null}
 
-          {ownedBooks.length > 0 ? (
-            <div className="book-delete-panel">
-              <label htmlFor="delete-owned-book">
-                Delete one of your books:
-              </label>
-              <div className="book-delete-controls">
-                <select
-                  id="delete-owned-book"
-                  value={selectedBookIdToDelete}
-                  onChange={(event) => {
-                    setSelectedBookIdToDelete(event.target.value);
-                    setDeleteMessage("");
-                  }}
-                  disabled={isDeletingBook}
-                >
+            <section className="books-section">
+              <h2>Owned Books</h2>
+              {ownedBooks.length > 0 ? (
+                <div className="book-delete-panel">
+                  <label htmlFor="edit-owned-book">
+                    Edit one of your books:
+                  </label>
+                  <div className="book-delete-controls">
+                    <select
+                      id="edit-owned-book"
+                      value={selectedBookIdToEdit}
+                      onChange={(event) => {
+                        setSelectedBookIdToEdit(event.target.value);
+                        setEditMessage("");
+                      }}
+                      disabled={isUpdatingBook}
+                    >
+                      {ownedBooks.map((book) => (
+                        <option key={book._id} value={book._id}>
+                          {book.title || "Untitled"} -{" "}
+                          {book.author || "Unknown author"}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="btn"
+                      disabled={!selectedBookIdToEdit || isUpdatingBook}
+                      onClick={() => {
+                        setIsEditOpen(true);
+                        setEditMessage("");
+                      }}
+                    >
+                      Edit Book
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {ownedBooks.length > 0 ? (
+                <div className="book-delete-panel">
+                  <label htmlFor="delete-owned-book">
+                    Delete one of your books:
+                  </label>
+                  <div className="book-delete-controls">
+                    <select
+                      id="delete-owned-book"
+                      value={selectedBookIdToDelete}
+                      onChange={(event) => {
+                        setSelectedBookIdToDelete(event.target.value);
+                        setDeleteMessage("");
+                      }}
+                      disabled={isDeletingBook}
+                    >
+                      {ownedBooks.map((book) => (
+                        <option key={book._id} value={book._id}>
+                          {book.title || "Untitled"} -{" "}
+                          {book.author || "Unknown author"}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={handleDeleteOwnedBook}
+                      disabled={isDeletingBook || !selectedBookIdToDelete}
+                    >
+                      {isDeletingBook ? "Deleting..." : "Delete Book"}
+                    </button>
+                  </div>
+                  {deleteMessage ? (
+                    <p
+                      style={
+                        deleteMessage === "Book deleted."
+                          ? styles.successText
+                          : styles.errorText
+                      }
+                    >
+                      {deleteMessage}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+              {ownedBooks.length === 0 ? (
+                <p>You don't own any books yet.</p>
+              ) : (
+                <div className="card-list">
                   {ownedBooks.map((book) => (
-                    <option key={book._id} value={book._id}>
-                      {book.title || "Untitled"} -{" "}
-                      {book.author || "Unknown author"}
-                    </option>
+                    <BookCard
+                      key={book._id}
+                      title={book.title || "Untitled"}
+                      author={book.author || "Unknown author"}
+                      genre={book.genre || ""}
+                      rating={0}
+                      onClick={() => handleOpenBook(book._id)}
+                    />
                   ))}
-                </select>
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={handleDeleteOwnedBook}
-                  disabled={isDeletingBook || !selectedBookIdToDelete}
-                >
-                  {isDeletingBook ? "Deleting..." : "Delete Book"}
-                </button>
-              </div>
-              {deleteMessage ? (
+                </div>
+              )}
+            </section>
+
+            <section className="books-section">
+              <h2>Borrowed Books</h2>
+              {borrowedBooks.length === 0 ? (
+                <p>You're not borrowing any books right now.</p>
+              ) : (
+                <div className="card-list">
+                  {borrowedBooks.map((book) => (
+                    <BookCard
+                      key={book._id}
+                      title={book.title || "Untitled"}
+                      author={book.author || "Unknown author"}
+                      genre={book.genre || ""}
+                      rating={0}
+                      onClick={() => handleOpenBook(book._id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        </main>
+      </div>
+
+      {isEditOpen ? (
+        <div style={styles.modalBackdrop}>
+          <div style={styles.modalCard}>
+            <h3 style={styles.modalTitle}>Edit Book Listing</h3>
+
+            <form onSubmit={handleEditOwnedBook} style={styles.formGrid}>
+              <label style={styles.inputLabel} htmlFor="edit-book-isbn">
+                ISBN
+              </label>
+              <input
+                id="edit-book-isbn"
+                name="isbn"
+                required
+                value={editFormValues.isbn}
+                onChange={handleEditChange}
+                style={styles.textInput}
+                placeholder="ISBN here"
+              />
+
+              <label style={styles.inputLabel} htmlFor="edit-book-title">
+                Title
+              </label>
+              <input
+                id="edit-book-title"
+                name="title"
+                required
+                value={editFormValues.title}
+                onChange={handleEditChange}
+                style={styles.textInput}
+                placeholder="Book title here"
+              />
+
+              <label style={styles.inputLabel} htmlFor="edit-book-author">
+                Author
+              </label>
+              <input
+                id="edit-book-author"
+                name="author"
+                required
+                value={editFormValues.author}
+                onChange={handleEditChange}
+                style={styles.textInput}
+                placeholder="Author name here"
+              />
+
+              <label style={styles.inputLabel} htmlFor="edit-book-genre">
+                Genre
+              </label>
+              <input
+                id="edit-book-genre"
+                name="genre"
+                required
+                value={editFormValues.genre}
+                onChange={handleEditChange}
+                style={styles.textInput}
+                placeholder="Genre here"
+              />
+
+              <label style={styles.inputLabel} htmlFor="edit-book-description">
+                Description
+              </label>
+              <textarea
+                id="edit-book-description"
+                name="description"
+                required
+                value={editFormValues.description}
+                onChange={handleEditChange}
+                style={styles.textArea}
+                placeholder="Write a short description"
+              />
+
+              {editMessage ? (
                 <p
                   style={
-                    deleteMessage === "Book deleted."
-                      ? styles.successText
-                      : styles.errorText
+                    editMessage === "Book updated."
+                      ? styles.createSuccessText
+                      : styles.createErrorText
                   }
                 >
-                  {deleteMessage}
+                  {editMessage}
                 </p>
               ) : null}
-            </div>
-          ) : null}
-          {ownedBooks.length === 0 ? (
-            <p>You don't own any books yet.</p>
-          ) : (
-            <div className="card-list">
-              {ownedBooks.map((book) => (
-                <BookCard
-                  key={book._id}
-                  title={book.title || "Untitled"}
-                  author={book.author || "Unknown author"}
-                  genre={book.genre || ""}
-                  rating={0}
-                  onClick={() => handleOpenBook(book._id)}
-                />
-              ))}
-            </div>
-          )}
-        </section>
 
-        <section className="books-section">
-          <h2>Borrowed Books</h2>
-          {borrowedBooks.length === 0 ? (
-            <p>You're not borrowing any books right now.</p>
-          ) : (
-            <div className="card-list">
-              {borrowedBooks.map((book) => (
-                <BookCard
-                  key={book._id}
-                  title={book.title || "Untitled"}
-                  author={book.author || "Unknown author"}
-                  genre={book.genre || ""}
-                  rating={0}
-                  onClick={() => handleOpenBook(book._id)}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {isEditOpen ? (
-          <div style={styles.modalBackdrop}>
-            <div style={styles.modalCard}>
-              <h3 style={styles.modalTitle}>Edit Book Listing</h3>
-
-              <form onSubmit={handleEditOwnedBook} style={styles.formGrid}>
-                <label style={styles.inputLabel} htmlFor="edit-book-isbn">
-                  ISBN
-                </label>
-                <input
-                  id="edit-book-isbn"
-                  name="isbn"
-                  required
-                  value={editFormValues.isbn}
-                  onChange={handleEditChange}
-                  style={styles.textInput}
-                  placeholder="ISBN here"
-                />
-
-                <label style={styles.inputLabel} htmlFor="edit-book-title">
-                  Title
-                </label>
-                <input
-                  id="edit-book-title"
-                  name="title"
-                  required
-                  value={editFormValues.title}
-                  onChange={handleEditChange}
-                  style={styles.textInput}
-                  placeholder="Book title here"
-                />
-
-                <label style={styles.inputLabel} htmlFor="edit-book-author">
-                  Author
-                </label>
-                <input
-                  id="edit-book-author"
-                  name="author"
-                  required
-                  value={editFormValues.author}
-                  onChange={handleEditChange}
-                  style={styles.textInput}
-                  placeholder="Author name here"
-                />
-
-                <label style={styles.inputLabel} htmlFor="edit-book-genre">
-                  Genre
-                </label>
-                <input
-                  id="edit-book-genre"
-                  name="genre"
-                  required
-                  value={editFormValues.genre}
-                  onChange={handleEditChange}
-                  style={styles.textInput}
-                  placeholder="Genre here"
-                />
-
-                <label
-                  style={styles.inputLabel}
-                  htmlFor="edit-book-description"
+              <div style={styles.modalButtonRow}>
+                <button
+                  type="submit"
+                  style={styles.primaryButton}
+                  disabled={isUpdatingBook}
                 >
-                  Description
-                </label>
-                <textarea
-                  id="edit-book-description"
-                  name="description"
-                  required
-                  value={editFormValues.description}
-                  onChange={handleEditChange}
-                  style={styles.textArea}
-                  placeholder="Write a short description"
-                />
+                  {isUpdatingBook ? "Saving..." : "Save Changes"}
+                </button>
 
-                {editMessage ? (
-                  <p
-                    style={
-                      editMessage === "Book updated."
-                        ? styles.createSuccessText
-                        : styles.createErrorText
-                    }
-                  >
-                    {editMessage}
-                  </p>
-                ) : null}
-
-                <div style={styles.modalButtonRow}>
-                  <button
-                    type="submit"
-                    style={styles.primaryButton}
-                    disabled={isUpdatingBook}
-                  >
-                    {isUpdatingBook ? "Saving..." : "Save Changes"}
-                  </button>
-
-                  <button
-                    type="button"
-                    style={styles.secondaryButton}
-                    onClick={() => {
-                      setIsEditOpen(false);
-                      setEditMessage("");
-                    }}
-                  >
-                    Close
-                  </button>
-                </div>
-              </form>
-            </div>
+                <button
+                  type="button"
+                  style={styles.secondaryButton}
+                  onClick={() => {
+                    setIsEditOpen(false);
+                    setEditMessage("");
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </form>
           </div>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </>
   );
 };
 
 const styles = {
+  pageShell: {
+    display: "flex",
+    minHeight: "calc(100vh - 72px)",
+    backgroundColor: "#fff",
+  },
+  mainContent: {
+    flex: 1,
+    minWidth: 0,
+  },
   identityText: {
     margin: "0 0 8px",
     fontSize: "1.1rem",

@@ -18,6 +18,9 @@ const Sidebar = ({ isLoggedIn }) => {
               <Link to="/home">Home</Link>
             </li>
             <li>
+              <Link to="/categories">Categories</Link>
+            </li>
+            <li>
               <Link to="/profile">My Books</Link>
             </li>
             <li>

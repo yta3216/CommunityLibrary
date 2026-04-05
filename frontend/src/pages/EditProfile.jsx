@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
+import Sidebar from "../components/Sidebar/Sidebar";
 import avatar_placeholder from "../resources/avatar_placeholder.png";
 import "./EditProfile.css";
 
@@ -137,60 +138,68 @@ const EditProfile = () => {
   return (
     <>
       <Navbar isLoggedIn={true} />
-      <Breadcrumbs
-        items={[
-          { label: "Home", to: "/home" },
-          { label: "Profile", to: "/profile" },
-          { label: "Settings" },
-        ]}
-      />
-      <div className="edit-profile-container">
-        <h1>Edit Profile</h1>
-        <form className="edit-profile-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Profile Picture</label>
-            <img
-              src={avatar_placeholder}
-              alt="Profile"
-              className="profile-pic-large"
-            />
-            <p className="helper-text">
-              Profile picture support will be added later.
-            </p>
+      <div className="edit-profile-page-shell">
+        <Sidebar isLoggedIn={true} />
+
+        <main className="edit-profile-main-content">
+          <Breadcrumbs
+            items={[
+              { label: "Home", to: "/home" },
+              { label: "Profile", to: "/profile" },
+              { label: "Settings" },
+            ]}
+          />
+          <div className="edit-profile-container">
+            <h1>Edit Profile</h1>
+            <form className="edit-profile-form" onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>Profile Picture</label>
+                <img
+                  src={avatar_placeholder}
+                  alt="Profile"
+                  className="profile-pic-large"
+                />
+                <p className="helper-text">
+                  Profile picture support will be added later.
+                </p>
+              </div>
+              <div className="form-group">
+                <label>Username</label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  required
+                  pattern="[A-Za-z0-9]{3,20}"
+                  disabled={isLoading || isSubmitting}
+                />
+              </div>
+              <div className="form-group">
+                <label>Description</label>
+                <textarea
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  rows={5}
+                  maxLength={DESCRIPTION_MAX_LENGTH}
+                  placeholder="Tell other users a little about yourself"
+                  disabled={isLoading || isSubmitting}
+                />
+              </div>
+              <p className="helper-text">
+                For password changes, contact admin.
+              </p>
+              {errorMessage ? (
+                <p className="form-message error">{errorMessage}</p>
+              ) : null}
+              {successMessage ? (
+                <p className="form-message success">{successMessage}</p>
+              ) : null}
+              <button type="submit" className="btn">
+                {isSubmitting ? "Saving..." : "Save Changes"}
+              </button>
+            </form>
           </div>
-          <div className="form-group">
-            <label>Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              required
-              pattern="[A-Za-z0-9]{3,20}"
-              disabled={isLoading || isSubmitting}
-            />
-          </div>
-          <div className="form-group">
-            <label>Description</label>
-            <textarea
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              rows={5}
-              maxLength={DESCRIPTION_MAX_LENGTH}
-              placeholder="Tell other users a little about yourself"
-              disabled={isLoading || isSubmitting}
-            />
-          </div>
-          <p className="helper-text">For password changes, contact admin.</p>
-          {errorMessage ? (
-            <p className="form-message error">{errorMessage}</p>
-          ) : null}
-          {successMessage ? (
-            <p className="form-message success">{successMessage}</p>
-          ) : null}
-          <button type="submit" className="btn">
-            {isSubmitting ? "Saving..." : "Save Changes"}
-          </button>
-        </form>
+        </main>
       </div>
     </>
   );
