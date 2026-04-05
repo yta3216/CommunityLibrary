@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
-import logo from "../resources/logo.png";
-import { useAuth } from "../context/AuthContext";
-import { deleteUser, getUsers, toggleUserStatus, cycleUserRole } from "../api/users";
-import { getBooks } from "../api/books";
+import logo from "../../resources/logo.png";
+import { useAuth } from "../../context/AuthContext";
+import { deleteUser, getUsers, toggleUserStatus, cycleUserRole } from "../../api/users";
+import { getBooks } from "../../api/books";
 import "./adminPages.css";
 
 export default function AdminUsers() {
@@ -166,7 +166,7 @@ export default function AdminUsers() {
           <img
             src={logo}
             alt="Community Library logo"
-            style={{ width: 42, height: 42, objectFit: "contain" }}
+            className="admin-logo"
           />
           <nav className="admin-nav">
             <NavLink
@@ -210,8 +210,8 @@ export default function AdminUsers() {
 
         <div className="admin-divider" />
 
-        <h1 className="admin-title">Manage Users</h1>
-        <p className="admin-subtitle">
+        <h1 className="heading-lg">Manage Users</h1>
+        <p className="text-muted-sm admin-subtitle">
           Admin view of users. Toggle status, change role or delete a user. Be
           careful with this page!
         </p>
@@ -219,8 +219,8 @@ export default function AdminUsers() {
         <section className="admin-card">
           <div className="admin-row">
             <div>
-              <h2 className="admin-card-title">Users</h2>
-              <p className="admin-card-note">
+              <h2 className="heading-md">Users</h2>
+              <p className="text-muted-xs admin-card-note">
                 {isLoading ? "Loading users..." : "Live data"}
               </p>
             </div>
@@ -260,7 +260,7 @@ export default function AdminUsers() {
             <tbody>
               {filteredUserRows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="admin-card-note">
+                  <td colSpan={6} className="text-muted-xs admin-card-note">
                     No users match this filter.
                   </td>
                 </tr>
@@ -269,7 +269,7 @@ export default function AdminUsers() {
                   <tr key={user.id}>
                     <td>
                       <strong>{user.displayUsername}</strong>
-                      <div className="admin-card-note">
+                      <div className="text-muted-xs admin-card-note">
                         {user.email} • {user.id}
                       </div>
                     </td>

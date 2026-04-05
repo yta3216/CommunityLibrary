@@ -11,6 +11,7 @@ import { useAuth } from "../context/AuthContext";
 import { getBook, returnBook } from "../api/books";
 import { sendBorrowRequest } from "../api/chats";
 import { useBookDetail } from "../hooks/useBookDetail";
+import "./BookDetail.css";
 
 function BookDetail() {
   const navigate = useNavigate();
@@ -37,7 +38,6 @@ function BookDetail() {
 
     try {
       await returnBook(book.id);
-      // Re-fetch the enriched book so all flags reflect the new state.
       const updated = await getBook(book.id);
       updateBook(updated);
       setBorrowFeedback("Book availability updated.");
@@ -93,8 +93,13 @@ function BookDetail() {
     return (
       <div>
         <Navbar isLoggedIn={true} />
-        <div style={styles.page}>
-          <p style={styles.metaText}>Loading book...</p>
+        <div className="main-container">
+          <Sidebar isLoggedIn={true} />
+          <div className="content">
+            <div className="book-detail-loading">
+              <p className="text-muted-sm">Loading book...</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -104,10 +109,15 @@ function BookDetail() {
     return (
       <div>
         <Navbar isLoggedIn={true} />
-        <div style={styles.page}>
-          <p className="text-error">
-            {errorMessage || "This book could not be found."}
-          </p>
+        <div className="main-container">
+          <Sidebar isLoggedIn={true} />
+          <div className="content">
+            <div className="book-detail-loading">
+              <p className="text-error">
+                {errorMessage || "This book could not be found."}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -118,14 +128,14 @@ function BookDetail() {
       <Navbar isLoggedIn={true} />
       <div className="main-container">
         <Sidebar isLoggedIn={true} />
-        <div class="content">
+        <div className="content book-detail-content">
           <Breadcrumbs
             items={[{ label: "Home", to: "/home" }, { label: "Book Item" }]}
           />
-          <div style={styles.page}>
-            <h1 style={styles.title}>{book.title}</h1>
-            <h3 style={styles.author}>{book.author}</h3>
-            <h3 style={styles.owner}>Owned by: {book.ownerName}</h3>
+          <div>
+            <h1 className="heading-lg">{book.title}</h1>
+            <h3 className="text-muted book-detail-author">{book.author}</h3>
+            <h3 className="text-muted book-detail-owner">Owned by: {book.ownerName}</h3>
 
             <BookCover synopsis={book.description} />
 
@@ -148,8 +158,8 @@ function BookDetail() {
             />
 
             {isBorrowComposerOpen ? (
-              <div style={styles.borrowComposerBlock}>
-                <h4 style={styles.borrowComposerTitle}>Start Borrow Request</h4>
+              <div className="book-detail-borrow-composer">
+                <h4 className="heading-md book-detail-borrow-title">Start Borrow Request</h4>
                 <MessageComposer
                   value={borrowDraft}
                   onChange={setBorrowDraft}
@@ -179,49 +189,5 @@ function BookDetail() {
     </div>
   );
 }
-
-const styles = {
-  page: {
-    maxWidth: "720px",
-    margin: "0 auto",
-    padding: "32px 24px",
-  },
-  title: {
-    fontSize: "2rem",
-    fontWeight: "700",
-    margin: "0 0 4px",
-    color: "#000",
-  },
-  author: {
-    fontSize: "1.2rem",
-    fontWeight: "500",
-    margin: "0",
-    color: "#555",
-  },
-  owner: {
-    fontSize: "1.1rem",
-    fontWeight: "500",
-    margin: "0 0 32px",
-    color: "#555",
-  },
-  metaText: {
-    color: "#667085",
-    fontSize: "18px",
-    margin: 0,
-  },
-  borrowComposerBlock: {
-    marginBottom: "14px",
-    padding: "14px",
-    border: "1px solid #e4e7ec",
-    borderRadius: "14px",
-    backgroundColor: "#f8faf9",
-  },
-  borrowComposerTitle: {
-    margin: "0 0 10px",
-    fontSize: "1rem",
-    fontWeight: 700,
-    color: "#101828",
-  },
-};
 
 export default BookDetail;

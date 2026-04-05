@@ -23,6 +23,12 @@
   flex: 0 0 auto;
 }
 
+.admin-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
 .admin-logo-placeholder {
   width: 52px;
   height: 40px;
@@ -237,6 +243,29 @@
   flex-wrap: wrap;
 }
 
+.admin-actions-spaced {
+  margin-top: 14px;
+}
+
+.admin-recent-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.admin-card-compact {
+  padding: 12px;
+  box-shadow: none;
+}
+
+.admin-row-tight {
+  margin-bottom: 0;
+}
+
+.admin-card-note-spaced {
+  margin-top: 6px;
+}
+
 .admin-link {
   text-decoration: none;
 }
@@ -263,6 +292,7 @@
   .admin-nav {
     margin: 0;
     order: 2;
+    left: 0;
   }
 
   .admin-topbar-right {
@@ -273,5 +303,10 @@
 
   .admin-title {
     font-size: 36px;
+  }
+
+  .admin-logo {
+    width: 36px;
+    height: 36px;
   }
 }

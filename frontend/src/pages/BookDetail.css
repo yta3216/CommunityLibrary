@@ -1,0 +1,55 @@
+.book-detail-content {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px 40px;
+}
+
+.book-detail-title {
+  margin: 0 0 4px;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #000;
+}
+
+.book-detail-author {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.book-detail-owner {
+  margin: 0 0 32px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.book-detail-loading {
+  padding: 32px 24px;
+}
+
+.book-detail-borrow-composer {
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  background-color: #f8faf9;
+}
+
+.book-detail-borrow-title {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #101828;
+}
+
+@media (max-width: 768px) {
+  .book-detail-content {
+    padding: 24px 16px 32px;
+  }
+
+  .book-detail-title {
+    font-size: 1.6rem;
+  }
+}

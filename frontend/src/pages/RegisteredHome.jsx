@@ -1,8 +1,9 @@
 import React, { useCallback, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import BookCard from "../components/BookCard/BookCard";
 import Navbar from "../components/Navbar/Navbar";
 import Sidebar from "../components/Sidebar/Sidebar";
-import { useNavigate } from "react-router-dom";
+import "./RegisteredHome.css";
 
 /*Sample books (will be replaced later after backend is implemented)*/
 const popularBooks = [
@@ -20,12 +21,9 @@ const newBooks = [
 ];
 
 const RegisteredHome = () => {
-  // Search state is connected to Navbar so typing filters books in real time.
   const [searchQuery, setSearchQuery] = useState("");
-
   const navigate = useNavigate();
 
-  // Shared title search so both sections use the same filtering behavior.
   const filterBooksByTitle = useCallback(
     (bookList) => {
       const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -42,11 +40,11 @@ const RegisteredHome = () => {
     [searchQuery],
   );
 
-  // Filtered lists used by the two sections below.
   const filteredPopularBooks = useMemo(
     () => filterBooksByTitle(popularBooks),
     [filterBooksByTitle],
   );
+
   const filteredAllBooks = useMemo(
     () => filterBooksByTitle(newBooks),
     [filterBooksByTitle],
@@ -60,13 +58,12 @@ const RegisteredHome = () => {
         onSearchChange={setSearchQuery}
       />
 
-      <div style={styles.page}>
+      <div className="page-shell registered-home">
         <Sidebar isLoggedIn={true} />
 
-        <main style={styles.main}>
-          {/* Most Popular section */}
-          <h2 style={styles.sectionTitle}>Most Popular</h2>
-          <div style={styles.cardRow}>
+        <main className="page-content">
+          <h2 className="heading-md">Most Popular</h2>
+          <div className="card-row card-row--compact">
             {filteredPopularBooks.map((book, i) => (
               <BookCard
                 key={i}
@@ -79,9 +76,8 @@ const RegisteredHome = () => {
             ))}
           </div>
 
-          {/* New Additions section */}
-          <h2 style={styles.sectionTitle}>All books</h2>
-          <div style={styles.cardRow}>
+          <h2 className="heading-md">All books</h2>
+          <div className="card-row card-row--compact">
             {filteredAllBooks.map((book, i) => (
               <BookCard
                 key={i}
@@ -95,52 +91,10 @@ const RegisteredHome = () => {
           </div>
         </main>
 
-        {/* Create New Listing button */}
-        <button style={styles.fab}>Create New Listing</button>
+        <button className="registered-home-fab">Create New Listing</button>
       </div>
     </div>
   );
-};
-
-const styles = {
-  page: {
-    display: "flex",
-    flexDirection: "row",
-    minHeight: "100vh",
-    backgroundColor: "#fff",
-    marginTop: "0",
-  },
-  main: {
-    flex: 1,
-    padding: "32px 40px",
-    minWidth: 0,
-  },
-  sectionTitle: {
-    fontSize: "2rem",
-    fontWeight: "700",
-    margin: "0 0 24px",
-    color: "#000",
-  },
-  cardRow: {
-    display: "flex",
-    flexDirection: "row",
-    gap: "20px",
-    marginBottom: "48px",
-    flexWrap: "nowrap",
-  },
-  fab: {
-    position: "fixed",
-    bottom: "32px",
-    right: "32px",
-    backgroundColor: "#3d4a5c",
-    color: "#fff",
-    border: "none",
-    borderRadius: "24px",
-    padding: "14px 22px",
-    fontSize: "0.9rem",
-    cursor: "pointer",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-  },
 };
 
 export default RegisteredHome;

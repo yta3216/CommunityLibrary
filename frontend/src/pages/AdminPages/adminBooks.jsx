@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
-import logo from "../resources/logo.png";
-import { useAuth } from "../context/AuthContext";
-import { deleteBook, toggleBookStatus } from "../api/books";
-import BookForm from "./BookForm";
+import logo from "../../resources/logo.png";
+import { useAuth } from "../../context/AuthContext";
+import { deleteBook, toggleBookStatus } from "../../api/books";
+import BookForm from "../../components/BookForm";
 import "./adminPages.css";
-import useBooks from "../hooks/useBooks";
+import useBooks from "../../hooks/useBooks";
 
 export default function AdminBooks() {
   const { user: currentUser, signOut } = useAuth();
@@ -94,7 +94,7 @@ export default function AdminBooks() {
           <img
             src={logo}
             alt="Community Library logo"
-            style={{ width: 42, height: 42, objectFit: "contain" }}
+            className="admin-logo"
           />
           <nav className="admin-nav">
             <NavLink
@@ -126,14 +126,14 @@ export default function AdminBooks() {
 
         <div className="admin-divider" />
 
-        <h1 className="admin-title">Manage Books</h1>
-        <p className="admin-subtitle">Admin view of listings, ownership, and availability.</p>
+        <h1 className="heading-lg">Manage Books</h1>
+        <p className="text-muted-sm admin-subtitle">Admin view of listings, ownership, and availability.</p>
 
         <section className="admin-card">
           <div className="admin-row">
             <div>
-              <h2 className="admin-card-title">Listings</h2>
-              <p className="admin-card-note">{isLoading ? "Loading books..." : "Live data"}</p>
+              <h2 className="heading-md">Listings</h2>
+              <p className="text-muted-xs admin-card-note">{isLoading ? "Loading books..." : "Live data"}</p>
             </div>
             <div className="admin-actions">
               <button type="button" className="admin-button" onClick={() => setIsCreateOpen(true)}>
@@ -175,14 +175,14 @@ export default function AdminBooks() {
             <tbody>
               {filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="admin-card-note">No books match this filter.</td>
+                  <td colSpan={5} className="text-muted-xs admin-card-note">No books match this filter.</td>
                 </tr>
               ) : (
                 filteredRows.map((book) => (
                   <tr key={book.id}>
                     <td>
                       <strong>{book.title}</strong>
-                      <div className="admin-card-note">{book.genre} • {book.id}</div>
+                      <div className="text-muted-xs admin-card-note">{book.genre} • {book.id}</div>
                     </td>
                     <td><strong>{book.owner}</strong></td>
                     <td><span className="admin-pill">{book.status}</span></td>

@@ -65,14 +65,14 @@ const Profile = () => {
             <section className="profile-info">
               <div>
                 <h1>Your Profile</h1>
-                <p style={styles.identityText}>{user?.username || "Could not load username"}</p>
-                <p style={styles.subtleText}>{user?.email || "Could not load email"}</p>
-                <p style={styles.subtleText}>{user?.description || "Profile description can be added later."}</p>
+                <p className="heading-md">{user?.username || "Could not load username"}</p>
+                <p className="text-muted-sm">{user?.email || "Could not load email"}</p>
+                <p className="text-muted-sm">{user?.description || "Profile description can be added later."}</p>
                 {errorMessage ? <p className="text-error">{errorMessage}</p> : null}
               </div>
-              <div style={styles.profileMeta}>
+              <div className="profile-meta">
                 <img src={avatar_placeholder} alt="Profile" className="profile-pic-large" />
-                <p style={styles.statusBadge}>Status: {user?.status || "active"}</p>
+                <p className="text-muted-xs status-badge">Status: {user?.status || "active"}</p>
               </div>
             </section>
 
@@ -203,33 +203,6 @@ const Profile = () => {
       </div>
     </>
   );
-};
-
-const styles = {
-  identityText: {
-    margin: "0 0 8px",
-    fontSize: "1.1rem",
-    fontWeight: 600,
-    color: "#101828",
-  },
-  subtleText: {
-    margin: "0 0 8px",
-    color: "#475467",
-  },
-  profileMeta: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "12px",
-  },
-  statusBadge: {
-    margin: 0,
-    padding: "8px 12px",
-    borderRadius: "999px",
-    backgroundColor: "#eef2f6",
-    color: "#344054",
-    fontWeight: 600,
-  },
 };
 
 export default Profile;

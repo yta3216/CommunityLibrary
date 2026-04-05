@@ -1,0 +1,86 @@
+.book-tags-wrapper {
+  margin-bottom: 32px;
+}
+
+.book-tags-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.book-label {
+  width: 80px;
+  flex-shrink: 0;
+  color: var(--color-text-strong);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.book-tags-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.book-tags-tag {
+  font-size: 0.95rem;
+  color: var(--color-text-strong);
+}
+
+.book-tags-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.book-tags-borrow-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.book-tags-button {
+  padding: 8px 28px;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.book-tags-button--enabled {
+  background-color: var(--color-brand);
+  color: var(--color-surface);
+  cursor: pointer;
+  opacity: 1;
+}
+
+.book-tags-button--disabled {
+  background-color: var(--color-border-soft);
+  color: var(--color-text-subtle);
+  cursor: not-allowed;
+  opacity: 0.95;
+}
+
+.book-tags-action-hint {
+  margin: -4px 0 12px 104px;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .book-tags-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .book-label {
+    width: auto;
+  }
+
+  .book-tags-action-hint {
+    margin-left: 0;
+  }
+}

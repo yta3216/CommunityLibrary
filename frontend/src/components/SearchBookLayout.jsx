@@ -2,6 +2,7 @@
 // Each individual card will be rendered by the CardLayout component
 
 import BookCard from "./BookCard/BookCard";
+import "./SearchBookLayout.css";
 
 function BookList() {
   // Placeholder data — will be replaced with real data later
@@ -19,9 +20,9 @@ function BookList() {
 
   //Display on screen
   return (
-    <section style={styles.section}>
-      <h2 style={styles.heading}>Search Results</h2>
-      <div style={styles.grid}>
+    <section className="search-results-section">
+      <h2 className="heading-md">Search Results</h2>
+      <div className="search-results-grid">
         {books.map((book) => (
           <BookCard
             key={book.id}
@@ -34,23 +35,5 @@ function BookList() {
     </section>
   );
 }
-
-//Styles for the BookList component
-const styles = {
-  section: {
-    padding: '32px 0',
-  },
-  heading: {
-    fontSize: '2rem',
-    fontWeight: '700',
-    margin: '0 0 28px',
-    color: '#000',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '20px',
-  },
-};
 
 export default BookList;

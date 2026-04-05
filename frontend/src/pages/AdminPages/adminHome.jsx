@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import logo from "../resources/logo.png";
-import { useAuth } from "../context/AuthContext";
-import { getBooks } from "../api/books";
-import { getUsers } from "../api/users";
+import logo from "../../resources/logo.png";
+import { useAuth } from "../../context/AuthContext";
+import { getBooks } from "../../api/books";
+import { getUsers } from "../../api/users";
 import "./adminPages.css";
 
 export default function AdminHome() {
@@ -75,7 +75,7 @@ export default function AdminHome() {
           <img
             src={logo}
             alt="Community Library logo"
-            style={{ width: 42, height: 42, objectFit: "contain" }}
+            className="admin-logo"
           />
           <nav className="admin-nav">
             <NavLink
@@ -119,39 +119,39 @@ export default function AdminHome() {
 
         <div className="admin-divider" />
 
-        <h1 className="admin-title">Admin Dashboard</h1>
-        <p className="admin-subtitle">
+        <h1 className="heading-lg">Admin Dashboard</h1>
+        <p className="text-muted-sm admin-subtitle">
           Manage listings, users, and current availability in one place.
         </p>
 
         <section className="admin-metrics">
           <div className="admin-card">
-            <p className="admin-card-note">Total Listings</p>
+            <p className="text-muted-xs admin-card-note">Total Listings</p>
             <p className="admin-metric-value">{metrics.totalListings}</p>
-            <p className="admin-card-note">All books in the system</p>
+            <p className="text-muted-xs admin-card-note">All books in the system</p>
           </div>
           <div className="admin-card">
-            <p className="admin-card-note">Available</p>
+            <p className="text-muted-xs admin-card-note">Available</p>
             <p className="admin-metric-value">{metrics.availableBooks}</p>
-            <p className="admin-card-note">Books currently with owner</p>
+            <p className="text-muted-xs admin-card-note">Books currently with owner</p>
           </div>
           <div className="admin-card">
-            <p className="admin-card-note">Not Available</p>
+            <p className="text-muted-xs admin-card-note">Not Available</p>
             <p className="admin-metric-value">{metrics.notAvailableBooks}</p>
-            <p className="admin-card-note">Books currently with borrower</p>
+            <p className="text-muted-xs admin-card-note">Books currently with borrower</p>
           </div>
           <div className="admin-card">
-            <p className="admin-card-note">Users</p>
+            <p className="text-muted-xs admin-card-note">Users</p>
             <p className="admin-metric-value">{metrics.totalUsers}</p>
-            <p className="admin-card-note">Total registered users</p>
+            <p className="text-muted-xs admin-card-note">Total registered users</p>
           </div>
         </section>
 
         <section className="admin-grid-2">
           <div className="admin-card">
-            <h2 className="admin-card-title">Quick Actions</h2>
-            <p className="admin-card-note">Common admin navigation</p>
-            <div className="admin-actions" style={{ marginTop: 14 }}>
+            <h2 className="heading-md">Quick Actions</h2>
+            <p className="text-muted-xs admin-card-note">Common admin navigation</p>
+            <div className="admin-actions admin-actions-spaced">
               <Link to="/admin/books" className="admin-button admin-link">
                 Manage Books
               </Link>
@@ -163,14 +163,14 @@ export default function AdminHome() {
 
           <div className="admin-card">
             <div className="admin-row">
-              <h2 className="admin-card-title">Recent Listings</h2>
+              <h2 className="heading-md">Recent Listings</h2>
               <span className="admin-chip">Live</span>
             </div>
-            <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
+            <div className="admin-recent-list">
               {isLoading ? (
-                <p className="admin-card-note">Loading...</p>
+                <p className="text-muted-xs admin-card-note">Loading...</p>
               ) : recentBooks.length === 0 ? (
-                <p className="admin-card-note">No listings yet.</p>
+                <p className="text-muted-xs admin-card-note">No listings yet.</p>
               ) : (
                 recentBooks.map((book) => {
                   const ownerName =
@@ -181,16 +181,15 @@ export default function AdminHome() {
                   return (
                     <div
                       key={book._id}
-                      className="admin-card"
-                      style={{ padding: 12, boxShadow: "none" }}
+                      className="admin-card admin-card-compact"
                     >
-                      <div className="admin-row" style={{ marginBottom: 0 }}>
+                      <div className="admin-row admin-row-tight">
                         <strong>{book.title || "Untitled"}</strong>
-                        <span className="admin-card-note">
+                        <span className="text-muted-xs admin-card-note">
                           {String(book.status || "").toUpperCase()}
                         </span>
                       </div>
-                      <p className="admin-card-note" style={{ marginTop: 6 }}>
+                      <p className="text-muted-xs admin-card-note admin-card-note-spaced">
                         Owner: {ownerName || "Unknown"}
                       </p>
                     </div>

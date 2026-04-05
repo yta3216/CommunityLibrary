@@ -6,6 +6,7 @@ import ChatListSection from "../components/Messages/ChatListSection";
 import MessageComposer from "../components/Messages/MessageComposer";
 import MessageThread from "../components/Messages/MessageThread";
 import { useChats } from "../hooks/useChats";
+import "./Messages.css";
 
 function Messages() {
   const [searchParams] = useSearchParams();
@@ -30,13 +31,13 @@ function Messages() {
         ]}
       />
 
-      <div style={styles.page}>
-        <h1 style={styles.pageTitle}>My Messages</h1>
+      <div className="messages-page">
+        <h1 className="heading-lg">My Messages</h1>
 
-        {isLoading ? <p style={styles.meta}>Loading messages...</p> : null}
+        {isLoading ? <p className="text-muted-sm">Loading messages...</p> : null}
 
-        <div style={styles.layout}>
-          <section style={styles.listColumn}>
+        <div className="messages-layout">
+          <section className="messages-list-column">
             <ChatListSection
               label="My Books"
               sectionKey="myBooks"
@@ -53,18 +54,18 @@ function Messages() {
             />
           </section>
 
-          <section style={styles.contentColumn}>
+          <section className="messages-content-column">
             {activeChat ? (
               <>
-                <div style={styles.threadHeader}>
+                <div className="messages-thread-header">
                   <div>
-                    <h2 style={styles.threadTitle}>{activeChat.bookTitle}</h2>
-                    <p style={styles.threadMeta}>
+                    <h2 className="heading-md">{activeChat.bookTitle}</h2>
+                    <p className="text-muted-xs">
                       {activeChat.bookStatus === "available" ? "Available" : "Not Available"}
                     </p>
                   </div>
 
-                  <div style={styles.headerActions}>
+                  <div className="messages-header-actions">
                     {activeChat.canLend ? (
                       <button
                         type="button"
@@ -104,7 +105,7 @@ function Messages() {
                 />
               </>
             ) : (
-              <p style={styles.meta}>Select a conversation to start messaging.</p>
+              <p className="text-muted-sm">Select a conversation to start messaging.</p>
             )}
           </section>
         </div>
@@ -114,78 +115,5 @@ function Messages() {
     </div>
   );
 }
-// TODO: Fix styling and also extract them into index.css or something.
-const styles = {
-  page: {
-    maxWidth: "1180px",
-    margin: "0",
-    padding: "30px 20px 34px",
-  },
-  pageTitle: {
-    fontSize: "2rem",
-    fontWeight: "700",
-    margin: "0 0 22px",
-    color: "#000",
-  },
-  layout: {
-    display: "flex",
-    gap: "18px",
-    flexWrap: "wrap",
-    alignItems: "stretch",
-  },
-  listColumn: {
-    flex: "1 1 300px",
-    maxWidth: "360px",
-    minWidth: "280px",
-    padding: "14px",
-    border: "1px solid #e4e7ec",
-    borderRadius: "16px",
-    backgroundColor: "#f9fafb",
-    maxHeight: "600px",
-    height: "auto",
-  },
-  contentColumn: {
-    flex: "2 1 520px",
-    minWidth: "300px",
-    border: "1px solid #e4e7ec",
-    borderRadius: "16px",
-    backgroundColor: "#fff",
-    padding: "16px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "14px",
-    maxHeight: "600px",
-    overflow: "scroll",
-  },
-  threadHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: "10px",
-    alignItems: "center",
-  },
-  threadTitle: {
-    margin: 0,
-    fontSize: "1.15rem",
-    color: "#111827",
-  },
-  threadMeta: {
-    margin: "4px 0 0",
-    fontSize: "0.85rem",
-    color: "#667085",
-  },
-  headerActions: {
-    display: "flex",
-    gap: "8px",
-    flexWrap: "wrap",
-  },
-  composerWrap: {
-    marginTop: "2px",
-  },
-  meta: {
-    margin: "0 0 14px",
-    color: "#667085",
-    fontSize: "0.95rem",
-  },
-};
 
 export default Messages;
