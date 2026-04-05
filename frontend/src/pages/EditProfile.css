@@ -35,20 +35,6 @@
   object-fit: cover;
 }
 
-.btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid #333;
-  background: #fff;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  align-self: flex-start;
-}
-
-.btn:hover {
-  background: #f0f0f0;
-}
-
 .helper-text {
   margin: 0;
   color: #667085;

@@ -102,21 +102,6 @@
   font-weight: 600;
 }
 
-.btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid #333;
-  background: #fff;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  text-decoration: none;
-  color: #333;
-}
-
-.btn:hover {
-  background: #f0f0f0;
-}
-
 @media (max-width: 768px) {
   .profile-container {
     padding: 0 16px 24px;

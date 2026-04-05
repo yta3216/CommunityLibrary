@@ -125,7 +125,7 @@ const EditProfile = () => {
           {successMessage ? (
             <p className="form-message success">{successMessage}</p>
           ) : null}
-          <button type="submit" className="btn">
+          <button type="submit" className="button-primary">
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
         </form>

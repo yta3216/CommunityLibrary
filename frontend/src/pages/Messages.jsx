@@ -59,7 +59,7 @@ function Messages() {
               <>
                 <div className="messages-thread-header">
                   <div>
-                    <h2 className="heading-md">{activeChat.bookTitle}</h2>
+                    <h2 className="messages-thread-title">{activeChat.bookTitle}</h2>
                     <p className="text-muted-xs">
                       {activeChat.bookStatus === "available" ? "Available" : "Not Available"}
                     </p>

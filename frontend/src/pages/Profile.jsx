@@ -77,9 +77,11 @@ const Profile = () => {
             </section>
 
             <div className="profile-actions">
-              <Link to="/messages" className="btn">My Messages</Link>
-              <Link to="/profile/edit" className="btn">Edit Profile</Link>
-              <button type="button" className="btn" onClick={handleLogout}>Logout</button>
+              <Link to="/messages" className="button-secondary">My Messages</Link>
+              <Link to="/profile/edit" className="button-secondary">Edit Profile</Link>
+              <button type="button" className="button-danger" onClick={handleLogout}>
+                Logout
+              </button>
             </div>
 
             <section className="books-section">
@@ -99,13 +101,13 @@ const Profile = () => {
                     >
                       {ownedBooks.map((book) => (
                         <option key={book._id} value={book._id}>
-                          {book.title || "Untitled"} – {book.author || "Unknown author"}
+                          {book.title || "Untitled"} - {book.author || "Unknown author"}
                         </option>
                       ))}
                     </select>
                     <button
                       type="button"
-                      className="btn"
+                      className="button-secondary"
                       disabled={!selectedBookIdToEdit || isEditOpen}
                       onClick={() => setIsEditOpen(true)}
                     >
@@ -136,7 +138,7 @@ const Profile = () => {
                     </select>
                     <button
                       type="button"
-                      className="btn"
+                      className="button-secondary"
                       onClick={handleDeleteOwnedBook}
                       disabled={isDeletingBook || !selectedBookIdToDelete}
                     >

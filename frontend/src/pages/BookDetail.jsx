@@ -128,11 +128,11 @@ function BookDetail() {
       <Navbar isLoggedIn={true} />
       <div className="main-container">
         <Sidebar isLoggedIn={true} />
-        <div className="content book-detail-content">
+        <div className="content">
           <Breadcrumbs
             items={[{ label: "Home", to: "/home" }, { label: "Book Item" }]}
           />
-          <div>
+          <div className="book-detail-content">
             <h1 className="heading-lg">{book.title}</h1>
             <h3 className="text-muted book-detail-author">{book.author}</h3>
             <h3 className="text-muted book-detail-owner">Owned by: {book.ownerName}</h3>
