@@ -31,7 +31,6 @@
   flex: 1;
   display: flex;
   justify-content: center;
-  margin: 0 2rem;
 }
 
 .search {
@@ -95,18 +94,12 @@
 @media (max-width: 768px) {
   .navbar {
     padding: 0.8rem 1rem;
-    flex-wrap: wrap;
     gap: 0.5rem;
   }
 
   .navbar-center {
-    order: 3;
     flex-basis: 100%;
     margin: 0.5rem 0;
-  }
-
-  .search-bar {
-    width: 100%;
   }
 
   .navbar-right {

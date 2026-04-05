@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
+import Sidebar from "../components/Sidebar/Sidebar";
 import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import BookCover from "../components/BookDetail/BookCover";
 import BookActions from "../components/BookDetail/BookTags";
@@ -115,61 +116,65 @@ function BookDetail() {
   return (
     <div>
       <Navbar isLoggedIn={true} />
-      <Breadcrumbs
-        items={[{ label: "Home", to: "/home" }, { label: "Book Item" }]}
-      />
+      <div className="main-container">
+        <Sidebar isLoggedIn={true} />
+        <div class="content">
+          <Breadcrumbs
+            items={[{ label: "Home", to: "/home" }, { label: "Book Item" }]}
+          />
+          <div style={styles.page}>
+            <h1 style={styles.title}>{book.title}</h1>
+            <h3 style={styles.author}>{book.author}</h3>
+            <h3 style={styles.owner}>Owned by: {book.ownerName}</h3>
 
-      <div style={styles.page}>
-        <h1 style={styles.title}>{book.title}</h1>
-        <h3 style={styles.author}>{book.author}</h3>
-        <h3 style={styles.owner}>Owned by: {book.ownerName}</h3>
+            <BookCover synopsis={book.description} />
 
-        <BookCover synopsis={book.description} />
-
-        <BookActions
-          genres={book.genres}
-          listedBookAvailabilityText={
-            book.status === "available"
-              ? "This listing: Available"
-              : "This listing: Not available"
-          }
-          showBorrowButton={book.showBorrowButton}
-          isBorrowEnabled={book.canBorrow}
-          showViewConversationButton={book.showViewConversationButton}
-          showReturnButton={book.canReturn}
-          actionHintText={book.actionHintText}
-          onBorrow={handleBorrowClick}
-          onViewConversation={handleViewConversation}
-          onReturn={handleReturn}
-          isActionPending={isBookActionPending}
-        />
-
-        {isBorrowComposerOpen ? (
-          <div style={styles.borrowComposerBlock}>
-            <h4 style={styles.borrowComposerTitle}>Start Borrow Request</h4>
-            <MessageComposer
-              value={borrowDraft}
-              onChange={setBorrowDraft}
-              onSubmit={handleSendBorrowMessage}
-              isSubmitting={isSendingBorrowMessage}
-              placeholder="Hi, I would like to borrow this book."
-              buttonLabel="Send"
-              disabled={!book.canBorrow}
+            <BookActions
+              genres={book.genres}
+              listedBookAvailabilityText={
+                book.status === "available"
+                  ? "This listing: Available"
+                  : "This listing: Not available"
+              }
+              showBorrowButton={book.showBorrowButton}
+              isBorrowEnabled={book.canBorrow}
+              showViewConversationButton={book.showViewConversationButton}
+              showReturnButton={book.canReturn}
+              actionHintText={book.actionHintText}
+              onBorrow={handleBorrowClick}
+              onViewConversation={handleViewConversation}
+              onReturn={handleReturn}
+              isActionPending={isBookActionPending}
             />
+
+            {isBorrowComposerOpen ? (
+              <div style={styles.borrowComposerBlock}>
+                <h4 style={styles.borrowComposerTitle}>Start Borrow Request</h4>
+                <MessageComposer
+                  value={borrowDraft}
+                  onChange={setBorrowDraft}
+                  onSubmit={handleSendBorrowMessage}
+                  isSubmitting={isSendingBorrowMessage}
+                  placeholder="Hi, I would like to borrow this book."
+                  buttonLabel="Send"
+                  disabled={!book.canBorrow}
+                />
+              </div>
+            ) : null}
+
+            {borrowError ? <p className="text-error">{borrowError}</p> : null}
+            {bookActionError ? <p className="text-error">{bookActionError}</p> : null}
+            {borrowFeedback ? <p className="text-success">{borrowFeedback}</p> : null}
+
+            <ReviewSection
+              bookId={book.id}
+              currentUser={currentUser?._id}
+              postedBy={book.ownerId}
+            />
+
+            {errorMessage ? <p className="text-error">{errorMessage}</p> : null}
           </div>
-        ) : null}
-
-        {borrowError ? <p className="text-error">{borrowError}</p> : null}
-        {bookActionError ? <p className="text-error">{bookActionError}</p> : null}
-        {borrowFeedback ? <p className="text-success">{borrowFeedback}</p> : null}
-
-        <ReviewSection
-          bookId={book.id}
-          currentUser={currentUser?._id}
-          postedBy={book.ownerId}
-        />
-
-        {errorMessage ? <p className="text-error">{errorMessage}</p> : null}
+        </div>
       </div>
     </div>
   );
