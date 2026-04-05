@@ -12,13 +12,13 @@ import Register from "./components/Form/Register";
 
 import LoggedInHome from "./pages/LoggedInHome";
 import BookDetail from "./pages/BookDetail";
-import Profile from "./pages/Profile";
-import EditProfile from "./pages/EditProfile";
+import Profile from "./pages/profile/Profile";
+import EditProfile from "./pages/profile/EditProfile";
 import Messages from "./pages/Messages";
 
-import AdminHome from "./pages/AdminPages/AdminHome";
-import AdminBooks from "./pages/AdminPages/AdminBooks";
-import AdminUsers from "./pages/AdminPages/AdminUsers";
+import AdminHome from "./pages/admin/AdminHome";
+import AdminBooks from "./pages/admin/AdminBooks";
+import AdminUsers from "./pages/admin/AdminUsers";
 
 
 

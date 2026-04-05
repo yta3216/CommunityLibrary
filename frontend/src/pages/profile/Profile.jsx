@@ -1,14 +1,14 @@
 import { useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import Navbar from "../components/Navbar/Navbar";
-import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
-import BookCard from "../components/BookCard/BookCard";
-import avatar_placeholder from "../resources/avatar_placeholder.png";
-import BookForm from "../components/BookForm";
-import useProfileBooks from "../hooks/useProfileBooks";
+import { useAuth } from "../../context/AuthContext";
+import Navbar from "../../components/Navbar/Navbar";
+import Breadcrumbs from "../../components/Breadcrumbs/Breadcrumbs";
+import BookCard from "../../components/BookCard/BookCard";
+import avatar_placeholder from "../../resources/avatar_placeholder.png";
+import BookForm from "../../components/BookForm";
+import useProfileBooks from "../../hooks/useProfileBooks";
 import "./Profile.css";
-import Sidebar from "../components/Sidebar/Sidebar";
+import Sidebar from "../../components/Sidebar/Sidebar";
 
 const Profile = () => {
   const navigate = useNavigate();

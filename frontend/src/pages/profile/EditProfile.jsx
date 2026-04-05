@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar/Navbar";
-import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
-import avatar_placeholder from "../resources/avatar_placeholder.png";
-import { useAuth } from "../context/AuthContext";
-import { updateCurrentUser } from "../api/users";
+import Navbar from "../../components/Navbar/Navbar";
+import Breadcrumbs from "../../components/Breadcrumbs/Breadcrumbs";
+import avatar_placeholder from "../../resources/avatar_placeholder.png";
+import { useAuth } from "../../context/AuthContext";
+import { updateCurrentUser } from "../../api/users";
 import "./EditProfile.css";
-import Sidebar from "../components/Sidebar/Sidebar";
+import Sidebar from "../../components/Sidebar/Sidebar";
 
 //validation consts... the same as backend. only adding this because it is a requirement
 const USERNAME_REGEX = /^[A-Za-z0-9]{3,20}$/;
