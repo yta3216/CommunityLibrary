@@ -58,6 +58,12 @@ const userSchema = new mongoose.Schema({
     default: "",
     maxlength: 300,
   },
+  profileImageUrl: {
+    type: String,
+    trim: true,
+    default: "",
+    maxlength: 5_000_000,
+  },
 });
 
 // runs whenever a user document is saved and password was changed aka register or future changepassword

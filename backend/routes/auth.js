@@ -14,16 +14,49 @@ const toPublicUser = (userDoc) => {
   return user;
 };
 
+const isValidImageUrl = (value) => {
+  if (typeof value !== "string") {
+    return false;
+  }
+
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
+    return false;
+  }
+
+  try {
+    if (trimmedValue.startsWith("data:image/")) {
+      return true;
+    }
+
+    const parsedUrl = new URL(trimmedValue);
+    return ["http:", "https:"].includes(parsedUrl.protocol);
+  } catch (_error) {
+    return false;
+  }
+};
+
+const getProfileImageUrl = (body) => {
+  return body.profileImageUrl || body.imageUrl || body.image || "";
+};
+
 // register endpoint: validates input, creates user, then returns token + safe user data
 router.post("/register", async (req, res) => {
   try {
     // read values sent by client in request body
     const { username, email, password } = req.body;
+    const profileImageUrl = getProfileImageUrl(req.body);
 
     // quick required-field check before trying to create user
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !profileImageUrl) {
       return res.status(400).json({
-        message: "username, email, password are required",
+        message: "username, email, password, profileImageUrl are required",
+      });
+    }
+
+    if (!isValidImageUrl(profileImageUrl)) {
+      return res.status(400).json({
+        message: "profileImageUrl must be a valid image URL or data URL",
       });
     }
 
@@ -32,6 +65,7 @@ router.post("/register", async (req, res) => {
       username,
       email,
       password,
+      profileImageUrl: profileImageUrl.trim(),
       role: "user",
     });
 

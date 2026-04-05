@@ -16,6 +16,32 @@ const sanitizeUser = (userDoc) => {
   return user;
 };
 
+const isValidImageUrl = (value) => {
+  if (typeof value !== "string") {
+    return false;
+  }
+
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
+    return false;
+  }
+
+  try {
+    if (trimmedValue.startsWith("data:image/")) {
+      return true;
+    }
+
+    const parsedUrl = new URL(trimmedValue);
+    return ["http:", "https:"].includes(parsedUrl.protocol);
+  } catch (_error) {
+    return false;
+  }
+};
+
+const getProfileImageUrl = (body) => {
+  return body.profileImageUrl || body.imageUrl || body.image || "";
+};
+
 // get all users (newest first)
 router.get("/", async (_req, res) => {
   try {
@@ -30,6 +56,7 @@ router.get("/", async (_req, res) => {
 router.patch("/me", authRequired, async (req, res) => {
   try {
     const { username, description } = req.body;
+    const profileImageUrl = getProfileImageUrl(req.body);
     // req.user.id comes from decoded jwt in authRequired middleware
     const user = await User.findById(req.user.id);
 
@@ -50,6 +77,16 @@ router.patch("/me", authRequired, async (req, res) => {
     // only update description if caller sent it
     if (typeof description !== "undefined") {
       user.description = String(description).trim();
+    }
+
+    if (typeof profileImageUrl !== "undefined") {
+      if (!isValidImageUrl(profileImageUrl)) {
+        return res.status(400).json({
+          message: "profileImageUrl must be a valid image URL or data URL",
+        });
+      }
+
+      user.profileImageUrl = String(profileImageUrl).trim();
     }
 
     await user.save();

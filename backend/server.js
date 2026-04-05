@@ -1,36 +1,13 @@
-// load backend dependencies for server, database, env vars, and cors access
-const express = require("express");
+// load backend dependencies for server, database, and env vars
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-const cors = require("cors");
 
-// import grouped route modules
-const authRouter = require("./routes/auth");
-const usersRouter = require("./routes/users");
-const booksRouter = require("./routes/books");
-const chatsRouter = require("./routes/chats");
+// import the configured express app and supporting models
+const app = require("./app");
 const Chat = require("./models/Chat");
-const reviewsRouter = require("./routes/reviews");
 
 // load values from .env into process.env
 dotenv.config();
-
-// create express app and enable common middleware
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// simple health endpoint to check if api server is alive
-app.get("/api/health", (_req, res) => {
-  res.json({ message: "ok" });
-});
-
-// mount feature routers under api paths
-app.use("/api/auth", authRouter);
-app.use("/api/users", usersRouter);
-app.use("/api/books", booksRouter);
-app.use("/api/chats", chatsRouter);
-app.use("/api/reviews", reviewsRouter);
 
 // use env port if provided, otherwise default to 5000
 const port = process.env.PORT || 5000;
