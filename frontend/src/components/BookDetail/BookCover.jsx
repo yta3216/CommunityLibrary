@@ -3,7 +3,7 @@
 import { useState } from "react";
 import "./BookCover.css";
 
-function BookCover({ synopsis, postedCoverImage, isLoggedIn }) {
+function BookCover({ synopsis, postedCoverImage }) {
   // Tracks if the current user uploaded their own cover photo
   const [uploadedImage, setUploadedImage] = useState(null);
 

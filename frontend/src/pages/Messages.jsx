@@ -35,8 +35,6 @@ function Messages() {
             ]}
           />
           <div className="messages-page">
-            <h1 className="heading-lg">My Messages</h1>
-
             {isLoading ? <p className="text-muted-sm">Loading messages...</p> : null}
 
             <div className="messages-layout">
