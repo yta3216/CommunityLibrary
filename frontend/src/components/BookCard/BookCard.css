@@ -1,5 +1,5 @@
 .book-card {
-  width: min(100%, 180px);
+  width: min(100%, 220px);
   border-radius: 16px;
   box-shadow: var(--shadow-sm);
   overflow: hidden;

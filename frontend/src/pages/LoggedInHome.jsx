@@ -47,10 +47,10 @@ const LoggedInHome = () => {
       <div className="page-shell logged-in-home">
         <Sidebar isLoggedIn={true} />
         <main className="page-content">
-          <h2 className="heading-md">Most Popular</h2>
+          <h2 className="heading-lg">Most Popular</h2>
           <div className="card-row">{renderCardRow(popularBooks)}</div>
 
-          <h2 className="heading-md">All Books</h2>
+          <h2 className="heading-lg">All Books</h2>
           <div className="card-row">{renderCardRow(availableBooks)}</div>
         </main>
 
