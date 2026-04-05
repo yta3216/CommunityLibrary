@@ -5,12 +5,11 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 
 // import grouped route modules
-const authRouter = require("./routes/auth");
-const usersRouter = require("./routes/users");
-const booksRouter = require("./routes/books");
-const chatsRouter = require("./routes/chats");
-const Chat = require("./models/Chat");
-const reviewsRouter = require("./routes/reviews");
+const authRouter = require("./routes/auth_router");
+const usersRouter = require("./routes/user_router");
+const booksRouter = require("./routes/book_router");
+const chatsRouter = require("./routes/chat_router");
+const reviewsRouter = require("./routes/review_router");
 
 // load values from .env into process.env
 dotenv.config();
@@ -42,6 +41,7 @@ mongoose
     console.log("MongoDB connected");
 
     // Keep chat indexes in sync so old unique constraints do not block valid requests.
+    const Chat = require("./models/Chat");
     await Chat.syncIndexes();
 
     app.listen(port, () => {
