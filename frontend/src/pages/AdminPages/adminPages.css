@@ -96,6 +96,10 @@
   color: #333333;
 }
 
+.admin-logout {
+  cursor: pointer;
+}
+
 .admin-divider {
   height: 1px;
   background-color: #d9dce2;

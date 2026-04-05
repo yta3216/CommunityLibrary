@@ -1,13 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { NavLink } from "react-router-dom";
-import logo from "../../resources/logo.png";
-import { useAuth } from "../../context/AuthContext";
 import { deleteUser, getUsers, toggleUserStatus, cycleUserRole } from "../../api/users";
 import { getBooks } from "../../api/books";
-import "./adminPages.css";
+import AdminLayout from "./AdminLayout";
+import "./AdminPages.css";
 
 export default function AdminUsers() {
-  const { user: currentUser, signOut } = useAuth();
   const [users, setUsers] = useState([]);
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,10 +47,6 @@ export default function AdminUsers() {
     };
   }, [loadAdminUsersPage]);
 
-  const handleLogout = () => {
-    signOut();
-    window.location.assign("/login");
-  };
 
   const handleCycleRole = async (userId) => {
     setIsActing(true);
@@ -160,170 +153,120 @@ export default function AdminUsers() {
   }, [userSearch, userRows, userTypeFilter]);
 
   return (
-    <div className="admin-page">
-      <div className="admin-shell">
-        <header className="admin-topbar">
-          <img
-            src={logo}
-            alt="Community Library logo"
-            className="admin-logo"
+    <AdminLayout>
+      <h1 className="heading-lg">Manage Users</h1>
+      <p className="text-muted-sm admin-subtitle">
+        Admin view of users. Toggle status, change role or delete a user. Be
+        careful with this page!
+      </p>
+
+      <section className="admin-card">
+        <div className="admin-row">
+          <div>
+            <h2 className="heading-md">Users</h2>
+            <p className="text-muted-xs admin-card-note">
+              {isLoading ? "Loading users..." : "Live data"}
+            </p>
+          </div>
+        </div>
+
+        <div className="admin-filters">
+          <input
+            className="admin-input"
+            value={userSearch}
+            onChange={(event) => setUserSearch(event.target.value)}
+            placeholder="Search username..."
           />
-          <nav className="admin-nav">
-            <NavLink
-              to="/admin/home"
-              className={({ isActive }) =>
-                `admin-nav-link${isActive ? " active" : ""}`
-              }
-            >
-              Home
-            </NavLink>
-            <NavLink
-              to="/admin/books"
-              className={({ isActive }) =>
-                `admin-nav-link${isActive ? " active" : ""}`
-              }
-            >
-              Books
-            </NavLink>
-            <NavLink
-              to="/admin/users"
-              className={({ isActive }) =>
-                `admin-nav-link${isActive ? " active" : ""}`
-              }
-            >
-              Users
-            </NavLink>
-          </nav>
-          <div className="admin-topbar-right">
-            <span className="admin-chip">
-              {currentUser?.username || "Admin"}
-            </span>
-            <button
-              type="button"
-              className="admin-chip admin-link"
-              onClick={handleLogout}
-            >
-              Log Out
-            </button>
-          </div>
-        </header>
+          <select
+            className="admin-select"
+            value={userTypeFilter}
+            onChange={(event) => setUserTypeFilter(event.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+          </select>
+        </div>
+      </section>
 
-        <div className="admin-divider" />
-
-        <h1 className="heading-lg">Manage Users</h1>
-        <p className="text-muted-sm admin-subtitle">
-          Admin view of users. Toggle status, change role or delete a user. Be
-          careful with this page!
-        </p>
-
-        <section className="admin-card">
-          <div className="admin-row">
-            <div>
-              <h2 className="heading-md">Users</h2>
-              <p className="text-muted-xs admin-card-note">
-                {isLoading ? "Loading users..." : "Live data"}
-              </p>
-            </div>
-          </div>
-
-          <div className="admin-filters">
-            <input
-              className="admin-input"
-              value={userSearch}
-              onChange={(event) => setUserSearch(event.target.value)}
-              placeholder="Search username..."
-            />
-            <select
-              className="admin-select"
-              value={userTypeFilter}
-              onChange={(event) => setUserTypeFilter(event.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="admin">Admin</option>
-              <option value="user">User</option>
-            </select>
-          </div>
-        </section>
-
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Borrowed</th>
+              <th>Listings</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredUserRows.length === 0 ? (
               <tr>
-                <th>User</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Borrowed</th>
-                <th>Listings</th>
-                <th>Actions</th>
+                <td colSpan={6} className="text-muted-xs admin-card-note">
+                  No users match this filter.
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {filteredUserRows.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-muted-xs admin-card-note">
-                    No users match this filter.
+            ) : (
+              filteredUserRows.map((user) => (
+                <tr key={user.id}>
+                  <td>
+                    <strong>{user.displayUsername}</strong>
+                    <div className="text-muted-xs admin-card-note">
+                      {user.email} • {user.id}
+                    </div>
+                  </td>
+                  <td>
+                    <span className="admin-pill">
+                      {String(user.role).toUpperCase()}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="admin-pill">
+                      {String(user.status).toUpperCase()}
+                    </span>
+                  </td>
+                  <td>
+                    <strong>{user.borrowed}</strong>
+                  </td>
+                  <td>
+                    <strong>{user.listings}</strong>
+                  </td>
+                  <td>
+                    <div className="admin-actions">
+                      <button
+                        type="button"
+                        className="admin-button light"
+                        disabled={isActing}
+                        onClick={() => handleCycleRole(user.id)}
+                      >
+                        Cycle Role
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-button light"
+                        disabled={isActing}
+                        onClick={() => handleToggleStatus(user.id)}
+                      >
+                        Toggle Status
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-button light"
+                        disabled={isActing}
+                        onClick={() => handleDeleteUser(user.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              ) : (
-                filteredUserRows.map((user) => (
-                  <tr key={user.id}>
-                    <td>
-                      <strong>{user.displayUsername}</strong>
-                      <div className="text-muted-xs admin-card-note">
-                        {user.email} • {user.id}
-                      </div>
-                    </td>
-                    <td>
-                      <span className="admin-pill">
-                        {String(user.role).toUpperCase()}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="admin-pill">
-                        {String(user.status).toUpperCase()}
-                      </span>
-                    </td>
-                    <td>
-                      <strong>{user.borrowed}</strong>
-                    </td>
-                    <td>
-                      <strong>{user.listings}</strong>
-                    </td>
-                    <td>
-                      <div className="admin-actions">
-                        <button
-                          type="button"
-                          className="admin-button light"
-                          disabled={isActing}
-                          onClick={() => handleCycleRole(user.id)}
-                        >
-                          Cycle Role
-                        </button>
-                        <button
-                          type="button"
-                          className="admin-button light"
-                          disabled={isActing}
-                          onClick={() => handleToggleStatus(user.id)}
-                        >
-                          Toggle Status
-                        </button>
-                        <button
-                          type="button"
-                          className="admin-button light"
-                          disabled={isActing}
-                          onClick={() => handleDeleteUser(user.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
-    </div>
+    </AdminLayout >
   );
 }

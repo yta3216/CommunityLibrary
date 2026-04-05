@@ -90,9 +90,9 @@ const Profile = () => {
               {isLoading ? <p>Loading your books...</p> : null}
 
               {!isLoading && ownedBooks.length > 0 ? (
-                <div className="book-delete-panel">
+                <div className="book-action-panel">
                   <label htmlFor="edit-owned-book">Edit one of your books:</label>
-                  <div className="book-delete-controls">
+                  <div className="book-action-controls">
                     <select
                       id="edit-owned-book"
                       value={selectedBookIdToEdit}
@@ -118,9 +118,9 @@ const Profile = () => {
               ) : null}
 
               {!isLoading && ownedBooks.length > 0 ? (
-                <div className="book-delete-panel">
+                <div className="book-action-panel">
                   <label htmlFor="delete-owned-book">Delete one of your books:</label>
-                  <div className="book-delete-controls">
+                  <div className="book-action-controls">
                     <select
                       id="delete-owned-book"
                       value={selectedBookIdToDelete}

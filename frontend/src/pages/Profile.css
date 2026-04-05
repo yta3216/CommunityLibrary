@@ -8,11 +8,12 @@
   margin-top: 1.5rem;
 }
 
-.book-delete-panel {
+.book-action-panel {
   margin: 0.75rem 0 1rem;
 }
 
-.book-delete-controls {
+.book-action-controls {
+  max-width: 100%;
   margin-top: 0.4rem;
   display: flex;
   gap: 0.5rem;
@@ -20,8 +21,8 @@
   flex-wrap: wrap;
 }
 
-.book-delete-controls select {
-  min-width: 280px;
+.book-action-controls select {
+  min-width: 250px;
   max-width: 100%;
   padding: 0.45rem 0.5rem;
   border: 1px solid #cfd4dc;

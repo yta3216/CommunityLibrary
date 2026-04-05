@@ -16,9 +16,11 @@ import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Messages from "./pages/Messages";
 
-import AdminHome from "./pages/AdminPages/adminHome";
-import AdminBooks from "./pages/AdminPages/adminBooks";
-import AdminUsers from "./pages/AdminPages/adminUsers";
+import AdminHome from "./pages/AdminPages/AdminHome";
+import AdminBooks from "./pages/AdminPages/AdminBooks";
+import AdminUsers from "./pages/AdminPages/AdminUsers";
+
+
 
 const getHomeRouteForRole = (role) => {
   return role === "admin" ? "/admin/home" : "/home";
