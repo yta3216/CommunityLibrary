@@ -379,7 +379,7 @@ const Profile = () => {
 
           <div style={styles.profileMeta}>
             <img
-              src={avatar_placeholder}
+              src={user?.profileImageUrl || avatar_placeholder}
               alt="Profile"
               className="profile-pic-large"
             />

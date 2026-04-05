@@ -1,9 +1,14 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import logo from "../../resources/logo.png";
 import avatar_placeholder from "../../resources/avatar_placeholder.png";
 import "./Navbar.css";
 
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
+
 function Navbar({ isLoggedIn, searchValue = "", onSearchChange }) {
+  const [profileImageUrl, setProfileImageUrl] = useState(avatar_placeholder);
+
   const searchInputProps = onSearchChange
     ? {
         value: searchValue,
@@ -12,6 +17,53 @@ function Navbar({ isLoggedIn, searchValue = "", onSearchChange }) {
     : {
         defaultValue: searchValue,
       };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!isLoggedIn) {
+      setProfileImageUrl(avatar_placeholder);
+      return undefined;
+    }
+
+    const loadProfileImage = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        if (isMounted) {
+          setProfileImageUrl(avatar_placeholder);
+        }
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to load profile image");
+        }
+
+        const user = await response.json();
+        if (isMounted) {
+          setProfileImageUrl(user.profileImageUrl || avatar_placeholder);
+        }
+      } catch (_error) {
+        if (isMounted) {
+          setProfileImageUrl(avatar_placeholder);
+        }
+      }
+    };
+
+    loadProfileImage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoggedIn]);
 
   return (
     <nav className="navbar">
@@ -40,7 +92,7 @@ function Navbar({ isLoggedIn, searchValue = "", onSearchChange }) {
           <>
             <a href="/profile" className="nav-link">
               <img
-                src={avatar_placeholder}
+                src={profileImageUrl}
                 alt="Profile"
                 className="profile-pic"
               />

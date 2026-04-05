@@ -35,6 +35,53 @@
   object-fit: cover;
 }
 
+.image-dropzone {
+  border: 2px dashed #cdd3dd;
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 18px;
+  margin-bottom: 22px;
+  text-align: center;
+  cursor: pointer;
+  background: linear-gradient(180deg, #fcfcfd 0%, #f7f8fb 100%);
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.form-group:first-of-type {
+  margin-bottom: 0.25rem;
+}
+
+.image-dropzone.dragging {
+  border-color: #4f7f7c;
+  background: #eef5f4;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .image-dropzone {
+    margin-top: 14px;
+    margin-bottom: 18px;
+    padding: 12px;
+  }
+}
+
+.image-dropzone-text {
+  margin: 10px 0 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.image-dropzone-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #667085;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
 .btn {
   padding: 0.5rem 1rem;
   border: 1px solid #333;
