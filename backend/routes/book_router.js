@@ -12,7 +12,7 @@ router.get('/', book_controller.listBooks);
 router.get('/:id', authRequired, book_controller.getBook);
 router.patch('/:id', authRequired, book_controller.updateBook);
 router.delete('/:id', authRequired, book_controller.deleteBook);
-    
+
 // Popular books
 router.get('/popular', book_controller.getPopularBooks);
 

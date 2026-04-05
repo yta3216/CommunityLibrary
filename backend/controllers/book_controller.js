@@ -18,6 +18,7 @@ const getPopularBooks = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
+// Book by specific id actions
 const getBook = async (req, res, next) => {
     try {
         res.json(await book_service.getBookDetail(req.params.id, req.user.id));
@@ -37,6 +38,7 @@ const deleteBook = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
+// Admin actions
 const returnBook = async (req, res, next) => {
     try {
         res.json(await book_service.returnBook(req.params.id, req.user.id));

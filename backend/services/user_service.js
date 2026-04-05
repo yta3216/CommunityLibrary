@@ -52,8 +52,6 @@ async function updateProfile(userId, { username, description }) {
     return sanitizeUser(user);
 }
 
-// Returns the current user's owned and borrowed books in one call.
-// Replaces the Profile.jsx pattern of fetching all books and filtering client-side.
 async function getCurrentUserBooks(userId) {
     const [owned, borrowed] = await Promise.all([
         Book.find({ owner: userId })

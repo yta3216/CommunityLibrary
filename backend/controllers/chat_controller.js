@@ -4,6 +4,7 @@ const listChats = async (req, res, next) => {
     try { res.json(await chat_service.listChats(req.user.id)); } catch (err) { next(err); }
 };
 
+// Send message
 const sendFirstMessage = async (req, res, next) => {
     try {
         const { chat, isCreated } = await chat_service.sendFirstMessage({
@@ -13,8 +14,23 @@ const sendFirstMessage = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-const sendMessage = async (req, res, next) => { try { res.json(await chat_service.sendMessage(req.params.chatId, req.user.id, req.body.text)); } catch (err) { next(err); } };
-const lendBook = async (req, res, next) => { try { res.json(await chat_service.lendBook(req.params.chatId, req.user.id)); } catch (err) { next(err); } };
-const returnBook = async (req, res, next) => { try { res.json(await chat_service.returnBook(req.params.chatId, req.user.id)); } catch (err) { next(err); } };
+const sendMessage = async (req, res, next) => {
+    try {
+        res.json(await chat_service.sendMessage(req.params.chatId, req.user.id, req.body.text));
+    } catch (err) { next(err); }
+};
+
+// Chat actions
+const lendBook = async (req, res, next) => {
+    try {
+        res.json(await chat_service.lendBook(req.params.chatId, req.user.id));
+    } catch (err) { next(err); }
+};
+
+const returnBook = async (req, res, next) => {
+    try {
+        res.json(await chat_service.returnBook(req.params.chatId, req.user.id));
+    } catch (err) { next(err); }
+};
 
 module.exports = { listChats, sendFirstMessage, sendMessage, lendBook, returnBook };

@@ -6,18 +6,21 @@ const listUsers = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
+// Update auth'd user
 const updateMe = async (req, res, next) => {
     try {
         res.json(await user_service.updateProfile(req.user.id, req.body));
     } catch (err) { next(err); }
 };
 
+// Get all owned and borrowed books for current user
 const getMyBooks = async (req, res, next) => {
     try {
         res.json(await user_service.getCurrentUserBooks(req.user.id));
     } catch (err) { next(err); }
 };
 
+// Admin actions
 const cycleRole = async (req, res, next) => {
     try {
         res.json(await user_service.cycleRole(req.params.id));

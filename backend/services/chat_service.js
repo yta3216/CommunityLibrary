@@ -181,7 +181,7 @@ async function sendMessage(chatId, senderId, text) {
 
 async function lendBook(chatId, actorId) {
     if (!mongoose.Types.ObjectId.isValid(chatId)) {
-        throw new Error('invalid chat id', 400  );
+        throw new Error('invalid chat id', 400);
     }
 
     const chat = await Chat.findById(chatId).populate({
@@ -219,7 +219,7 @@ async function lendBook(chatId, actorId) {
 
 async function returnBook(chatId, actorId) {
     if (!mongoose.Types.ObjectId.isValid(chatId)) {
-        throw new Error('invalid chat id', 400  );
+        throw new Error('invalid chat id', 400);
     }
 
     const chat = await Chat.findById(chatId).populate({
