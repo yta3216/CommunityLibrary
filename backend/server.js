@@ -5,11 +5,11 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 
 // import grouped route modules
-const authRouter = require("./routes/auth_router");
-const usersRouter = require("./routes/user_router");
-const booksRouter = require("./routes/book_router");
-const chatsRouter = require("./routes/chat_router");
-const reviewsRouter = require("./routes/review_router");
+const authRouter = require("./routes/authRouter");
+const usersRouter = require("./routes/userRouter");
+const booksRouter = require("./routes/bookRouter");
+const chatsRouter = require("./routes/chatRouter");
+const reviewsRouter = require("./routes/reviewRouter");
 
 // load values from .env into process.env
 dotenv.config();
