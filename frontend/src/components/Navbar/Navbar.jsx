@@ -1,15 +1,16 @@
 import React from "react";
 import logo from "../../resources/logo.png";
+import { useAuth } from "../../context/AuthContext";
 import avatar_placeholder from "../../resources/avatar_placeholder.png";
 import "./Navbar.css";
 
 function Navbar({
-  isLoggedIn,
   searchValue = "",
   onSearchChange,
   onSearchClick,
   onSearchFocus,
 }) {
+  const { isAuthenticated } = useAuth();
   const searchInputProps = onSearchChange
     ? {
         value: searchValue,
@@ -22,7 +23,7 @@ function Navbar({
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        <a href={isLoggedIn ? "/home" : "/"} className="nav-link">
+        <a href={isAuthenticated ? "/home" : "/"} className="nav-link">
           <img src={logo} className="logo" alt="logo" />
         </a>
       </div>
@@ -43,7 +44,7 @@ function Navbar({
       </div>
 
       <div className="navbar-right">
-        {isLoggedIn ? (
+        {isAuthenticated ? (
           //Registered User View
           <>
             <a href="/profile" className="nav-link">

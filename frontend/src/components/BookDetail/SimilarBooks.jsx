@@ -2,6 +2,7 @@
 // Displays a row of similar book cards below the book details.
 
 import BookCard from "../BookCard/BookCard";
+import "./SimilarBooks.css";
 
 function SimilarBooks({ books, onSelectBook }) {
   const bookList = books || [
@@ -11,9 +12,9 @@ function SimilarBooks({ books, onSelectBook }) {
   ];
 
   return (
-    <div style={styles.wrapper}>
-      <h3 style={styles.title}>Similar Books</h3>
-      <div style={styles.row}>
+    <div className="similar-books-wrapper">
+      <h3 className="heading-md">Similar Books</h3>
+      <div className="similar-books-row">
         {bookList.map((book, i) => (
           <BookCard
             key={book.id || i}

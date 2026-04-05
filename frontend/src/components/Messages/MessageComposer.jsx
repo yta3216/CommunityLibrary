@@ -11,7 +11,7 @@ function MessageComposer({
 
   return (
     <form
-      style={styles.form}
+      className="modal-button-row"
       onSubmit={(event) => {
         event.preventDefault();
         if (!isDisabled) {
@@ -24,40 +24,14 @@ function MessageComposer({
         value={value}
         onChange={(event) => onChange?.(event.target.value)}
         placeholder={placeholder}
-        style={styles.input}
+        className="form-input"
         disabled={isDisabled}
       />
-      <button type="submit" style={styles.button} disabled={isDisabled}>
+      <button type="submit" className="button-primary" disabled={isDisabled}>
         {isSubmitting ? "Sending..." : buttonLabel}
       </button>
     </form>
   );
 }
-
-const styles = {
-  form: {
-    display: "flex",
-    gap: "10px",
-    alignItems: "center",
-  },
-  input: {
-    flex: 1,
-    minWidth: 0,
-    border: "1px solid #d0d5dd",
-    borderRadius: "12px",
-    padding: "10px 12px",
-    fontSize: "0.95rem",
-    outline: "none",
-  },
-  button: {
-    border: "none",
-    borderRadius: "12px",
-    padding: "10px 14px",
-    backgroundColor: "#386f6d",
-    color: "#fff",
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-};
 
 export default MessageComposer;

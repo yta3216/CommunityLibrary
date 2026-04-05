@@ -1,19 +1,18 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "./RegisterAndLogin.css";
 
 //validation consts... the same as backend. only adding this because it is a requirement
 const USERNAME_REGEX = /^[A-Za-z0-9]{3,20}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
-
 const getHomeRouteForRole = (role) => {
   return role === "admin" ? "/admin/home" : "/home";
 };
 
 export default function Login() {
+  const { signIn } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -58,37 +57,14 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
-      const maybeEmail = isEmailLogin ? identifierValue : "";
-      const maybeUsername = isEmailLogin ? "" : identifierValue;
-
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: maybeEmail,
-          username: maybeUsername,
-          password: passwordValue,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        const detail = result.detail ? ` (${result.detail})` : "";
-        setErrorMessage((result.message || "Failed to login.") + detail);
-        return;
-      }
-
-      //stores the token so the user stays loged in on other pages and decides where the user goes.. admin or user
-      localStorage.setItem("token", result.token);
+      const result = await signIn(identifierValue, passwordValue);
       const targetRoute = getHomeRouteForRole(result?.user?.role);
 
       // force a hard navigation so App auth bootstrap re-runs with the new token
       window.location.assign(targetRoute);
     } catch (_error) {
-      setErrorMessage("Could not reach server. Please try again.");
+      const detail = _error?.data?.detail ? ` (${_error.data.detail})` : "";
+      setErrorMessage((_error?.message || "Failed to login.") + detail);
     } finally {
       setIsSubmitting(false);
     }

@@ -1,0 +1,16 @@
+.similar-books-wrapper {
+  margin-bottom: 32px;
+}
+
+.similar-books-title {
+  margin: 0 0 16px;
+  color: #000;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.similar-books-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}

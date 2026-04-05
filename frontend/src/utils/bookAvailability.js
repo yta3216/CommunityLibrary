@@ -19,18 +19,9 @@ export function isListingAvailable(listing) {
   const holderId = getBookUserId(listing.holder);
   const normalizedStatus = String(listing.status || "").toLowerCase();
 
-  const availableByStatus =
-    normalizedStatus === "available" || normalizedStatus === "with_owner";
+  const availableByStatus = normalizedStatus === "available";
   const availableByOwnership =
     ownerId && holderId && ownerId.toString() === holderId.toString();
 
   return Boolean(availableByStatus || availableByOwnership);
-}
-
-export function toAvailableCopiesText(count) {
-  if (count === 1) {
-    return "1 copy available";
-  }
-
-  return `${count} copies available`;
 }
