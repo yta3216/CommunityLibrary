@@ -43,7 +43,7 @@ function ReviewSection({ bookId, currentUser, postedBy }) {
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(0);
   const [reviews, setReviews] = useState([]);
-  const [avgRating, setAvgRating] = useState(0);
+  const [avgReviews, setAvgReviews] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -61,7 +61,7 @@ function ReviewSection({ bookId, currentUser, postedBy }) {
       setIsLoading(true);
       const data = await getReviews(bookId);
       setReviews(data.reviews || []);
-      setAvgRating(data.avgRating || 0);
+      setAvgReviews(data.avgReviews || 0);
     } catch (_error) {
       // silently fail — reviews are not critical to page load
     } finally {
@@ -127,9 +127,9 @@ function ReviewSection({ bookId, currentUser, postedBy }) {
         {/* Show average rating if there are any reviews */}
         {reviews.length > 0 && (
           <div className="review-section-avg-row">
-            <StarDisplay value={avgRating} />
+            <StarDisplay value={avgReviews} />
             <span className="text-muted-xs review-section-avg-text">
-              {avgRating} / 5 ({reviews.length}{" "}
+              {avgReviews} / 5 ({reviews.length}{" "}
               {reviews.length === 1 ? "review" : "reviews"})
             </span>
           </div>

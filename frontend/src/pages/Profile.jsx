@@ -163,7 +163,7 @@ const Profile = () => {
                       title={book.title || "Untitled"}
                       author={book.author || "Unknown author"}
                       genre={book.genre || ""}
-                      rating={0}
+                      rating={book.avgReviews || 0}
                       onClick={() => navigate(`/book?id=${book._id}`)}
                     />
                   ))}
@@ -183,7 +183,7 @@ const Profile = () => {
                       title={book.title || "Untitled"}
                       author={book.author || "Unknown author"}
                       genre={book.genre || ""}
-                      rating={0}
+                      rating={book.avgReviews || 0}
                       onClick={() => navigate(`/book?id=${book._id}`)}
                     />
                   ))}

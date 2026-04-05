@@ -44,12 +44,7 @@ const Home = () => {
     const fetchPopular = async () => {
       try {
         const data = await getPopularBooks(searchQuery);
-        setPopularBooks(
-          (Array.isArray(data) ? data : []).map((item) => ({
-            ...item.bookData,
-            avgRating: item.avgRating,
-          })),
-        );
+        setPopularBooks(Array.isArray(data) ? data : []);
       } catch (_error) {
         setPopularBooks([]);
       }
@@ -83,7 +78,7 @@ const Home = () => {
         title={book.title || "Untitled"}
         author={book.author || "Unknown author"}
         genre={book.genre || "Unknown"}
-        rating={typeof book.avgRating === "number" ? Math.round(book.avgRating) : 0}
+        rating={typeof book.avgReviews === "number" ? Math.round(book.avgReviews) : 0}
       />
     ));
   };

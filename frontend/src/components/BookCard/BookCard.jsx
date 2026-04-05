@@ -11,7 +11,7 @@ const BookCard = ({ title, author, owner, genre, rating, onClick }) => {
       <div className="book-card-content">
         <h3>{title}</h3>
         <p className="author">by {author}</p>
-        <p className="owner">Owner: {owner}</p>
+        {owner && <p className="owner">Owner: {owner}</p>}
         <p className="genre">Genre: {genre}</p>
         <div className="stars">
           {Array.from({ length: 5 }).map((_, i) =>

@@ -19,24 +19,29 @@ async function createReview({ bookId, reviewerId, rating, comment }) {
         comment: comment || '',
     });
 
-    await Book.findByIdAndUpdate(bookId, { $inc: { numberOfReviews: 1 } });
+    const previousCount = Number(book.numberOfReviews || 0);
+    const previousAverage = Number(book.avgReviews || 0);
+    const nextCount = previousCount + 1;
+    const nextAverage = Math.round((((previousAverage * previousCount) + Number(rating)) / nextCount) * 10) / 10;
+
+    book.numberOfReviews = nextCount;
+    book.avgReviews = nextAverage;
+    await book.save();
+
     return Review.findById(review._id).populate('reviewer', 'username');
 }
 
 async function getReviewsForBook(bookId) {
     if (!mongoose.Types.ObjectId.isValid(bookId)) { throw new Error('invalid book id', 400); }
 
-    const [reviews, avgResult] = await Promise.all([
+    const [reviews, book] = await Promise.all([
         Review.find({ book: bookId }).populate('reviewer', 'username').sort({ createdAt: -1 }),
-        Review.aggregate([
-            { $match: { book: new mongoose.Types.ObjectId(bookId) } },
-            { $group: { _id: '$book', avgRating: { $avg: '$rating' } } },
-        ]),
+        Book.findById(bookId).select('avgReviews'),
     ]);
 
-    const avgRating = avgResult.length > 0 ? Math.round(avgResult[0].avgRating * 10) / 10 : 0;
+    if (!book) throw new Error('book not found', 404);
 
-    return { reviews, avgRating };
+    return { reviews, avgReviews: Number(book.avgReviews || 0) };
 }
 
 module.exports = { createReview, getReviewsForBook };

@@ -49,14 +49,7 @@ export default function useBooks(searchTerm, { fetchPopular = false } = {}) {
             try {
                 const data = await getPopularBooks(searchTerm);
                 if (isMounted) {
-                    setPopularBooks(
-                        Array.isArray(data)
-                            ? data.map((item) => ({
-                                ...item.bookData,
-                                avgRating: item.avgRating,
-                                numberOfReviews: item.numberOfReviews,
-                            })) : [],
-                    );
+                    setPopularBooks(Array.isArray(data) ? data : []);
                 }
             } catch (_error) {
                 if (isMounted) setPopularBooks([]);

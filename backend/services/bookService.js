@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Book = require('../models/Book');
 const User = require('../models/User');
-const Review = require('../models/Review');
 const Chat = require('../models/Chat');
 const BOOK_POPULATE = [
     { path: 'owner', select: '_id username email role status description' },
@@ -38,41 +37,36 @@ async function listBooks(query) {
     const q = normalizeStr(query);
     const filter = q ? { title: { $regex: q, $options: 'i' } } : {};
 
-    const [books, ratings] = await Promise.all([
-        Book.find(filter)
-            .populate('owner', '_id username email role')
-            .populate('holder', '_id username email role')
-            .sort({ createdAt: -1 }),
-        Review.aggregate([
-            { $group: { _id: '$book', avgRating: { $avg: '$rating' }, numberOfReviews: { $sum: 1 } } },
-        ]),
-    ]);
+    const books = await Book.find(filter)
+        .populate('owner', '_id username email role')
+        .populate('holder', '_id username email role')
+        .sort({ createdAt: -1 });
 
-    const ratingsMap = Object.fromEntries(
-        ratings.map((r) => [
-            r._id.toString(), { avgRating: Math.round(r.avgRating * 10) / 10, numberOfReviews: r.numberOfReviews },
-        ])
-    );
-
-    return books.map((book) => ({ ...book.toObject(), ...(ratingsMap[book._id.toString()] || { avgRating: 0, numberOfReviews: 0 }), }));
+    return books.map((book) => ({
+        ...book.toObject(),
+        avgReviews: Number(book.avgReviews || 0),
+        numberOfReviews: Number(book.numberOfReviews || 0),
+    }));
 }
 
 async function getPopularBooks(query) {
     const q = normalizeStr(query);
+    const filter = {
+        ...(q ? { title: { $regex: q, $options: 'i' } } : {}),
+        numberOfReviews: { $gte: 1 },
+    };
 
-    return Review.aggregate([
-        { $group: { _id: '$book', avgRating: { $avg: '$rating' }, numberOfReviews: { $sum: 1 } } },
-        { $match: { numberOfReviews: { $gte: 1 } } },
-        { $sort: { avgRating: -1 } },
-        { $limit: 5 },
-        { $lookup: { from: 'books', localField: '_id', foreignField: '_id', as: 'bookData' } },
-        { $unwind: '$bookData' },
-        { $lookup: { from: 'users', localField: 'bookData.owner', foreignField: '_id', as: 'bookData.owner' } },
-        { $unwind: '$bookData.owner' },
-        ...(q ? [{ $match: { 'bookData.title': { $regex: q, $options: 'i' } } }] : []),
-        { $sort: { avgRating: -1 } },
-        { $limit: 5 },
-    ]);
+    const books = await Book.find(filter)
+        .populate('owner', '_id username email role')
+        .populate('holder', '_id username email role')
+        .sort({ avgReviews: -1, numberOfReviews: -1, createdAt: -1 })
+        .limit(5);
+
+    return books.map((book) => ({
+        ...book.toObject(),
+        avgReviews: Number(book.avgReviews || 0),
+        numberOfReviews: Number(book.numberOfReviews || 0),
+    }));
 }
 
 async function getBookDetail(bookId, currentUserId) {
