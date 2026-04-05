@@ -28,3 +28,7 @@ export function deleteUser(userId) {
     method: "DELETE",
   });
 }
+
+export function getMyBooks() {
+  return apiRequest("/api/users/me/books");
+}

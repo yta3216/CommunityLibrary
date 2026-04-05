@@ -8,13 +8,13 @@ router.post('/', authRequired, book_controller.createBook);
 // All books
 router.get('/', book_controller.listBooks);
 
+// Popular books
+router.get('/popular', book_controller.getPopularBooks);
+
 // Book by specific id
 router.get('/:id', authRequired, book_controller.getBook);
 router.patch('/:id', authRequired, book_controller.updateBook);
 router.delete('/:id', authRequired, book_controller.deleteBook);
-
-// Popular books
-router.get('/popular', book_controller.getPopularBooks);
 
 // Admin actions
 router.patch('/:id/return', authRequired, book_controller.returnBook);

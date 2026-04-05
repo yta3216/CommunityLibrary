@@ -17,7 +17,8 @@ async function register({ username, email, password }) {
     return { user: sanitizeUser(user), token };
 }
 
-async function login({ identifier, password }) {
+async function login({ email, username, password }) {
+    const identifier = email || username;
     if (!identifier || !password) {
         throw new Error('identifier and password are required', 400);
     }

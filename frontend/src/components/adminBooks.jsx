@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import logo from "../resources/logo.png";
 import { useAuth } from "../context/AuthContext";
-import { createBook, deleteBook, toggleBookStatus } from "../api/books";
+import { deleteBook, toggleBookStatus } from "../api/books";
 import BookForm from "./BookForm";
 import "./adminPages.css";
 import useBooks from "../hooks/useBooks";
@@ -14,16 +14,12 @@ export default function AdminBooks() {
   const [searchQuery, setSearchQuery] = useState("");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
 
-  const { books, setBooks, isLoading } = useBooks();
+  const { books, setBooks, isLoading, createBook } = useBooks();
 
   const rows = useMemo(() => {
     return books.map((book) => {
-      const ownerName =
-        typeof book.owner === "object" ? book.owner?.username : "Unknown";
-
-      const holderName =
-        typeof book.holder === "object" ? book.holder?.username : "Unknown";
-
+      const ownerName = typeof book.owner === "object" ? book.owner?.username : "Unknown";
+      const holderName = typeof book.holder === "object" ? book.holder?.username : "Unknown";
       return {
         id: book._id,
         title: book.title || "Untitled",
@@ -39,8 +35,7 @@ export default function AdminBooks() {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
     return rows.filter((row) => {
-      const isAvailable =
-        row.status === "AVAILABLE";
+      const isAvailable = row.status === "AVAILABLE";
       const matchesAvailability =
         availabilityFilter === "all"
           ? true
@@ -66,8 +61,7 @@ export default function AdminBooks() {
   };
 
   const handleCreateBook = async (values) => {
-    const result = await createBook(values);
-    setBooks((prev) => [result, ...prev]);
+    await createBook(values);
     setIsCreateOpen(false);
   };
 
@@ -75,10 +69,7 @@ export default function AdminBooks() {
     setIsActing(true);
     try {
       const result = await toggleBookStatus(bookId);
-
-      setBooks((prev) =>
-        prev.map((book) => (book._id === bookId ? result : book)),
-      );
+      setBooks((prev) => prev.map((book) => (book._id === bookId ? result : book)));
     } catch (_error) {
       alert(_error?.message || "Could not reach server.");
     } finally {
@@ -108,38 +99,26 @@ export default function AdminBooks() {
           <nav className="admin-nav">
             <NavLink
               to="/admin/home"
-              className={({ isActive }) =>
-                `admin-nav-link${isActive ? " active" : ""}`
-              }
+              className={({ isActive }) => `admin-nav-link${isActive ? " active" : ""}`}
             >
               Home
             </NavLink>
             <NavLink
               to="/admin/books"
-              className={({ isActive }) =>
-                `admin-nav-link${isActive ? " active" : ""}`
-              }
+              className={({ isActive }) => `admin-nav-link${isActive ? " active" : ""}`}
             >
               Books
             </NavLink>
             <NavLink
               to="/admin/users"
-              className={({ isActive }) =>
-                `admin-nav-link${isActive ? " active" : ""}`
-              }
+              className={({ isActive }) => `admin-nav-link${isActive ? " active" : ""}`}
             >
               Users
             </NavLink>
           </nav>
           <div className="admin-topbar-right">
-            <span className="admin-chip">
-              {currentUser?.username || "Admin"}
-            </span>
-            <button
-              type="button"
-              className="admin-chip admin-link"
-              onClick={handleLogout}
-            >
+            <span className="admin-chip">{currentUser?.username || "Admin"}</span>
+            <button type="button" className="admin-chip admin-link" onClick={handleLogout}>
               Log Out
             </button>
           </div>
@@ -148,26 +127,16 @@ export default function AdminBooks() {
         <div className="admin-divider" />
 
         <h1 className="admin-title">Manage Books</h1>
-        <p className="admin-subtitle">
-          Admin view of listings, ownership, and availability.
-        </p>
+        <p className="admin-subtitle">Admin view of listings, ownership, and availability.</p>
 
         <section className="admin-card">
           <div className="admin-row">
             <div>
               <h2 className="admin-card-title">Listings</h2>
-              <p className="admin-card-note">
-                {isLoading ? "Loading books..." : "Live data"}
-              </p>
+              <p className="admin-card-note">{isLoading ? "Loading books..." : "Live data"}</p>
             </div>
             <div className="admin-actions">
-              <button
-                type="button"
-                className="admin-button"
-                onClick={() => {
-                  setIsCreateOpen(true);
-                }}
-              >
+              <button type="button" className="admin-button" onClick={() => setIsCreateOpen(true)}>
                 Add Listing
               </button>
             </div>
@@ -177,13 +146,13 @@ export default function AdminBooks() {
             <input
               className="admin-input"
               value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Title, owner, borrower..."
             />
             <select
               className="admin-select"
               value={availabilityFilter}
-              onChange={(event) => setAvailabilityFilter(event.target.value)}
+              onChange={(e) => setAvailabilityFilter(e.target.value)}
             >
               <option value="all">All</option>
               <option value="available">Available</option>
@@ -206,25 +175,17 @@ export default function AdminBooks() {
             <tbody>
               {filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="admin-card-note">
-                    No books match this filter.
-                  </td>
+                  <td colSpan={5} className="admin-card-note">No books match this filter.</td>
                 </tr>
               ) : (
                 filteredRows.map((book) => (
                   <tr key={book.id}>
                     <td>
                       <strong>{book.title}</strong>
-                      <div className="admin-card-note">
-                        {book.genre} • {book.id}
-                      </div>
+                      <div className="admin-card-note">{book.genre} • {book.id}</div>
                     </td>
-                    <td>
-                      <strong>{book.owner}</strong>
-                    </td>
-                    <td>
-                      <span className="admin-pill">{book.status}</span>
-                    </td>
+                    <td><strong>{book.owner}</strong></td>
+                    <td><span className="admin-pill">{book.status}</span></td>
                     <td>{book.holder}</td>
                     <td>
                       <div className="admin-actions">
@@ -254,16 +215,11 @@ export default function AdminBooks() {
         </div>
 
         {isCreateOpen ? (
-          <div className="modal-backdrop">
-            <div className="modal-card">
-              <h3 className="modal-title">Add Listing</h3>
-              <BookForm
-                onSubmit={handleCreateBook}
-                onCancel={() => setIsCreateOpen(false)}
-                submitLabel="Add Listing"
-              />
-            </div>
-          </div>
+          <BookForm
+            onSubmit={handleCreateBook}
+            onCancel={() => setIsCreateOpen(false)}
+            modalTitle="Add Listing"
+          />
         ) : null}
       </div>
     </div>

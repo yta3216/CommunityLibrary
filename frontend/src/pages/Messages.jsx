@@ -5,58 +5,20 @@ import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import ChatListSection from "../components/Messages/ChatListSection";
 import MessageComposer from "../components/Messages/MessageComposer";
 import MessageThread from "../components/Messages/MessageThread";
-import { lendBook, returnBorrowedBook, sendChatMessage } from "../api/chats";
 import { useChats } from "../hooks/useChats";
 
 function Messages() {
   const [searchParams] = useSearchParams();
   const requestedChatId = searchParams.get("chatId") || "";
   const [composerText, setComposerText] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const [isActionPending, setIsActionPending] = useState(false);
-  const { chats, activeChatId, setActiveChatId, activeChat, isLoading, errorMessage, setErrorMessage, updateInsertChat } = useChats(requestedChatId);
 
-  const sendToActiveChat = async () => {
-    if (!activeChat) {
-      return;
-    }
+  const { chats, activeChatId, setActiveChatId, activeChat, isLoading, errorMessage, isSending, isActionPending, sendMessage, lendOwnedBook, returnBook } = useChats(requestedChatId);
 
-    const text = composerText.trim();
-    if (!text) {
-      return;
-    }
-
-    setErrorMessage("");
-    setIsSending(true);
-
-    try {
-      const result = await sendChatMessage(activeChat.id, text);
-
-      setComposerText("");
-      updateInsertChat(result);
-    } catch (_error) {
-      setErrorMessage(_error?.message || "Could not send message.");
-    } finally {
-      setIsSending(false);
-    }
+  const handleSend = async () => {
+    const ok = await sendMessage(composerText);
+    if (ok) setComposerText("");
   };
-  const runBookAction = async (action) => {
-    if (!activeChat) return;
 
-    setErrorMessage("");
-    setIsActionPending(true);
-
-    try {
-      const result = await action();
-      updateInsertChat(result);
-    } catch (_error) {
-      setErrorMessage(_error?.message || "Could not update this book.");
-    } finally {
-      setIsActionPending(false);
-    }
-  };
-  const handleLend = async () => runBookAction(() => lendBook(activeChat.id));
-  const handleReturn = async () => runBookAction(() => returnBorrowedBook(activeChat.id));
   return (
     <div>
       <Navbar isLoggedIn={true} />
@@ -98,9 +60,7 @@ function Messages() {
                   <div>
                     <h2 style={styles.threadTitle}>{activeChat.bookTitle}</h2>
                     <p style={styles.threadMeta}>
-                      {activeChat.bookStatus === "available"
-                        ? "Available"
-                        : "Not Available"}
+                      {activeChat.bookStatus === "available" ? "Available" : "Not Available"}
                     </p>
                   </div>
 
@@ -110,7 +70,7 @@ function Messages() {
                         type="button"
                         className="button-primary"
                         disabled={isActionPending}
-                        onClick={handleLend}
+                        onClick={lendOwnedBook}
                       >
                         Lend Book
                       </button>
@@ -120,7 +80,7 @@ function Messages() {
                         type="button"
                         className="button-secondary"
                         disabled={isActionPending}
-                        onClick={handleReturn}
+                        onClick={returnBook}
                       >
                         Return Book
                       </button>
@@ -136,7 +96,7 @@ function Messages() {
                 <MessageComposer
                   value={composerText}
                   onChange={setComposerText}
-                  onSubmit={sendToActiveChat}
+                  onSubmit={handleSend}
                   isSubmitting={isSending}
                   placeholder="Type your message..."
                   buttonLabel="Send"
@@ -144,9 +104,7 @@ function Messages() {
                 />
               </>
             ) : (
-              <p style={styles.meta}>
-                Select a conversation to start messaging.
-              </p>
+              <p style={styles.meta}>Select a conversation to start messaging.</p>
             )}
           </section>
         </div>

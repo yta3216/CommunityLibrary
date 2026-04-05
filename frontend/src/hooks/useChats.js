@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getChats } from "../api/chats";
+import { getChats, lendBook, returnBorrowedBook, sendChatMessage } from "../api/chats";
 
 const POLL_INTERVAL = 10000; // TODO: migrate to websockets
 
@@ -9,8 +9,8 @@ const EMPTY_CHATS = {
 };
 
 function sortByRecent(left, right) {
-    const leftTime = new Date(left.lastMessage?.createdAt || 0).getTime();
-    const rightTime = new Date(right.lastMessage?.createdAt || 0).getTime();
+    const leftTime = new Date(left.lastMessageAt || 0).getTime();
+    const rightTime = new Date(right.lastMessageAt || 0).getTime();
     return rightTime - leftTime;
 }
 
@@ -19,6 +19,8 @@ export function useChats(requestedChatId = "") {
     const [activeChatId, setActiveChatId] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState(null);
+    const [isSending, setIsSending] = useState(false);
+    const [isActionPending, setIsActionPending] = useState(false);
 
     const requestedChatIdRef = useRef(requestedChatId);
     const appliedRequestedChat = useRef(false);
@@ -57,7 +59,6 @@ export function useChats(requestedChatId = "") {
             if (!appliedRequestedChat.current) {
                 appliedRequestedChat.current = true;
                 const requested = requestedChatIdRef.current;
-
                 if (requested && flattened.some((chat) => chat.id === requested)) {
                     setActiveChatId(requested);
                     return;
@@ -69,7 +70,7 @@ export function useChats(requestedChatId = "") {
                 const stillExists = flattened.some((chat) => chat.id === current);
                 return stillExists ? current : flattened[0].id;
             });
-        } catch (error) {
+        } catch (_error) {
             setErrorMessage("Could not load chats right now.");
             setChats(EMPTY_CHATS);
         } finally {
@@ -79,18 +80,75 @@ export function useChats(requestedChatId = "") {
 
     useEffect(() => {
         fetchChats();
-
         const pollTimer = window.setInterval(fetchChats, POLL_INTERVAL);
         return () => window.clearInterval(pollTimer);
     }, [fetchChats]);
 
     const activeChat = useMemo(() => {
         if (!activeChatId) return null;
-
         return [...chats.myBooks, ...chats.theirBooks].find(
             (chat) => chat.id === activeChatId,
         );
     }, [activeChatId, chats]);
 
-    return { chats, activeChatId, setActiveChatId, activeChat, isLoading, errorMessage, setErrorMessage, updateInsertChat };
+    const sendMessage = useCallback(async (text) => {
+        if (!activeChat || !text.trim()) return false;
+
+        setErrorMessage(null);
+        setIsSending(true);
+        try {
+            const result = await sendChatMessage(activeChat.id, text);
+            updateInsertChat(result);
+            return true;
+        } catch (_error) {
+            setErrorMessage(_error?.message || "Could not send message.");
+            return false;
+        } finally {
+            setIsSending(false);
+        }
+    }, [activeChat, updateInsertChat]);
+
+    const lendOwnedBook = useCallback(async () => {
+        if (!activeChat) return;
+
+        setErrorMessage(null);
+        setIsActionPending(true);
+        try {
+            const result = await lendBook(activeChat.id);
+            updateInsertChat(result);
+        } catch (_error) {
+            setErrorMessage(_error?.message || "Could not lend book.");
+        } finally {
+            setIsActionPending(false);
+        }
+    }, [activeChat, updateInsertChat]);
+
+    const returnBook = useCallback(async () => {
+        if (!activeChat) return;
+
+        setErrorMessage(null);
+        setIsActionPending(true);
+        try {
+            const result = await returnBorrowedBook(activeChat.id);
+            updateInsertChat(result);
+        } catch (_error) {
+            setErrorMessage(_error?.message || "Could not return book.");
+        } finally {
+            setIsActionPending(false);
+        }
+    }, [activeChat, updateInsertChat]);
+
+    return {
+        chats,
+        activeChatId,
+        setActiveChatId,
+        activeChat,
+        isLoading,
+        errorMessage,
+        isSending,
+        isActionPending,
+        sendMessage,
+        lendOwnedBook,
+        returnBook,
+    };
 }
