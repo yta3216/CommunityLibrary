@@ -30,9 +30,6 @@ const Sidebar = () => {
               <Link to="/messages">Messages</Link>
             </li>
             <li>
-              <Link to="/profile">Profile</Link>
-            </li>
-            <li>
               <Link to="/" onClick={handleLogout}>
                 Logout
               </Link>
