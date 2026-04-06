@@ -35,6 +35,41 @@
   object-fit: cover;
 }
 
+.image-dropzone {
+  border: 2px dashed #cdd3dd;
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 18px;
+  margin-bottom: 22px;
+  text-align: center;
+  cursor: pointer;
+  background: linear-gradient(180deg, #fcfcfd 0%, #f7f8fb 100%);
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.image-dropzone.dragging {
+  border-color: #4f7f7c;
+  background: #eef5f4;
+  transform: translateY(-1px);
+}
+
+.image-dropzone-text {
+  margin: 10px 0 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.image-dropzone-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #667085;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
 .helper-text {
   margin: 0;
   color: var(--color-text-secondary);

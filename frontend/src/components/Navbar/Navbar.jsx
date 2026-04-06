@@ -1,4 +1,3 @@
-import React from "react";
 import logo from "../../resources/logo.png";
 import { useAuth } from "../../context/AuthContext";
 import avatar_placeholder from "../../resources/avatar_placeholder.png";
@@ -10,7 +9,7 @@ function Navbar({
   onSearchClick,
   onSearchFocus,
 }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const searchInputProps = onSearchChange
     ? {
         value: searchValue,
@@ -29,10 +28,6 @@ function Navbar({
       </div>
 
       <div className="navbar-center">
-        {/*
-          Search input is controlled by each page.
-          The page owns the search state and sends value + change handler here.
-        */}
         <input
           type="text"
           placeholder="Search for a book"
@@ -45,18 +40,14 @@ function Navbar({
 
       <div className="navbar-right">
         {isAuthenticated ? (
-          //Registered User View
-          <>
-            <a href="/profile" className="nav-link">
-              <img
-                src={avatar_placeholder}
-                alt="Profile"
-                className="profile-pic"
-              />
-            </a>
-          </>
+          <a href="/profile" className="nav-link">
+            <img
+              src={user?.profileImageUrl || avatar_placeholder}
+              alt="Profile"
+              className="profile-pic"
+            />
+          </a>
         ) : (
-          //Unregistered User View
           <>
             <a href="/login" className="nav-link">
               Login

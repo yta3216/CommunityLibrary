@@ -9,6 +9,34 @@ const sanitizeUser = (userDoc) => {
     return user;
 };
 
+const createError = (message, status) => {
+    const error = new Error(message);
+    error.status = status;
+    return error;
+};
+
+const isValidImageUrl = (value) => {
+    if (typeof value !== 'string') {
+        return false;
+    }
+
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+        return false;
+    }
+
+    try {
+        if (trimmedValue.startsWith('data:image/')) {
+            return true;
+        }
+
+        const parsedUrl = new URL(trimmedValue);
+        return ['http:', 'https:'].includes(parsedUrl.protocol);
+    } catch (_error) {
+        return false;
+    }
+};
+
 async function listUsers() {
     const [users, ownedCounts, borrowedCounts, reviewCounts] = await Promise.all([
         User.find().sort({ createdAt: -1 }),
@@ -42,18 +70,26 @@ async function listUsers() {
     }));
 }
 
-async function updateProfile(userId, { username, description }) {
+async function updateProfile(userId, { username, description, profileImageUrl }) {
     const user = await User.findById(userId);
-    if (!user) throw new Error('user not found', 404);
+    if (!user) throw createError('user not found', 404);
 
     if (typeof username !== 'undefined') {
         const trimmed = String(username).trim();
-        if (!trimmed) throw new Error('username is required', 400);
+        if (!trimmed) throw createError('username is required', 400);
         user.username = trimmed;
     }
 
     if (typeof description !== 'undefined') {
         user.description = String(description).trim();
+    }
+
+    if (typeof profileImageUrl !== 'undefined') {
+        if (!isValidImageUrl(profileImageUrl)) {
+            throw createError('profileImageUrl must be a valid image URL or data URL', 400);
+        }
+
+        user.profileImageUrl = String(profileImageUrl).trim();
     }
 
     await user.save();

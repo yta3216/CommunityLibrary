@@ -39,6 +39,52 @@ body {
   margin-bottom: 10px;
 }
 
+.register-preview-image {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e6e8ee;
+  margin: 0 auto 16px;
+  display: block;
+  background-color: #f6f7fb;
+}
+
+.image-dropzone {
+  border: 2px dashed #cdd3dd;
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 18px;
+  margin-bottom: 22px;
+  text-align: center;
+  cursor: pointer;
+  background: linear-gradient(180deg, #fcfcfd 0%, #f7f8fb 100%);
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.image-dropzone.dragging {
+  border-color: #4f7f7c;
+  background: #eef5f4;
+  transform: translateY(-1px);
+}
+
+.image-dropzone-text {
+  margin: 10px 0 4px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.image-dropzone-hint {
+  margin: 0;
+  font-size: 14px;
+  color: #667085;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
 .login-title {
   margin: 0 0 20px;
   font-size: 56px;
@@ -188,9 +234,24 @@ body {
     font-size: 36px;
   }
 
+  .register-preview-image {
+    width: 80px;
+    height: 80px;
+  }
+
   .login-title {
     font-size: 40px;
     margin-bottom: 16px;
+  }
+
+  .image-dropzone {
+    margin-top: 14px;
+    margin-bottom: 18px;
+    padding: 12px;
+  }
+
+  .image-dropzone-text {
+    font-size: 16px;
   }
 
   .input-label {

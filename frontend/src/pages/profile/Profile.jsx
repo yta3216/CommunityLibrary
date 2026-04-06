@@ -1,10 +1,10 @@
 import { useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import avatar_placeholder from "../../resources/avatar_placeholder.png";
 import Navbar from "../../components/Navbar/Navbar";
 import Breadcrumbs from "../../components/Breadcrumbs/Breadcrumbs";
 import BookCard from "../../components/BookCard/BookCard";
-import avatar_placeholder from "../../resources/avatar_placeholder.png";
 import BookForm from "../../components/BookForm";
 import useProfileBooks from "../../hooks/useProfileBooks";
 import "./Profile.css";
@@ -41,16 +41,23 @@ const Profile = () => {
   const handleDeleteOwnedBook = useCallback(async () => {
     if (!selectedBookIdToDelete) return;
 
-    const selectedBook = ownedBooks.find((b) => b._id === selectedBookIdToDelete);
-    const confirmed = window.confirm(`Delete "${selectedBook?.title || "this book"}"?`);
+    const selectedBook = ownedBooks.find(
+      (b) => b._id === selectedBookIdToDelete,
+    );
+    const confirmed = window.confirm(
+      `Delete "${selectedBook?.title || "this book"}"?`,
+    );
     if (!confirmed) return;
 
     await deleteOwnedBook(selectedBookIdToDelete);
   }, [deleteOwnedBook, ownedBooks, selectedBookIdToDelete]);
 
-  const handleEditBook = useCallback(async (values) => {
-    await editBook(selectedBookIdToEdit, values);
-  }, [editBook, selectedBookIdToEdit]);
+  const handleEditBook = useCallback(
+    async (values) => {
+      await editBook(selectedBookIdToEdit, values);
+    },
+    [editBook, selectedBookIdToEdit],
+  );
 
   return (
     <>
@@ -68,21 +75,43 @@ const Profile = () => {
             <section className="profile-info">
               <div>
                 <h1>Your Profile</h1>
-                <p className="heading-md">{user?.username || "Could not load username"}</p>
-                <p className="text-muted-sm">{user?.email || "Could not load email"}</p>
-                <p className="text-muted-sm">{user?.description || "Add a profile description."}</p>
-                {errorMessage ? <p className="text-error">{errorMessage}</p> : null}
+                <p className="heading-md">
+                  {user?.username || "Could not load username"}
+                </p>
+                <p className="text-muted-sm">
+                  {user?.email || "Could not load email"}
+                </p>
+                <p className="text-muted-sm">
+                  {user?.description || "Add a profile description."}
+                </p>
+                {errorMessage ? (
+                  <p className="text-error">{errorMessage}</p>
+                ) : null}
               </div>
               <div className="profile-meta">
-                <img src={avatar_placeholder} alt="Profile" className="profile-pic-large" />
-                <p className="text-muted-xs status-badge">Status: {user?.status || "active"}</p>
+                <img
+                  src={user?.profileImageUrl || avatar_placeholder}
+                  alt="Profile"
+                  className="profile-pic-large"
+                />
+                <p className="text-muted-xs status-badge">
+                  Status: {user?.status || "active"}
+                </p>
               </div>
             </section>
 
             <div className="profile-actions">
-              <Link to="/messages" className="button-secondary">My Messages</Link>
-              <Link to="/profile/edit" className="button-secondary">Edit Profile</Link>
-              <button type="button" className="button-danger" onClick={handleLogout}>
+              <Link to="/messages" className="button-secondary">
+                My Messages
+              </Link>
+              <Link to="/profile/edit" className="button-secondary">
+                Edit Profile
+              </Link>
+              <button
+                type="button"
+                className="button-danger"
+                onClick={handleLogout}
+              >
                 Logout
               </button>
             </div>
@@ -94,7 +123,9 @@ const Profile = () => {
 
               {!isLoading && ownedBooks.length > 0 ? (
                 <div className="book-action-panel">
-                  <label htmlFor="edit-owned-book">Edit one of your books:</label>
+                  <label htmlFor="edit-owned-book">
+                    Edit one of your books:
+                  </label>
                   <div className="book-action-controls">
                     <select
                       id="edit-owned-book"
@@ -104,7 +135,8 @@ const Profile = () => {
                     >
                       {ownedBooks.map((book) => (
                         <option key={book._id} value={book._id}>
-                          {book.title || "Untitled"} - {book.author || "Unknown author"}
+                          {book.title || "Untitled"} -{" "}
+                          {book.author || "Unknown author"}
                         </option>
                       ))}
                     </select>
@@ -122,7 +154,9 @@ const Profile = () => {
 
               {!isLoading && ownedBooks.length > 0 ? (
                 <div className="book-action-panel">
-                  <label htmlFor="delete-owned-book">Delete one of your books:</label>
+                  <label htmlFor="delete-owned-book">
+                    Delete one of your books:
+                  </label>
                   <div className="book-action-controls">
                     <select
                       id="delete-owned-book"
@@ -135,7 +169,8 @@ const Profile = () => {
                     >
                       {ownedBooks.map((book) => (
                         <option key={book._id} value={book._id}>
-                          {book.title || "Untitled"} - {book.author || "Unknown author"}
+                          {book.title || "Untitled"} -{" "}
+                          {book.author || "Unknown author"}
                         </option>
                       ))}
                     </select>
@@ -149,7 +184,13 @@ const Profile = () => {
                     </button>
                   </div>
                   {deleteMessage ? (
-                    <p className={deleteMessage === "Book deleted." ? "text-success" : "text-error"}>
+                    <p
+                      className={
+                        deleteMessage === "Book deleted."
+                          ? "text-success"
+                          : "text-error"
+                      }
+                    >
                       {deleteMessage}
                     </p>
                   ) : null}
