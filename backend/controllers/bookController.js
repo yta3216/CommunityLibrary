@@ -27,7 +27,7 @@ const getBook = async (req, res, next) => {
 
 const updateBook = async (req, res, next) => {
     try {
-        res.json(await bookService.updateBook(req.params.id, req.user.id, req.body));
+        res.json(await bookService.updateBook(req.params.id, req.user, req.body));
     } catch (err) { next(err); }
 };
 

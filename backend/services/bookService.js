@@ -140,17 +140,20 @@ async function getBookDetail(bookId, currentUserId) {
     };
 }
 
-async function updateBook(bookId, actorId, fields) {
+async function updateBook(bookId, actor, fields) {
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
         throw new Error('invalid book id', 400);
     }
-
+ 
     const book = await Book.findById(bookId);
     if (!book) throw new Error('book not found', 404);
-    if (book.owner.toString() !== actorId) throw new Error('forbidden', 403);
-
+ 
+    const actorId = typeof actor === 'object' ? actor.id : actor;
+    const isAdmin = typeof actor === 'object' && actor.role === 'admin';
+    if (!isAdmin && book.owner.toString() !== actorId) throw new Error('forbidden', 403);
+ 
     const { isbn, title, author, genre, description } = fields;
-
+ 
     if (isbn !== undefined) {
         const normalized = normalizeStr(isbn);
         const parsed = Number(normalized);

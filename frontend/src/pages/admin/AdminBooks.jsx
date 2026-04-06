@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { deleteBook, getBooks, toggleBookStatus } from "../../api/books";
+import { deleteBook, getBooks, toggleBookStatus, updateBook} from "../../api/books";
 import BookForm from "../../components/BookForm";
 import AdminLayout from "./AdminLayout";
 import "./AdminPages.css";
@@ -11,6 +11,7 @@ export default function AdminBooks() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
+  const [editingBook, setEditingBook] = useState(null);
 
   const fetchBooks = useCallback(async () => {
     try {
@@ -75,6 +76,21 @@ export default function AdminBooks() {
       setIsCreateOpen(false);
     } catch (_error) {
       alert(_error?.message || "Could not create book.");
+    }
+  };
+
+  const handleOpenEdit = (bookId) => {
+    const full = books.find((b) => b._id === bookId);
+    if (full) setEditingBook(full);
+  };
+
+  const handleEditBook = async (values) => {
+    try {
+      const result = await updateBook(editingBook._id, values);
+      setBooks((prev) => prev.map((book) => (book._id === editingBook._id ? result : book)));
+      setEditingBook(null);
+    } catch (_error) {
+      alert(_error?.message || "Could not update book.");
     }
   };
 
@@ -180,6 +196,14 @@ export default function AdminBooks() {
                     <div className="admin-actions">
                       <button
                         type="button"
+                        className="admin-button"
+                        disabled={isActing}
+                        onClick={() => handleOpenEdit(book.id)}
+                      >
+                        Edit
+                    </button>
+                      <button
+                        type="button"
                         className={`admin-button ${book.status === "available" ? "admin-button-warning" : "admin-button-success"}`}
                         disabled={isActing}
                         onClick={() => handleToggleBook(book.id, book.status)}
@@ -208,6 +232,22 @@ export default function AdminBooks() {
           onSubmit={handleCreateBook}
           onCancel={() => setIsCreateOpen(false)}
           modalTitle="Add Listing"
+        />
+      ) : null}
+ 
+      {editingBook ? (
+        <BookForm
+          key={editingBook._id}
+          initialValues={{
+            isbn: String(editingBook.isbn || ""),
+            title: editingBook.title || "",
+            author: editingBook.author || "",
+            genre: editingBook.genre || "",
+            description: editingBook.description || "",
+          }}
+          onSubmit={handleEditBook}
+          onCancel={() => setEditingBook(null)}
+          modalTitle="Edit Listing"
         />
       ) : null}
     </AdminLayout>
