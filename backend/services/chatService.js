@@ -13,7 +13,10 @@ const CHAT_POPULATE = [
     },
     { path: 'owner', select: '_id username' },
     { path: 'requester', select: '_id username' },
-    { path: 'messages.sender', select: '_id username' },
+    {
+        path: 'messages',
+        populate: { path: 'sender', select: '_id username' }
+    }
 ];
 
 const toIdString = (value) => {
@@ -46,7 +49,7 @@ const toChatDto = (chatDoc, currentUserId) => {
         return {
             id: msg._id,
             senderId,
-            senderName: typeof msg.sender === 'object' ? msg.sender.username || 'Deleted User' : 'Deleted User',
+            senderName: msg.sender?.username || 'Deleted User',
             text: msg.text || '',
             createdAt: msg.createdAt,
             isMine: senderId === currentUserId,
