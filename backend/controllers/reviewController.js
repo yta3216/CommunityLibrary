@@ -12,4 +12,24 @@ const getReviews = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-module.exports = { createReview, getReviews };
+// Admin functions
+const getReviewsByUser = async (req, res, next) => {
+    try {
+        res.json(await reviewService.getReviewsByUser(req.params.userId));
+    } catch (err) { next(err); }
+};
+
+const deleteReview = async (req, res, next) => {
+    try {
+        await reviewService.deleteReview(req.params.reviewId);
+        res.json({ message: 'review deleted' });
+    } catch (err) { next(err); }
+};
+
+const getAllReviews = async (req, res, next) => {
+    try {
+        res.json(await reviewService.getAllReviews());
+    } catch (err) { next(err); }
+};
+
+module.exports = { createReview, getReviews, getReviewsByUser, deleteReview, getAllReviews };

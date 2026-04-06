@@ -89,6 +89,16 @@ export async function apiRequest(path, options = {}) {
   const data = await parseResponse(response);
 
   if (!response.ok) {
+    if (
+      response.status === 403 &&
+      data?.message === "your account has been suspended"
+    ) {
+      clearStoredToken();
+      alert("Your account has been suspended. You have been logged out.");
+      window.location.assign("/login");
+      return;
+    }
+    
     const error = new Error(
       (data && typeof data === "object" && data.message) || "Request failed",
     );

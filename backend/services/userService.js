@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Book = require('../models/Book');
+const Review = require('../models/Review');
 
 const sanitizeUser = (userDoc) => {
     const user = userDoc.toObject ? userDoc.toObject() : { ...userDoc };
@@ -37,7 +38,7 @@ const isValidImageUrl = (value) => {
 };
 
 async function listUsers() {
-    const [users, ownedCounts, borrowedCounts] = await Promise.all([
+    const [users, ownedCounts, borrowedCounts, reviewCounts] = await Promise.all([
         User.find().sort({ createdAt: -1 }),
         Book.aggregate([
             { $group: { _id: '$owner', count: { $sum: 1 } } },
@@ -45,6 +46,9 @@ async function listUsers() {
         Book.aggregate([
             { $match: { $expr: { $ne: ['$owner', '$holder'] } } },
             { $group: { _id: '$holder', count: { $sum: 1 } } },
+        ]),
+        Review.aggregate([
+            { $group: { _id: '$reviewer', count: { $sum: 1 } } },
         ]),
     ]);
 
@@ -54,11 +58,15 @@ async function listUsers() {
     const borrowedMap = Object.fromEntries(
         borrowedCounts.map((c) => [c._id.toString(), c.count])
     );
+    const reviewMap = Object.fromEntries(
+        reviewCounts.map((c) => [c._id.toString(), c.count])
+    );
 
     return users.map((u) => ({
         ...sanitizeUser(u),
         bookCount: ownedMap[u._id.toString()] || 0,
         borrowedCount: borrowedMap[u._id.toString()] || 0,
+        reviewCount: reviewMap[u._id.toString()] || 0,
     }));
 }
 
@@ -135,12 +143,8 @@ async function deleteUser(targetId, actorId) {
     const user = await User.findById(targetId);
     if (!user) throw new Error('user not found', 404);
 
-    const linkedBooks = await Book.countDocuments({
-        $or: [{ owner: targetId }, { holder: targetId }],
-    });
-    if (linkedBooks > 0) {
-        throw new Error('cannot delete user with linked books', 409);
-    }
+    // Delete all books owned by this user before deleting the user
+    await Book.deleteMany({ owner: targetId });
 
     await User.findByIdAndDelete(targetId);
 }

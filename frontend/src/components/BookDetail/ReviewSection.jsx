@@ -193,7 +193,7 @@ function ReviewSection({ bookId, currentUser, postedBy }) {
             <div key={review._id} className="review-section-item">
               <div className="review-section-item-top">
                 <span className="review-section-user">
-                  {review.reviewer?.username || "Anonymous"}
+                  {review.reviewer?.username || "Deleted User"}
                 </span>
                 <span className="review-section-date">
                   {formatDate(review.createdAt)}

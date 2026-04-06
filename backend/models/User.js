@@ -64,6 +64,7 @@ const userSchema = new mongoose.Schema({
     default: "",
     maxlength: 5_000_000,
   },
+
 }, { timestamps: true });
 
 // runs whenever a user document is saved and password was changed aka register or future changepassword
