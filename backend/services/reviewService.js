@@ -44,4 +44,53 @@ async function getReviewsForBook(bookId) {
     return { reviews, avgReviews: Number(book.avgReviews || 0) };
 }
 
-module.exports = { createReview, getReviewsForBook };
+// Admin functions
+async function getReviewsByUser(userId) {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        throw new Error('invalid user id', 400);
+    }
+ 
+    const reviews = await Review.find({ reviewer: userId })
+        .populate({ path: 'book', select: 'title owner', populate: { path: 'owner', select: 'username' } })
+        .sort({ createdAt: -1 });
+ 
+    return reviews;
+}
+
+async function deleteReview(reviewId) {
+    if (!mongoose.Types.ObjectId.isValid(reviewId)) {
+        throw new Error('invalid review id', 400);
+    }
+ 
+    const review = await Review.findById(reviewId);
+    if (!review) throw new Error('review not found', 404);
+ 
+    const book = await Book.findById(review.book);
+ 
+    await Review.findByIdAndDelete(reviewId);
+ 
+    if (book) {
+        const previousCount = Number(book.numberOfReviews || 0);
+        const previousAverage = Number(book.avgReviews || 0);
+        const nextCount = Math.max(0, previousCount - 1);
+ 
+        let nextAverage = 0;
+        if (nextCount > 0) {
+            nextAverage = Math.round(
+                (((previousAverage * previousCount) - Number(review.rating)) / nextCount) * 10
+            ) / 10;
+        }
+ 
+        book.numberOfReviews = nextCount;
+        book.avgReviews = nextAverage;
+        await book.save();
+    }
+}
+async function getAllReviews() {
+    const reviews = await Review.find()
+        .populate('reviewer', 'username')
+        .populate('book', 'title')
+        .sort({ createdAt: -1 });
+    return reviews;
+}
+module.exports = { createReview, getReviewsForBook, getReviewsByUser, deleteReview, getAllReviews };
