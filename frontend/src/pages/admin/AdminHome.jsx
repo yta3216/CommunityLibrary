@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getBooks } from "../../api/books";
 import { getUsers } from "../../api/users";
 import AdminLayout from "./AdminLayout";
+import BooksStatusChart from "./charts/BooksStatusChart";
+import GenreBreakdownChart from "./charts/GenreBreakdownChart";
+import UserStatusChart from "./charts/UserStatusChart";
 import "./AdminPages.css";
 
 export default function AdminHome() {
@@ -10,57 +13,47 @@ export default function AdminHome() {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadAdminHome = async () => {
-      try {
-        setIsLoading(true);
-
-        const [usersData, booksData] = await Promise.all([
-          getUsers(),
-          getBooks(),
-        ]);
-
-        if (!isMounted) {
-          return;
-        }
-
-        setUsers(Array.isArray(usersData) ? usersData : []);
-        setBooks(Array.isArray(booksData) ? booksData : []);
-      } catch (_error) {
-        if (isMounted) {
-          alert(_error?.message || "Could not reach server.");
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadAdminHome();
-
-    return () => {
-      isMounted = false;
-    };
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const [usersData, booksData] = await Promise.all([getUsers(), getBooks()]);
+      setUsers(Array.isArray(usersData) ? usersData : []);
+      setBooks(Array.isArray(booksData) ? booksData : []);
+    } catch (_error) {
+      alert(_error?.message || "Could not reach server.");
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+ 
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const metrics = useMemo(() => {
     const availableBooks = books.filter(
-      (book) => String(book.status || "").toLowerCase() === "available",
+      (book) => String(book.status || "").toLowerCase() === "available"
     ).length;
-
+ 
+    const suspendedUsers = users.filter(
+      (user) => String(user.status || "").toLowerCase() === "suspended"
+    ).length;
+ 
     return {
       totalListings: books.length,
       availableBooks,
       notAvailableBooks: books.length - availableBooks,
       totalUsers: users.length,
+      suspendedUsers,
     };
   }, [books, users]);
-
-  const recentBooks = useMemo(() => books.slice(0, 5), [books]);
-
+ 
+  const recentBooks = useMemo(() => {
+    return [...books]
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      .slice(0, 5);
+  }, [books]);
+  
   return (
     <AdminLayout>
       <h1 className="heading-lg">Admin Dashboard</h1>
@@ -85,12 +78,23 @@ export default function AdminHome() {
           <p className="text-muted-xs admin-card-note">Books currently with borrower</p>
         </div>
         <div className="admin-card">
-          <p className="text-muted-xs admin-card-note">Users</p>
+          <p className="text-muted-xs admin-card-note">Total Users</p>
           <p className="admin-metric-value">{metrics.totalUsers}</p>
-          <p className="text-muted-xs admin-card-note">Total registered users</p>
+          <p className="text-muted-xs admin-card-note">
+            {metrics.suspendedUsers > 0
+              ? `${metrics.suspendedUsers} suspended`
+              : "All active"}</p>
         </div>
       </section>
 
+        {!isLoading && (
+        <section className="admin-grid-3">
+          <BooksStatusChart books={books} />
+          <GenreBreakdownChart books={books} />
+          <UserStatusChart users={users} />
+        </section>
+      )}
+      
       <section className="admin-grid-2">
         <div className="admin-card">
           <h2 className="heading-md">Quick Actions</h2>
@@ -135,6 +139,13 @@ export default function AdminHome() {
                     </div>
                     <p className="text-muted-xs admin-card-note admin-card-note-spaced">
                       Owner: {ownerName || "Unknown"}
+                    </p>
+                    <p className="text-muted-xs admin-card-note">
+                      Listed: {new Date(
+                        book.createdAt
+                          ? book.createdAt
+                          : parseInt(String(book._id).substring(0, 8), 16) * 1000
+                      ).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                     </p>
                   </div>
                 );

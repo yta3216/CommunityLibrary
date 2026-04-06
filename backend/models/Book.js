@@ -56,7 +56,7 @@ const bookSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
-});
+  },{ timestamps: true });
 
 // before validation, auto-set status based on whether owner and holder are the same user
 bookSchema.pre("validate", function () {

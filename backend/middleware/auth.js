@@ -24,7 +24,7 @@ const signToken = (user) => {
 };
 
 // middleware that blocks routes unless request has a valid bearer token
-const authRequired = (req, res, next) => {
+const authRequired = async (req, res, next) => {
   const authHeader = req.headers.authorization || "";
 
   if (!authHeader.startsWith("Bearer ")) {

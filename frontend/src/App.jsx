@@ -20,6 +20,7 @@ import Categories from "./pages/Categories";
 import AdminHome from "./pages/admin/AdminHome";
 import AdminBooks from "./pages/admin/AdminBooks";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminReports from "./pages/admin/AdminReports";
 
 
 
@@ -137,6 +138,10 @@ function App() {
           <Route
             path="/admin/users"
             element={<RequireAdmin><AdminUsers /></RequireAdmin>}
+          />
+          <Route
+            path="/admin/reports"
+            element={<RequireAdmin><AdminReports /></RequireAdmin>}
           />
 
           {/* Redirect for undefined routes */}

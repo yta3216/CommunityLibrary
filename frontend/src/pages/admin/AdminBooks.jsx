@@ -1,28 +1,44 @@
-import { useMemo, useState } from "react";
-import { deleteBook, toggleBookStatus } from "../../api/books";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { deleteBook, getBooks, toggleBookStatus } from "../../api/books";
 import BookForm from "../../components/BookForm";
-import useBooks from "../../hooks/useBooks";
 import AdminLayout from "./AdminLayout";
 import "./AdminPages.css";
 
 export default function AdminBooks() {
+  const [books, setBooks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isActing, setIsActing] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
 
-  const { books, setBooks, isLoading, createBook } = useBooks();
+  const fetchBooks = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getBooks();
+      setBooks(Array.isArray(data) ? data : []);
+    } catch (_error) {
+      alert(_error?.message || "Could not reach server.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+ 
+  useEffect(() => {
+    fetchBooks();
+  }, [fetchBooks]);
 
   const rows = useMemo(() => {
     return books.map((book) => {
       const ownerName = typeof book.owner === "object" ? book.owner?.username : "Unknown";
       const holderName = typeof book.holder === "object" ? book.holder?.username : "Unknown";
+      const status = String(book.status || "not_available").toLowerCase();
       return {
         id: book._id,
         title: book.title || "Untitled",
         genre: book.genre || "Unknown",
         owner: ownerName || "Unknown",
-        status: String(book.status || "not_available").toUpperCase(),
+        status,
         holder: holderName || "Unknown",
       };
     });
@@ -32,13 +48,12 @@ export default function AdminBooks() {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
     return rows.filter((row) => {
-      const isAvailable = row.status === "AVAILABLE";
       const matchesAvailability =
         availabilityFilter === "all"
           ? true
           : availabilityFilter === "available"
-            ? isAvailable
-            : !isAvailable;
+            ? row.status === "available"
+            : row.status !== "available";
 
       const matchesSearch =
         normalizedQuery.length === 0
@@ -53,11 +68,21 @@ export default function AdminBooks() {
   }, [availabilityFilter, rows, searchQuery]);
 
   const handleCreateBook = async (values) => {
-    await createBook(values);
-    setIsCreateOpen(false);
+    try {
+      const { createBook } = await import("../../api/books");
+      const result = await createBook(values);
+      setBooks((prev) => [result, ...prev]);
+      setIsCreateOpen(false);
+    } catch (_error) {
+      alert(_error?.message || "Could not create book.");
+    }
   };
 
-  const handleToggleBook = async (bookId) => {
+  const handleToggleBook = async (bookId, currentStatus) => {
+    const action = currentStatus === "available" ? "mark as unavailable" : "mark as available";
+    const confirmed = window.confirm(`Are you sure you want to ${action} this book?`);
+    if (!confirmed) return;
+
     setIsActing(true);
     try {
       const result = await toggleBookStatus(bookId);
@@ -69,13 +94,20 @@ export default function AdminBooks() {
     }
   };
 
-  const handleDeleteBook = async (bookId) => {
+  const handleDeleteBook = async (bookId, title) => {
+    const confirmed = window.confirm(`Permanently delete "${title}"? This cannot be undone.`);
+    if (!confirmed) return;
+ 
+    setIsActing(true);
+
     try {
       await deleteBook(bookId);
       setBooks((prev) => prev.filter((book) => book._id !== bookId));
       alert("Book deleted.");
     } catch (error) {
       alert(error.message || "Could not reach server.");
+    }finally{
+      setIsActing(false);
     }
   };
 
@@ -88,7 +120,7 @@ export default function AdminBooks() {
         <div className="admin-row">
           <div>
             <h2 className="heading-md">Listings</h2>
-            <p className="text-muted-xs admin-card-note">{isLoading ? "Loading books..." : "Live data"}</p>
+            <p className="text-muted-xs admin-card-note">{isLoading ? "Loading books..." :`${filteredRows.length} book(s) shown`}</p>
           </div>
           <div className="admin-actions">
             <button type="button" className="admin-button" onClick={() => setIsCreateOpen(true)}>
@@ -102,7 +134,7 @@ export default function AdminBooks() {
             className="admin-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Title, owner, borrower..."
+            placeholder="Search by title, owner or borrower..."
           />
           <select
             className="admin-select"
@@ -140,23 +172,25 @@ export default function AdminBooks() {
                     <div className="text-muted-xs admin-card-note">{book.genre} • {book.id}</div>
                   </td>
                   <td><strong>{book.owner}</strong></td>
-                  <td><span className="admin-pill">{book.status}</span></td>
+                  <td><span className={`admin-pill ${book.status === "available" ? "admin-pill-success" : "admin-pill-warning"}`}>
+                    {book.status === "available" ? "AVAILABLE" : "NOT AVAILABLE"}
+                  </span></td>
                   <td>{book.holder}</td>
                   <td>
                     <div className="admin-actions">
                       <button
                         type="button"
-                        className="admin-button light"
+                        className={`admin-button ${book.status === "available" ? "admin-button-warning" : "admin-button-success"}`}
                         disabled={isActing}
-                        onClick={() => handleToggleBook(book.id)}
+                        onClick={() => handleToggleBook(book.id, book.status)}
                       >
-                        Toggle
+                        {book.status === "available"? "Mark Unavailable": "Mark Available"}
                       </button>
                       <button
                         type="button"
-                        className="admin-button light"
+                        className="admin-button admin-button-danger"
                         disabled={isActing}
-                        onClick={() => handleDeleteBook(book.id)}
+                        onClick={() => handleDeleteBook(book.id, book.title)}
                       >
                         Delete
                       </button>

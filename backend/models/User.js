@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema({
     default: "",
     maxlength: 300,
   },
-});
+}, { timestamps: true });
 
 // runs whenever a user document is saved and password was changed aka register or future changepassword
 userSchema.pre("save", async function () {
