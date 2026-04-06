@@ -24,7 +24,7 @@ const Sidebar = () => {
               <Link to="/categories">Categories</Link>
             </li>
             <li>
-              <Link to="/profile">My Books</Link>
+              <Link to="/library">My Library</Link>
             </li>
             <li>
               <Link to="/messages">Messages</Link>
