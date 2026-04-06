@@ -45,6 +45,14 @@ export default function AdminLayout({ children }) {
                         >
                             Users
                         </NavLink>
+                        <NavLink
+                            to="/admin/reports"
+                            className={({ isActive }) =>
+                                `admin-nav-link${isActive ? " active" : ""}`
+                            }
+                        >
+                            Reports
+                        </NavLink>
                     </nav>
                     <div className="admin-topbar-right">
                         <span className="admin-chip">
