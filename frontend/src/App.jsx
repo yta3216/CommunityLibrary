@@ -16,6 +16,7 @@ import Profile from "./pages/profile/Profile";
 import EditProfile from "./pages/profile/EditProfile";
 import Messages from "./pages/Messages";
 import Categories from "./pages/Categories";
+import Library from "./pages/library/Library";
 
 import AdminHome from "./pages/admin/AdminHome";
 import AdminBooks from "./pages/admin/AdminBooks";
@@ -124,6 +125,10 @@ function App() {
           <Route
             path="/categories"
             element={<RequireAuth><Categories /></RequireAuth>}
+          />
+          <Route
+            path="/library"
+            element={<RequireAuth><Library /></RequireAuth>}
           />
 
           {/* Admin Pages */}
