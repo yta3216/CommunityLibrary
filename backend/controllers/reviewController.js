@@ -12,6 +12,12 @@ const getReviews = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
+const getMyReviews = async (req, res, next) => {
+    try {
+        res.json(await reviewService.getReviewsByUser(req.user.id));
+    } catch (err) { next(err); }
+};
+
 // Admin functions
 const getReviewsByUser = async (req, res, next) => {
     try {
@@ -32,4 +38,4 @@ const getAllReviews = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-module.exports = { createReview, getReviews, getReviewsByUser, deleteReview, getAllReviews };
+module.exports = { createReview, getReviews, getReviewsByUser, deleteReview, getAllReviews, getMyReviews };
