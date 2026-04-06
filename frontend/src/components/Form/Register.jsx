@@ -1,15 +1,12 @@
 import React, { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import avatar_placeholder from "../../resources/avatar_placeholder.png";
+import { registerUser } from "../../api/auth";
 import "./RegisterAndLogin.css";
 
-//validation consts... the same as backend. only adding this because it is a requirement
 const USERNAME_REGEX = /^[A-Za-z0-9]{3,20}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_MIN_LENGTH = 5;
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -33,7 +30,7 @@ export default function Register() {
         return true;
       }
 
-      const parsedUrl = new URL(value.trim());
+      const parsedUrl = new URL(trimmedValue);
       return ["http:", "https:"].includes(parsedUrl.protocol);
     } catch (_error) {
       return false;
@@ -106,6 +103,7 @@ export default function Register() {
       setErrorMessage("Please fill all required fields.");
       return;
     }
+
     const normalizedUsername = username.trim();
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -138,29 +136,17 @@ export default function Register() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: normalizedUsername,
-          email: normalizedEmail,
-          password,
-          profileImageUrl: profileImageUrl.trim(),
-        }),
+      await registerUser({
+        username: normalizedUsername,
+        email: normalizedEmail,
+        password,
+        profileImageUrl: profileImageUrl.trim(),
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        setErrorMessage(result.message || "Failed to register.");
-        return;
-      }
       setSuccessMessage("Registration successful. Redirecting to login...");
       setTimeout(() => navigate("/login"), 900);
     } catch (_error) {
-      setErrorMessage("Could not reach server. Please try again.");
+      const detail = _error?.data?.detail ? ` (${_error.data.detail})` : "";
+      setErrorMessage((_error?.message || "Failed to register.") + detail);
     } finally {
       setIsSubmitting(false);
     }

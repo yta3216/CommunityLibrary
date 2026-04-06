@@ -51,6 +51,11 @@ const bookSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
+  avgReviews: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
 });
 
 // before validation, auto-set status based on whether owner and holder are the same user

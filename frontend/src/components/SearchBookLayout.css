@@ -1,0 +1,31 @@
+.search-results-section {
+  padding: 32px 0;
+}
+
+.search-results-heading {
+  margin: 0 0 28px;
+  color: #000;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.search-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .search-results-section {
+    padding: 24px 0;
+  }
+
+  .search-results-heading {
+    font-size: 1.6rem;
+  }
+
+  .search-results-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+  }
+}

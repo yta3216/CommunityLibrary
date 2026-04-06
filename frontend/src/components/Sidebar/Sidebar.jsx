@@ -1,16 +1,19 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "./Sidebar.css";
-// logout handler... same as profile page logout
-const Sidebar = ({ isLoggedIn }) => {
+
+const Sidebar = () => {
+  const { signOut, isAuthenticated } = useAuth();
+
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    signOut();
     window.location.assign("/");
   };
 
   return (
     <div className="sidebar">
-      {isLoggedIn ? (
+      {isAuthenticated ? (
         //Registered User View
         <>
           <ul>
@@ -18,13 +21,13 @@ const Sidebar = ({ isLoggedIn }) => {
               <Link to="/home">Home</Link>
             </li>
             <li>
+              <Link to="/categories">Categories</Link>
+            </li>
+            <li>
               <Link to="/profile">My Books</Link>
             </li>
             <li>
               <Link to="/messages">Messages</Link>
-            </li>
-            <li>
-              <Link to="/profile/edit">Settings</Link>
             </li>
             <li>
               <Link to="/" onClick={handleLogout}>
