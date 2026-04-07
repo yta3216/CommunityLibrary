@@ -65,6 +65,20 @@ export default function useBooks(searchTerm, { fetchPopular = false } = {}) {
 
     const availableBooks = useMemo(() => books.filter((book) => isListingAvailable(book)), [books]);
 
+    const recentBooks = useMemo(() => {
+        return [...availableBooks]
+            .sort((a, b) => {
+                const timeA = a.createdAt
+                    ? new Date(a.createdAt).getTime()
+                    : parseInt(String(a._id).substring(0, 8), 16) * 1000;
+                const timeB = b.createdAt
+                    ? new Date(b.createdAt).getTime()
+                    : parseInt(String(b._id).substring(0, 8), 16) * 1000;
+                return timeB - timeA;
+            })
+            .slice(0, 5);
+    }, [availableBooks]);
+ 
     const createBook = useCallback(async (values) => {
         const result = await createBookRequest(values);
         setBooks((prev) => [result, ...prev]);
@@ -76,6 +90,7 @@ export default function useBooks(searchTerm, { fetchPopular = false } = {}) {
         setBooks,
         availableBooks,
         popularBooks,
+        recentBooks,
         isLoading,
         errorMessage,
         createBook,

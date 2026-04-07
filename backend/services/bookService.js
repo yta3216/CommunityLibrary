@@ -29,13 +29,19 @@ async function createBook({ isbn, title, author, genre, description }, ownerId) 
     const owner = await User.findById(ownerId);
     if (!owner) throw new Error('authenticated user not found', 404);
 
-    const created = await Book.create({ ...fields, owner: owner._id, holder: owner._id });
+    const created = await Book.create({ ...fields, owner: owner._id, holder: owner._id, ownerLocked: false });
     return Book.findById(created._id).populate(BOOK_POPULATE);
 }
 
 async function listBooks(query) {
     const q = normalizeStr(query);
-    const filter = q ? { title: { $regex: q, $options: 'i' } } : {};
+    const filter = q ? {
+    $or: [
+        { title: { $regex: q, $options: 'i' } },
+        { author: { $regex: q, $options: 'i' } },
+        { genre: { $regex: q, $options: 'i' } },
+    ]
+    } : {};
 
     const books = await Book.find(filter)
         .populate('owner', '_id username email role')
@@ -124,6 +130,7 @@ async function getBookDetail(bookId, currentUserId) {
         author: book.author,
         description: book.description,
         status: book.status,
+        ownerLocked: book.ownerLocked,
         genres: genres.length > 0 ? genres : ['Unknown'],
         ownerName: book.owner?.username || 'Unknown',
         ownerId,
@@ -140,17 +147,20 @@ async function getBookDetail(bookId, currentUserId) {
     };
 }
 
-async function updateBook(bookId, actorId, fields) {
+async function updateBook(bookId, actor, fields) {
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
         throw new Error('invalid book id', 400);
     }
-
+ 
     const book = await Book.findById(bookId);
     if (!book) throw new Error('book not found', 404);
-    if (book.owner.toString() !== actorId) throw new Error('forbidden', 403);
-
+ 
+    const actorId = typeof actor === 'object' ? actor.id : actor;
+    const isAdmin = typeof actor === 'object' && actor.role === 'admin';
+    if (!isAdmin && book.owner.toString() !== actorId) throw new Error('forbidden', 403);
+ 
     const { isbn, title, author, genre, description } = fields;
-
+ 
     if (isbn !== undefined) {
         const normalized = normalizeStr(isbn);
         const parsed = Number(normalized);
@@ -201,6 +211,7 @@ async function returnBook(bookId, actorId) {
     }
 
     book.holder = book.owner;
+    book.ownerLocked = false;
     await book.save();
     return Book.findById(book._id).populate(BOOK_POPULATE);
 }
@@ -220,6 +231,7 @@ async function toggleBookStatus(bookId, adminId) {
         book.holder = adminId;
     } else {
         book.holder = book.owner;
+        book.ownerLocked = false;
     }
 
     await book.save();
@@ -228,6 +240,25 @@ async function toggleBookStatus(bookId, adminId) {
         .populate('holder', '_id username');
 }
 
+async function setAvailability(bookId, ownerId, makeAvailable) {
+    if (!mongoose.Types.ObjectId.isValid(bookId)) {
+        throw new Error('invalid book id', 400);
+    }
+
+    const book = await Book.findById(bookId);
+    if (!book) throw new Error('book not found', 404);
+    if (book.owner.toString() !== ownerId) throw new Error('forbidden', 403);
+
+    const isLentOut = book.holder.toString() !== ownerId;
+    if (isLentOut) {
+        throw new Error('cannot change availability while book is lent out', 409);
+    }
+
+    book.ownerLocked = !makeAvailable;
+    await book.save();
+    return Book.findById(book._id).populate(BOOK_POPULATE);
+}
+ 
 module.exports = {
     BOOK_POPULATE,
     createBook,
@@ -238,4 +269,5 @@ module.exports = {
     deleteBook,
     returnBook,
     toggleBookStatus,
+    setAvailability,
 };

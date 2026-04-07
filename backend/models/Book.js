@@ -35,6 +35,12 @@ const bookSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  ownerLocked: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  
   status: {
     type: String,
     required: true,
@@ -60,12 +66,9 @@ const bookSchema = new mongoose.Schema({
 
 // before validation, auto-set status based on whether owner and holder are the same user
 bookSchema.pre("validate", function () {
-  if (!this.owner || !this.holder) {
-    return;
-  }
-  // logic for determining if book is available or not based on whether owner and holder are the same
-  const sameUser = this.owner.toString() === this.holder.toString();
-  this.status = sameUser ? "available" : "not_available";
+  if (!this.owner || !this.holder) return;
+  const lentOut = this.owner.toString() !== this.holder.toString();
+  this.status = (!lentOut && !this.ownerLocked) ? "available" : "not_available";
 });
 
 // export the Book model so routes/controllers can use it

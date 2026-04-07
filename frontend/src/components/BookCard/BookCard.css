@@ -73,6 +73,12 @@
   color: var(--color-star-muted);
 }
 
+.book-card-date {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
 @media (max-width: 480px) {
   .book-card {
     width: 100%;

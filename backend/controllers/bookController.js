@@ -27,7 +27,7 @@ const getBook = async (req, res, next) => {
 
 const updateBook = async (req, res, next) => {
     try {
-        res.json(await bookService.updateBook(req.params.id, req.user.id, req.body));
+        res.json(await bookService.updateBook(req.params.id, req.user, req.body));
     } catch (err) { next(err); }
 };
 
@@ -35,6 +35,13 @@ const deleteBook = async (req, res, next) => {
     try {
         await bookService.deleteBook(req.params.id, req.user);
         res.json({ message: 'book deleted' });
+    } catch (err) { next(err); }
+};
+
+const setAvailability = async (req, res, next) => {
+    try {
+        const makeAvailable = Boolean(req.body.available);
+        res.json(await bookService.setAvailability(req.params.id, req.user.id, makeAvailable));
     } catch (err) { next(err); }
 };
 
@@ -51,4 +58,4 @@ const toggleBookStatus = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-module.exports = { createBook, listBooks, getPopularBooks, getBook, updateBook, deleteBook, returnBook, toggleBookStatus };
+module.exports = { createBook, listBooks, getPopularBooks, getBook, updateBook, deleteBook, returnBook, toggleBookStatus, setAvailability };

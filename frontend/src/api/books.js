@@ -32,6 +32,13 @@ export function deleteBook(bookId) {
   });
 }
 
+export function setBookAvailability(bookId, available) {
+  return apiRequest(`/api/books/${bookId}/availability`, {
+    method: "PATCH",
+    body: { available },
+  });
+}
+
 export function toggleBookStatus(bookId) {
   return apiRequest(`/api/books/${bookId}/toggle-status`, {
     method: "PATCH",

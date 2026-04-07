@@ -6,6 +6,8 @@ router.post('/', authRequired, reviewController.createReview);
 
 router.get('/all', authRequired, requireRole('admin'), reviewController.getAllReviews);
 
+router.get('/mine', authRequired, reviewController.getMyReviews);
+
 router.get('/user/:userId', authRequired, requireRole('admin'), reviewController.getReviewsByUser);
 
 router.get('/:bookId', reviewController.getReviews);

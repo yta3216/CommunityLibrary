@@ -17,6 +17,13 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+.search-results-query {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #667085;
+  margin-left: 4px;
+}
+
 @media (max-width: 768px) {
   .logged-in-home-fab {
     right: 16px;

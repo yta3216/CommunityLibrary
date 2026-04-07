@@ -12,12 +12,14 @@ const LoggedInHome = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  const { availableBooks, popularBooks, isLoading, errorMessage, createBook } = useBooks(searchQuery, { fetchPopular: true });
+  const { availableBooks, popularBooks, recentBooks, isLoading, errorMessage, createBook } = useBooks(searchQuery, { fetchPopular: true });
 
   const handleCreateBook = async (values) => {
     await createBook(values);
     setIsCreateOpen(false);
   };
+
+  const isSearching = searchQuery.trim().length > 0;
 
   const renderCardRow = (bookList) => {
     if (isLoading) return <p className="text-muted-sm">Loading books...</p>;
@@ -32,6 +34,7 @@ const LoggedInHome = () => {
         owner={book.owner?.username || "Unknown"}
         genre={book.genre || "Unknown"}
         rating={typeof book.avgReviews === "number" ? Math.round(book.avgReviews) : 0}
+        createdAt={book.createdAt}
         onClick={() => navigate(`/book?id=${book._id}`)}
       />
     ));
@@ -46,11 +49,31 @@ const LoggedInHome = () => {
       <div className="page-shell logged-in-home sidebar-layout">
         <Sidebar />
         <main className="page-content content">
-          <h2 className="heading-lg">Most Popular</h2>
-          <div className="card-row">{renderCardRow(popularBooks)}</div>
+          {isSearching ? (
+            <>
+              <h2 className="heading-lg">
+                Search Results
+                <span className="search-results-query"> for "{searchQuery}"</span>
+              </h2>
+              {!isLoading && !errorMessage && (
+                <p className="text-muted-sm" style={{ marginBottom: 16 }}>
+                  {availableBooks.length} book{availableBooks.length !== 1 ? "s" : ""} found
+                </p>
+              )}
+              <div className="card-row">{renderCardRow(availableBooks)}</div>
+            </>
+          ) : (
+            <>
+              <h2 className="heading-lg">Most Popular</h2>
+              <div className="card-row">{renderCardRow(popularBooks)}</div>
 
-          <h2 className="heading-lg">All Books</h2>
-          <div className="card-row">{renderCardRow(availableBooks)}</div>
+              <h2 className="heading-lg">Recent Available Additions</h2>
+              <div className="card-row">{renderCardRow(recentBooks)}</div>
+
+              <h2 className="heading-lg">All Available Books</h2>
+              <div className="card-row">{renderCardRow(availableBooks)}</div>
+            </>
+          )}
         </main>
 
         <button className="logged-in-home-fab" onClick={() => setIsCreateOpen(true)}>
