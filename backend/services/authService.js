@@ -44,14 +44,22 @@ async function register({ username, email, password, profileImageUrl }) {
         throw createError('profileImageUrl must be a valid image URL or data URL', 400);
     }
 
-    const user = await User.create({
-        username,
-        email,
-        password,
-        profileImageUrl: profileImageUrl.trim(),
-    });
-    const token = signToken(user);
-    return { user: sanitizeUser(user), token };
+    try {
+        const user = await User.create({
+            username,
+            email,
+            password,
+            profileImageUrl: profileImageUrl.trim(),
+        });
+        const token = signToken(user);
+        return { user: sanitizeUser(user), token };
+    } catch (error) {
+        if (error && error.code === 11000) {
+            // MongoDB returns code 11000 for duplicate key errors
+            throw createError('username or email already exists', 409);
+        }
+        throw error;
+    }
 }
 
 async function login({ email, username, password }) {
