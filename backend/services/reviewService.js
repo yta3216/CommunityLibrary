@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Review = require('../models/Review');
 const Book = require('../models/Book');
+const sse = require('./sseService');
 
 async function createReview({ bookId, reviewerId, rating, comment }) {
     if (!bookId || !mongoose.Types.ObjectId.isValid(bookId)) { throw new Error('valid bookId is required', 400); }
@@ -28,7 +29,10 @@ async function createReview({ bookId, reviewerId, rating, comment }) {
     book.avgReviews = nextAverage;
     await book.save();
 
-    return Review.findById(review._id).populate('reviewer', 'username');
+    const populated = await Review.findById(review._id).populate('reviewer', 'username');
+    sse.emitReviewCreated(bookId, populated, nextAverage, nextCount);
+    await sse.emitBookUpdated(bookId);
+    return populated;
 }
 
 async function getReviewsForBook(bookId) {
@@ -84,6 +88,9 @@ async function deleteReview(reviewId) {
         book.numberOfReviews = nextCount;
         book.avgReviews = nextAverage;
         await book.save();
+
+        sse.emitReviewDeleted(book._id, reviewId, nextAverage, nextCount);
+        await sse.emitBookUpdated(book._id);
     }
 }
 async function getAllReviews() {
