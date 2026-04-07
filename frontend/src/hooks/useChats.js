@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getChats, lendBook, returnBorrowedBook, sendChatMessage } from "../api/chats";
-
-const POLL_INTERVAL = 10000; // TODO: migrate to websockets
+import { useSSE } from "./useSSE";
 
 const EMPTY_CHATS = {
     myBooks: [],
@@ -78,11 +77,13 @@ export function useChats(requestedChatId = "") {
         }
     }, []);
 
-    useEffect(() => {
-        fetchChats();
-        const pollTimer = window.setInterval(fetchChats, POLL_INTERVAL);
-        return () => window.clearInterval(pollTimer);
-    }, [fetchChats]);
+    useEffect(() => { fetchChats(); }, [fetchChats]);
+    useSSE(["chats"], {
+        "chat:updated": (chat) => {
+            updateInsertChat(chat);
+            setActiveChatId((current) => current ?? chat.id);
+        },
+    });
 
     const activeChat = useMemo(() => {
         if (!activeChatId) return null;

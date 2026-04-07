@@ -114,3 +114,9 @@ export function toQueryString(q = "") {
   const trimmed = String(q || "").trim();
   return trimmed ? `?q=${encodeURIComponent(trimmed)}` : "";
 }
+
+export function createEventSource(rooms) {
+  const token = getStoredToken();
+  const url = buildUrl("/api/events") + `?token=${encodeURIComponent(token)}` + `&rooms=${encodeURIComponent(rooms.join(","))}`;
+  return new EventSource(url);
+}

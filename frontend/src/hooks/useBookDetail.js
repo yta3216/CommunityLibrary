@@ -1,45 +1,37 @@
 import { useEffect, useState } from "react";
 import { getBook } from "../api/books";
-
-const POLL_INTERVAL = 10000;
+import { useSSE } from "./useSSE";
 
 export function useBookDetail(bookId) {
     const [book, setBook] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
 
-    useEffect(() => {
+    const fetchBook = useCallback(async (isInitial = false) => {
         if (!bookId) return;
+        if (isInitial) {
+            setIsLoading(true);
+            setErrorMessage("");
+        }
 
-        let isMounted = true;
-
-        const fetch = async (isInitial = false) => {
+        try {
+            const data = await getBook(bookId);
+            setBook(data);
+        } catch (error) {
             if (isInitial) {
-                setIsLoading(true);
-                setErrorMessage("");
+                setErrorMessage(error?.message || "Could not load book details.");
             }
-
-            try {
-                const data = await getBook(bookId);
-                if (isMounted) setBook(data);
-            } catch (error) {
-                if (isMounted && isInitial) {
-                    setErrorMessage(error?.message || "Could not load book details.");
-                }
-            } finally {
-                if (isMounted && isInitial) setIsLoading(false);
-            }
-        };
-
-        fetch(true);
-
-        const pollTimer = window.setInterval(() => fetch(false), POLL_INTERVAL);
-
-        return () => {
-            isMounted = false;
-            window.clearInterval(pollTimer);
-        };
+        } finally {
+            if (isInitial) setIsLoading(false);
+        }
     }, [bookId]);
+
+    useEffect(() => { fetchBook(true); }, [fetchBook]);
+
+    useSSE(bookId ? [`book:${bookId}`] : [], {
+        "book:updated": () => fetchBook(false),
+        "book:deleted": () => { setBook(null), setErrorMessage("This book listing has been deleted.") },
+    });
 
     return { book, updateBook: setBook, isLoading, errorMessage };
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { createReview, getReviews } from "../../api/reviews";
+import { useSSE } from "../../hooks/useSSE";
 import "./ReviewSection.css";
 
 // Star rating input — lets user click to select 1-5 stars
@@ -72,6 +73,20 @@ function ReviewSection({ bookId, currentUser, postedBy }) {
   useEffect(() => {
     loadReviews();
   }, [loadReviews]);
+
+  useSSE(bookId ? [`book:${bookId}`] : [], {
+    "review:created": ({ review, avgReviews: next, numberOfReviews }) => {
+      setReviews((prev) => {
+        const alreadyPresent = prev.some((r) => String(r._id) === String(review._id));
+        return alreadyPresent ? prev : [review, ...prev];
+      });
+      setAvgReviews(next);
+    },
+    "review:deleted": ({ reviewId, avgReviews: next }) => {
+      setReviews((prev) => prev.filter((r) => String(r._id) !== String(reviewId)));
+      setAvgReviews(next);
+    },
+  });
 
   async function handleSubmit() {
     setErrorMessage("");
