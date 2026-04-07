@@ -67,10 +67,10 @@ const LoggedInHome = () => {
               <h2 className="heading-lg">Most Popular</h2>
               <div className="card-row">{renderCardRow(popularBooks)}</div>
 
-              <h2 className="heading-lg">Recent Listings</h2>
+              <h2 className="heading-lg">Recent Available Additions</h2>
               <div className="card-row">{renderCardRow(recentBooks)}</div>
 
-              <h2 className="heading-lg">All Books</h2>
+              <h2 className="heading-lg">All Available Books</h2>
               <div className="card-row">{renderCardRow(availableBooks)}</div>
             </>
           )}
