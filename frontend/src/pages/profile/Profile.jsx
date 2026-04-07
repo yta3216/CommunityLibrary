@@ -3,7 +3,6 @@ import { useAuth } from "../../context/AuthContext";
 import avatar_placeholder from "../../resources/avatar_placeholder.png";
 import Navbar from "../../components/Navbar/Navbar";
 import Breadcrumbs from "../../components/Breadcrumbs/Breadcrumbs";
-import avatar_placeholder from "../../resources/avatar_placeholder.png";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import "./Profile.css";
 
@@ -32,9 +31,15 @@ const Profile = () => {
             <section className="profile-info">
               <div>
                 <h1>Your Profile</h1>
-                <p className="heading-md">{user?.username || "Could not load username"}</p>
-                <p className="text-muted-sm">{user?.email || "Could not load email"}</p>
-                <p className="text-muted-sm">{user?.description || "Add a profile description."}</p>
+                <p className="heading-md">
+                  {user?.username || "Could not load username"}
+                </p>
+                <p className="text-muted-sm">
+                  {user?.email || "Could not load email"}
+                </p>
+                <p className="text-muted-sm">
+                  {user?.description || "Add a profile description."}
+                </p>
               </div>
               <div className="profile-meta">
                 <img
