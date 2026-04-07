@@ -8,6 +8,7 @@ const usersRouter = require("./routes/userRouter");
 const booksRouter = require("./routes/bookRouter");
 const chatsRouter = require("./routes/chatRouter");
 const reviewsRouter = require("./routes/reviewRouter");
+const sseRouter = require("./routes/sseRouter");
 
 // create express app and enable common middleware
 const app = express();
@@ -26,6 +27,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/books", booksRouter);
 app.use("/api/chats", chatsRouter);
 app.use("/api/reviews", reviewsRouter);
+app.use("/api/live", sseRouter);
 
 // central error handler so service-layer validation returns a clean response
 app.use((err, _req, res, _next) => {
