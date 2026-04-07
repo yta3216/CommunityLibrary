@@ -60,7 +60,7 @@ export default function AdminLayout({ children }) {
                         </span>
                         <button
                             type="button"
-                            className="admin-chip admin-link admin-logout"
+                            className="admin-chip admin-logout"
                             onClick={handleLogout}
                         >
                             Log Out

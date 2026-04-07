@@ -37,7 +37,7 @@ export default function ReviewsChart({ reviews, days }) {
   return (
     <div className="admin-card admin-chart-card">
       <h2 className="heading-md">Reviews Written</h2>
-      <p className="text-muted-xs admin-card-note" style={{ marginBottom: 16 }}>
+      <p className="text-muted-xs admin-card-note stack-space-md">
         Review activity over the selected period
       </p>
       {reviews.length === 0 ? (
@@ -49,10 +49,7 @@ export default function ReviewsChart({ reviews, days }) {
               <CartesianGrid strokeDasharray="3 3" stroke="#edf0f4" />
               <XAxis dataKey="date" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
               <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-              <Tooltip
-                formatter={(value) => [value, "Reviews"]}
-                contentStyle={{ borderRadius: 8, fontSize: 13 }}
-              />
+              <Tooltip formatter={(value) => [value, "Reviews"]} />
               <Line
                 type="monotone"
                 dataKey="count"

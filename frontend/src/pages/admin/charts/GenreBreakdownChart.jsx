@@ -24,7 +24,7 @@ export default function GenreBreakdownChart({ books }) {
   return (
     <div className="admin-card admin-chart-card">
       <h2 className="heading-md">Genre Breakdown</h2>
-      <p className="text-muted-xs admin-card-note" style={{ marginBottom: 16 }}>
+      <p className="text-muted-xs admin-card-note stack-space-md">
         Top genres by number of listings
       </p>
       <div className="admin-chart">
@@ -38,10 +38,7 @@ export default function GenreBreakdownChart({ books }) {
               tick={{ fontSize: 12 }}
               width={80}
             />
-            <Tooltip
-              formatter={(value) => [value, "Books"]}
-              contentStyle={{ borderRadius: 8, fontSize: 13 }}
-            />
+            <Tooltip formatter={(value) => [value, "Books"]} />
             <Bar dataKey="count" fill="#4f7f7c" radius={[0, 6, 6, 0]} />
           </BarChart>
         </ResponsiveContainer>

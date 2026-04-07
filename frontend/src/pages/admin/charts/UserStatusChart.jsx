@@ -14,7 +14,7 @@ export default function UserStatusChart({ users }) {
   return (
     <div className="admin-card admin-chart-card">
       <h2 className="heading-md">User Status</h2>
-      <p className="text-muted-xs admin-card-note" style={{ marginBottom: 16 }}>
+      <p className="text-muted-xs admin-card-note stack-space-md">
         Active vs suspended accounts
       </p>
       <div className="admin-chart">
@@ -23,10 +23,7 @@ export default function UserStatusChart({ users }) {
             <CartesianGrid strokeDasharray="3 3" stroke="#edf0f4" />
             <XAxis dataKey="label" tick={{ fontSize: 13 }} />
             <YAxis allowDecimals={false} tick={{ fontSize: 13 }} />
-            <Tooltip
-              formatter={(value) => [value, "Users"]}
-              contentStyle={{ borderRadius: 8, fontSize: 13 }}
-            />
+            <Tooltip formatter={(value) => [value, "Users"]} />
             <Bar dataKey="count" radius={[6, 6, 0, 0]}>
               {data.map((_, index) => (
                 <Cell key={index} fill={COLORS[index]} />

@@ -42,7 +42,7 @@ export default function ListingsChart({ books, days }) {
   return (
     <div className="admin-card admin-chart-card">
       <h2 className="heading-md">New Listings</h2>
-      <p className="text-muted-xs admin-card-note" style={{ marginBottom: 16 }}>
+      <p className="text-muted-xs admin-card-note stack-space-md">
         Books listed over the selected period
       </p>
       {books.length === 0 ? (
@@ -54,10 +54,7 @@ export default function ListingsChart({ books, days }) {
               <CartesianGrid strokeDasharray="3 3" stroke="#edf0f4" />
               <XAxis dataKey="date" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
               <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-              <Tooltip
-                formatter={(value) => [value, "Listings"]}
-                contentStyle={{ borderRadius: 8, fontSize: 13 }}
-              />
+              <Tooltip formatter={(value) => [value, "Listings"]} />
               <Line
                 type="monotone"
                 dataKey="count"

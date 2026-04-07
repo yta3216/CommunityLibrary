@@ -63,7 +63,7 @@ export default function AdminReports() {
         Activity overview for the selected time period.
       </p>
 
-      <section className="admin-card" style={{ marginBottom: 14 }}>
+      <section className="admin-card stack-space-sm">
         <div className="admin-row">
           <h2 className="heading-md">Filter by period</h2>
           <div className="admin-filter-pills">
@@ -71,7 +71,7 @@ export default function AdminReports() {
               <button
                 key={f.days}
                 type="button"
-                className={`admin-button ${selectedDays === f.days ? "" : "light"}`}
+                className={selectedDays === f.days ? "button-primary" : "button-secondary"}
                 onClick={() => setSelectedDays(f.days)}
               >
                 {f.label}
@@ -81,7 +81,7 @@ export default function AdminReports() {
         </div>
       </section>
 
-      <section className="admin-metrics" style={{ marginBottom: 14 }}>
+      <section className="admin-metrics stack-space-sm">
         <div className="admin-card">
           <p className="text-muted-xs admin-card-note">New Sign-ups</p>
           <p className="admin-metric-value">{isLoading ? "—" : newUsers}</p>

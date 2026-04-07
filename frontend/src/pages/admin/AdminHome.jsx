@@ -99,11 +99,11 @@ export default function AdminHome() {
         <div className="admin-card">
           <h2 className="heading-md">Quick Actions</h2>
           <p className="text-muted-xs admin-card-note">Common admin navigation</p>
-          <div className="admin-actions admin-actions-spaced">
-            <Link to="/admin/books" className="admin-button admin-link">
+          <div className="admin-actions stack-space-sm">
+            <Link to="/admin/books" className="button-primary">
               Manage Books
             </Link>
-            <Link to="/admin/users" className="admin-button admin-link">
+            <Link to="/admin/users" className="button-primary">
               Manage Users
             </Link>
           </div>
@@ -137,7 +137,7 @@ export default function AdminHome() {
                         {String(book.status || "").toUpperCase()}
                       </span>
                     </div>
-                    <p className="text-muted-xs admin-card-note admin-card-note-spaced">
+                    <p className="text-muted-xs admin-card-note stack-space-md">
                       Owner: {ownerName || "Unknown"}
                     </p>
                     <p className="text-muted-xs admin-card-note">

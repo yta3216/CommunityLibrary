@@ -185,6 +185,14 @@ code {
   gap: 14px;
 }
 
+.stack-space-sm {
+  margin-bottom: 14px;
+}
+
+.stack-space-md {
+  margin-bottom: 16px;
+}
+
 .content-scroll {
   flex: 1;
   min-width: 0;
