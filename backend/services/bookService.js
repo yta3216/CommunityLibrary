@@ -34,7 +34,7 @@ async function createBook({ isbn, title, author, genre, description }, ownerId) 
     const book = await Book.findById(created._id).populate(BOOK_POPULATE);
     
     const bookListing = await Book.findById(created._id).populate(LIST_POPULATE);
-    sse.emitBookCreated(bookListing._id);
+    await sse.emitBookCreated(bookListing._id);
 
     return book;
 }
@@ -181,7 +181,7 @@ async function updateBook(bookId, actor, fields) {
 
     await book.save();
     const updated = await Book.findById(book._id).populate(BOOK_POPULATE);
-    sse.emitBookUpdated(book._id);
+    await sse.emitBookUpdated(book._id);
     return updated;
 }
 
@@ -224,7 +224,7 @@ async function returnBook(bookId, actorId) {
     book.ownerLocked = false;
     await book.save();
     const updated = await Book.findById(book._id).populate(BOOK_POPULATE);
-    sse.emitBookUpdated(book._id);
+    await sse.emitBookUpdated(book._id);
     return updated;
 }
 
@@ -250,7 +250,7 @@ async function toggleBookStatus(bookId, adminId) {
     const updated = await Book.findById(book._id)
         .populate('owner', '_id username')
         .populate('holder', '_id username');
-    sse.emitBookUpdated(book._id);
+    await sse.emitBookUpdated(book._id);
     return updated;
 }
 
@@ -271,7 +271,7 @@ async function setAvailability(bookId, ownerId, makeAvailable) {
     book.ownerLocked = !makeAvailable;
     await book.save();
     const updated = await Book.findById(book._id).populate(BOOK_POPULATE);
-    sse.emitBookUpdated(book._id);
+    await sse.emitBookUpdated(book._id);
     return updated;
 }
  
