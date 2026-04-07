@@ -7,7 +7,7 @@ import BookForm from "../../components/BookForm";
 import AvgRatingChart from "../../components/charts/AvgRatingChart";
 import StatusBreakdownChart from "../../components/charts/StatusBreakdownChart";
 import { getMyBooks } from "../../api/users";
-import { deleteBook, updateBook, toggleBookStatus } from "../../api/books";
+import { deleteBook, updateBook, setBookAvailability } from "../../api/books";
 import { getChats } from "../../api/chats";
 import { apiRequest } from "../../api/client";
 import "../admin/AdminPages.css";
@@ -40,16 +40,12 @@ export default function Library() {
           return { myBooks: [], theirBooks: [] };
         }),
       ]);
-
       setOwnedBooks(Array.isArray(booksData.owned) ? booksData.owned : []);
       setBorrowedBooks(Array.isArray(booksData.borrowed) ? booksData.borrowed : []);
       setReviews(Array.isArray(reviewsData) ? reviewsData : []);
-
-      // Flatten both sections into one array for easy lookup
       const myBooks = Array.isArray(chatsData?.myBooks) ? chatsData.myBooks : [];
       const theirBooks = Array.isArray(chatsData?.theirBooks) ? chatsData.theirBooks : [];
       setAllChats([...myBooks, ...theirBooks]);
-
     } catch (_err) {
       console.error("Library fetch error:", _err);
       setOwnedBooks([]);
@@ -63,9 +59,7 @@ export default function Library() {
 
   const getChatIdForBook = useCallback((bookId) => {
     if (!bookId || allChats.length === 0) return null;
-    const match = allChats.find(
-      (c) => String(c.bookId) === String(bookId)
-    );
+    const match = allChats.find((c) => String(c.bookId) === String(bookId));
     return match ? String(match.id) : null;
   }, [allChats]);
 
@@ -89,13 +83,13 @@ export default function Library() {
     }
   };
 
-  const handleToggleStatus = async (book) => {
+  const handleSetAvailability = async (book, makeAvailable) => {
     setIsActing(true);
     try {
-      const result = await toggleBookStatus(book._id);
+      const result = await setBookAvailability(book._id, makeAvailable);
       setOwnedBooks((prev) => prev.map((b) => (b._id === result._id ? result : b)));
     } catch (_err) {
-      alert(_err?.message || "Could not update status.");
+      alert(_err?.message || "Could not update availability.");
     } finally {
       setIsActing(false);
     }
@@ -117,7 +111,7 @@ export default function Library() {
       />
       <div className="sidebar-layout">
         <Sidebar />
-        <div className="content">
+        <div className="content" style={{ padding: "0 24px 40px" }}>
           <Breadcrumbs
             items={[{ label: "Home", to: "/home" }, { label: "My Library" }]}
           />
@@ -151,12 +145,14 @@ export default function Library() {
               </div>
             </section>
           )}
+
           {!isLoading && ownedBooks.length > 0 && (
             <section className="admin-grid-2" style={{ marginBottom: 14 }}>
               <StatusBreakdownChart books={ownedBooks} />
               <AvgRatingChart books={ownedBooks} />
             </section>
           )}
+
           <div className="admin-card">
             <div className="user-detail-tabs">
               {TABS.map((tab) => {
@@ -201,12 +197,32 @@ export default function Library() {
                         </thead>
                         <tbody>
                           {ownedBooks.map((book) => {
-                            const holderName =
-                              typeof book.holder === "object"
-                                ? book.holder?.username
-                                : null;
-                            const isOnLoan = book.status !== "available";
-                            const chatId = getChatIdForBook(book._id);
+                            const ownerId = book.owner && typeof book.owner === "object"
+                              ? String(book.owner._id) : String(book.owner || "");
+                            const holderId = book.holder && typeof book.holder === "object"
+                              ? String(book.holder._id) : String(book.holder || "");
+                            const holderName = book.holder && typeof book.holder === "object"
+                              ? book.holder.username : null;
+
+                            // isLentOut: book is physically with a different person
+                            const isLentOut = holderId !== ownerId;
+                            // isOwnerLocked: owner chose to hide it (not lent, just locked)
+                            const isOwnerLocked = !isLentOut && Boolean(book.ownerLocked);
+
+                            const chatId = isLentOut ? getChatIdForBook(book._id) : null;
+
+                            // Status label and pill colour
+                            let statusLabel, statusClass;
+                            if (isLentOut) {
+                              statusLabel = "ON LOAN";
+                              statusClass = "admin-pill-warning";
+                            } else if (isOwnerLocked) {
+                              statusLabel = "UNAVAILABLE";
+                              statusClass = "admin-pill-danger";
+                            } else {
+                              statusLabel = "AVAILABLE";
+                              statusClass = "admin-pill-success";
+                            }
 
                             return (
                               <tr key={book._id}>
@@ -223,11 +239,12 @@ export default function Library() {
                                 </td>
                                 <td>{book.genre || "—"}</td>
                                 <td>
-                                  <span className={`admin-pill ${isOnLoan ? "admin-pill-warning" : "admin-pill-success"}`}>
-                                    {isOnLoan ? "ON LOAN" : "AVAILABLE"}
+                                  <span className={`admin-pill ${statusClass}`}>
+                                    {statusLabel}
                                   </span>
                                 </td>
-                                <td>{isOnLoan && holderName ? holderName : "—"}</td>
+
+                                <td>{isLentOut && holderName ? holderName : "—"}</td>
                                 <td>
                                   {book.avgReviews > 0
                                     ? `★ ${Number(book.avgReviews).toFixed(1)}`
@@ -243,17 +260,18 @@ export default function Library() {
                                     >
                                       Edit
                                     </button>
-                                    {!isOnLoan && (
+
+                                    {!isLentOut && (
                                       <button
                                         type="button"
-                                        className="admin-button admin-button-warning"
+                                        className={`admin-button ${isOwnerLocked ? "admin-button-success" : "admin-button-warning"}`}
                                         disabled={isActing}
-                                        onClick={() => handleToggleStatus(book)}
+                                        onClick={() => handleSetAvailability(book, isOwnerLocked)}
                                       >
-                                        Mark Unavailable
+                                        {isOwnerLocked ? "Mark Available" : "Mark Unavailable"}
                                       </button>
                                     )}
-                                    {isOnLoan && chatId && (
+                                    {isLentOut && chatId && (
                                       <button
                                         type="button"
                                         className="admin-button admin-button-blue"
@@ -298,12 +316,9 @@ export default function Library() {
                         </thead>
                         <tbody>
                           {borrowedBooks.map((book) => {
-                            const ownerName =
-                              typeof book.owner === "object"
-                                ? book.owner?.username
-                                : "Unknown";
+                            const ownerName = typeof book.owner === "object"
+                              ? book.owner.username : "Unknown";
                             const chatId = getChatIdForBook(book._id);
-
                             return (
                               <tr key={book._id}>
                                 <td>
@@ -334,7 +349,7 @@ export default function Library() {
                                       Message Owner
                                     </button>
                                   ) : (
-                                    <span className="text-muted-xs admin-card-note">No chat</span>
+                                    <span className="text-muted-xs admin-card-note">—</span>
                                   )}
                                 </td>
                               </tr>
@@ -380,9 +395,7 @@ export default function Library() {
                               <td className="text-muted-xs admin-card-note">
                                 {review.createdAt
                                   ? new Date(review.createdAt).toLocaleDateString("en-US", {
-                                      year: "numeric",
-                                      month: "short",
-                                      day: "numeric",
+                                      year: "numeric", month: "short", day: "numeric",
                                     })
                                   : "—"}
                               </td>

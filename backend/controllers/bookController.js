@@ -38,6 +38,13 @@ const deleteBook = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
+const setAvailability = async (req, res, next) => {
+    try {
+        const makeAvailable = Boolean(req.body.available);
+        res.json(await bookService.setAvailability(req.params.id, req.user.id, makeAvailable));
+    } catch (err) { next(err); }
+};
+
 // Admin actions
 const returnBook = async (req, res, next) => {
     try {
@@ -51,4 +58,4 @@ const toggleBookStatus = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-module.exports = { createBook, listBooks, getPopularBooks, getBook, updateBook, deleteBook, returnBook, toggleBookStatus };
+module.exports = { createBook, listBooks, getPopularBooks, getBook, updateBook, deleteBook, returnBook, toggleBookStatus, setAvailability };
