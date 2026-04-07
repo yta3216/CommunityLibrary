@@ -35,7 +35,13 @@ async function createBook({ isbn, title, author, genre, description }, ownerId) 
 
 async function listBooks(query) {
     const q = normalizeStr(query);
-    const filter = q ? { title: { $regex: q, $options: 'i' } } : {};
+    const filter = q ? {
+    $or: [
+        { title: { $regex: q, $options: 'i' } },
+        { author: { $regex: q, $options: 'i' } },
+        { genre: { $regex: q, $options: 'i' } },
+    ]
+    } : {};
 
     const books = await Book.find(filter)
         .populate('owner', '_id username email role')
