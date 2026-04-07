@@ -66,7 +66,7 @@ export default function AdminReports() {
       <section className="admin-card" style={{ marginBottom: 14 }}>
         <div className="admin-row">
           <h2 className="heading-md">Filter by period</h2>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="admin-filter-pills">
             {DATE_FILTERS.map((f) => (
               <button
                 key={f.days}

@@ -184,7 +184,8 @@ export default function Library() {
                         You haven't listed any books yet.
                       </p>
                     ) : (
-                      <table className="admin-table user-detail-table">
+                      <div className="user-detail-table-wrap">
+                        <table className="admin-table admin-table-mobile user-detail-table">
                         <thead>
                           <tr>
                             <th>Book</th>
@@ -226,7 +227,7 @@ export default function Library() {
 
                             return (
                               <tr key={book._id}>
-                                <td>
+                                <td data-label="Book">
                                   <strong
                                     style={{ cursor: "pointer" }}
                                     onClick={() => navigate(`/book?id=${book._id}`)}
@@ -237,20 +238,20 @@ export default function Library() {
                                     {book.author || "Unknown author"}
                                   </div>
                                 </td>
-                                <td>{book.genre || "—"}</td>
-                                <td>
+                                <td data-label="Genre">{book.genre || "—"}</td>
+                                <td data-label="Status">
                                   <span className={`admin-pill ${statusClass}`}>
                                     {statusLabel}
                                   </span>
                                 </td>
 
-                                <td>{isLentOut && holderName ? holderName : "—"}</td>
-                                <td>
+                                <td data-label="Held By">{isLentOut && holderName ? holderName : "—"}</td>
+                                <td data-label="Rating">
                                   {book.avgReviews > 0
                                     ? `★ ${Number(book.avgReviews).toFixed(1)}`
                                     : <span className="text-muted-xs admin-card-note">No reviews</span>}
                                 </td>
-                                <td>
+                                <td data-label="Actions">
                                   <div className="admin-actions">
                                     <button
                                       type="button"
@@ -295,7 +296,8 @@ export default function Library() {
                             );
                           })}
                         </tbody>
-                      </table>
+                        </table>
+                      </div>
                     )
                   )}
                   {activeTab === "Borrowed Books" && (
@@ -304,7 +306,8 @@ export default function Library() {
                         You're not borrowing any books right now.
                       </p>
                     ) : (
-                      <table className="admin-table user-detail-table">
+                      <div className="user-detail-table-wrap">
+                        <table className="admin-table admin-table-mobile user-detail-table">
                         <thead>
                           <tr>
                             <th>Book</th>
@@ -321,7 +324,7 @@ export default function Library() {
                             const chatId = getChatIdForBook(book._id);
                             return (
                               <tr key={book._id}>
-                                <td>
+                                <td data-label="Book">
                                   <strong
                                     style={{ cursor: "pointer" }}
                                     onClick={() => navigate(`/book?id=${book._id}`)}
@@ -332,14 +335,14 @@ export default function Library() {
                                     {book.author || "Unknown author"}
                                   </div>
                                 </td>
-                                <td>{book.genre || "—"}</td>
-                                <td>{ownerName}</td>
-                                <td>
+                                <td data-label="Genre">{book.genre || "—"}</td>
+                                <td data-label="Owner">{ownerName}</td>
+                                <td data-label="Rating">
                                   {book.avgReviews > 0
                                     ? `★ ${Number(book.avgReviews).toFixed(1)}`
                                     : <span className="text-muted-xs admin-card-note">No reviews</span>}
                                 </td>
-                                <td>
+                                <td data-label="Actions">
                                   {chatId ? (
                                     <button
                                       type="button"
@@ -356,7 +359,8 @@ export default function Library() {
                             );
                           })}
                         </tbody>
-                      </table>
+                        </table>
+                      </div>
                     )
                   )}
                   {activeTab === "My Reviews" && (
@@ -365,7 +369,8 @@ export default function Library() {
                         You haven't written any reviews yet.
                       </p>
                     ) : (
-                      <table className="admin-table user-detail-table">
+                      <div className="user-detail-table-wrap">
+                        <table className="admin-table admin-table-mobile user-detail-table">
                         <thead>
                           <tr>
                             <th>Book</th>
@@ -377,7 +382,7 @@ export default function Library() {
                         <tbody>
                           {reviews.map((review) => (
                             <tr key={review._id}>
-                              <td>
+                              <td data-label="Book">
                                 <strong
                                   style={{ cursor: "pointer" }}
                                   onClick={() => navigate(`/book?id=${review.book?._id}`)}
@@ -385,14 +390,14 @@ export default function Library() {
                                   {review.book?.title || "Unknown book"}
                                 </strong>
                               </td>
-                              <td>
+                              <td data-label="Rating">
                                 {"★".repeat(review.rating)}
                                 {"☆".repeat(5 - review.rating)}
                               </td>
-                              <td className="user-detail-comment">
+                              <td data-label="Comment" className="user-detail-comment">
                                 {review.comment || "—"}
                               </td>
-                              <td className="text-muted-xs admin-card-note">
+                              <td data-label="Date" className="text-muted-xs admin-card-note">
                                 {review.createdAt
                                   ? new Date(review.createdAt).toLocaleDateString("en-US", {
                                       year: "numeric", month: "short", day: "numeric",
@@ -402,7 +407,8 @@ export default function Library() {
                             </tr>
                           ))}
                         </tbody>
-                      </table>
+                        </table>
+                      </div>
                     )
                   )}
                 </>

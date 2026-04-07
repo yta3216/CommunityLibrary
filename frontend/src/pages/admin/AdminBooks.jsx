@@ -165,7 +165,7 @@ export default function AdminBooks() {
       </section>
 
       <div className="admin-table-wrap">
-        <table className="admin-table">
+        <table className="admin-table admin-table-mobile">
           <thead>
             <tr>
               <th>Book</th>
@@ -178,21 +178,21 @@ export default function AdminBooks() {
           <tbody>
             {filteredRows.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-muted-xs admin-card-note">No books match this filter.</td>
+                <td colSpan={5} className="text-muted-xs admin-card-note admin-table-empty">No books match this filter.</td>
               </tr>
             ) : (
               filteredRows.map((book) => (
                 <tr key={book.id}>
-                  <td>
+                  <td data-label="Book">
                     <strong>{book.title}</strong>
                     <div className="text-muted-xs admin-card-note">{book.genre} • {book.id}</div>
                   </td>
-                  <td><strong>{book.owner}</strong></td>
-                  <td><span className={`admin-pill ${book.status === "available" ? "admin-pill-success" : "admin-pill-warning"}`}>
+                  <td data-label="Owner"><strong>{book.owner}</strong></td>
+                  <td data-label="Status"><span className={`admin-pill ${book.status === "available" ? "admin-pill-success" : "admin-pill-warning"}`}>
                     {book.status === "available" ? "AVAILABLE" : "NOT AVAILABLE"}
                   </span></td>
-                  <td>{book.holder}</td>
-                  <td>
+                  <td data-label="Held By">{book.holder}</td>
+                  <td data-label="Actions">
                     <div className="admin-actions">
                       <button
                         type="button"

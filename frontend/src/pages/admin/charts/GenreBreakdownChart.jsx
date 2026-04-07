@@ -22,28 +22,30 @@ export default function GenreBreakdownChart({ books }) {
   }
 
   return (
-    <div className="admin-card">
+    <div className="admin-card admin-chart-card">
       <h2 className="heading-md">Genre Breakdown</h2>
       <p className="text-muted-xs admin-card-note" style={{ marginBottom: 16 }}>
         Top genres by number of listings
       </p>
-      <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={data} layout="vertical" barSize={18}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#edf0f4" horizontal={false} />
-          <XAxis type="number" allowDecimals={false} tick={{ fontSize: 13 }} />
-          <YAxis
-            type="category"
-            dataKey="genre"
-            tick={{ fontSize: 12 }}
-            width={90}
-          />
-          <Tooltip
-            formatter={(value) => [value, "Books"]}
-            contentStyle={{ borderRadius: 8, fontSize: 13 }}
-          />
-          <Bar dataKey="count" fill="#4f7f7c" radius={[0, 6, 6, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+      <div className="admin-chart">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} layout="vertical" barSize={18}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#edf0f4" horizontal={false} />
+            <XAxis type="number" allowDecimals={false} tick={{ fontSize: 13 }} />
+            <YAxis
+              type="category"
+              dataKey="genre"
+              tick={{ fontSize: 12 }}
+              width={80}
+            />
+            <Tooltip
+              formatter={(value) => [value, "Books"]}
+              contentStyle={{ borderRadius: 8, fontSize: 13 }}
+            />
+            <Bar dataKey="count" fill="#4f7f7c" radius={[0, 6, 6, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

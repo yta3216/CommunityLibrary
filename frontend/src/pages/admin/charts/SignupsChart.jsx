@@ -40,7 +40,7 @@ export default function SignupsChart({ users, days }) {
   const data = groupByPeriod(users, days, getTime);
 
   return (
-    <div className="admin-card">
+    <div className="admin-card admin-chart-card">
       <h2 className="heading-md">New Sign-ups</h2>
       <p className="text-muted-xs admin-card-note" style={{ marginBottom: 16 }}>
         User registrations over the selected period
@@ -48,25 +48,27 @@ export default function SignupsChart({ users, days }) {
       {users.length === 0 ? (
         <p className="text-muted-xs admin-card-note">No data yet.</p>
       ) : (
-        <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#edf0f4" />
-            <XAxis dataKey="date" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
-            <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-            <Tooltip
-              formatter={(value) => [value, "Sign-ups"]}
-              contentStyle={{ borderRadius: 8, fontSize: 13 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="count"
-              stroke="#4f7f7c"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <div className="admin-chart">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#edf0f4" />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+              <Tooltip
+                formatter={(value) => [value, "Sign-ups"]}
+                contentStyle={{ borderRadius: 8, fontSize: 13 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="#4f7f7c"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   );

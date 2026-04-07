@@ -265,13 +265,6 @@ export default function Register() {
             >
               {isSubmitting ? "Registering..." : "Register"}
             </button>
-            <button
-              type="button"
-              className="action-button login-admin-button"
-              onClick={() => navigate("/login")}
-            >
-              Back to Login
-            </button>
           </div>
         </form>
 

@@ -151,8 +151,6 @@ body {
 .button-row {
   margin-top: 18px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
 }
 
 .action-button {
@@ -176,12 +174,6 @@ body {
 
 .login-button {
   background-color: #4f7f7c;
-}
-
-.action-button.login-admin-button {
-  background-color: #6f6f72;
-  color: #ffffff;
-  text-decoration: none;
 }
 
 .footer-text {

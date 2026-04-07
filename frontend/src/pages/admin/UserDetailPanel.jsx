@@ -52,38 +52,40 @@ export default function UserDetailPanel({ user, ownedBooks, borrowedBooks, onDel
           ownedBooks.length === 0 ? (
             <p className="text-muted-xs admin-card-note">No listed books.</p>
           ) : (
-            <table className="admin-table user-detail-table">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Genre</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ownedBooks.map((book) => (
-                  <tr key={book._id}>
-                    <td><strong>{book.title || "Untitled"}</strong></td>
-                    <td>{book.genre || "—"}</td>
-                    <td>
-                      <span className="admin-pill">
-                        {String(book.status || "").toUpperCase()}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        className="admin-button admin-button-danger"
-                        onClick={() => onDeleteBook(book._id, book.title)}
-                      >
-                        Delete
-                      </button>
-                    </td>
+            <div className="user-detail-table-wrap">
+              <table className="admin-table admin-table-mobile user-detail-table user-detail-table-listed">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Genre</th>
+                    <th>Status</th>
+                    <th>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {ownedBooks.map((book) => (
+                    <tr key={book._id}>
+                      <td data-label="Title"><strong>{book.title || "Untitled"}</strong></td>
+                      <td data-label="Genre">{book.genre || "—"}</td>
+                      <td data-label="Status">
+                        <span className="admin-pill">
+                          {String(book.status || "").toUpperCase()}
+                        </span>
+                      </td>
+                      <td data-label="Action">
+                        <button
+                          type="button"
+                          className="admin-button admin-button-danger"
+                          onClick={() => onDeleteBook(book._id, book.title)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )
         )}
 
@@ -91,28 +93,30 @@ export default function UserDetailPanel({ user, ownedBooks, borrowedBooks, onDel
           borrowedBooks.length === 0 ? (
             <p className="text-muted-xs admin-card-note">Not currently borrowing any books.</p>
           ) : (
-            <table className="admin-table user-detail-table">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Genre</th>
-                  <th>Owner</th>
-                </tr>
-              </thead>
-              <tbody>
-                {borrowedBooks.map((book) => {
-                  const ownerName =
-                    typeof book.owner === "object" ? book.owner?.username : "Unknown";
-                  return (
-                    <tr key={book._id}>
-                      <td><strong>{book.title || "Untitled"}</strong></td>
-                      <td>{book.genre || "—"}</td>
-                      <td>{ownerName}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="user-detail-table-wrap">
+              <table className="admin-table admin-table-mobile user-detail-table user-detail-table-borrowed">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Genre</th>
+                    <th>Owner</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {borrowedBooks.map((book) => {
+                    const ownerName =
+                      typeof book.owner === "object" ? book.owner?.username : "Unknown";
+                    return (
+                      <tr key={book._id}>
+                        <td data-label="Title"><strong>{book.title || "Untitled"}</strong></td>
+                        <td data-label="Genre">{book.genre || "—"}</td>
+                        <td data-label="Owner">{ownerName}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )
         )}
 
@@ -122,39 +126,41 @@ export default function UserDetailPanel({ user, ownedBooks, borrowedBooks, onDel
           ) : reviews.length === 0 ? (
             <p className="text-muted-xs admin-card-note">No reviews written.</p>
           ) : (
-            <table className="admin-table user-detail-table">
-              <thead>
-                <tr>
-                  <th>Book</th>
-                  <th>Book Owner</th>
-                  <th>Rating</th>
-                  <th>Comment</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reviews.map((review) => (
-                  <tr key={review._id}>
-                    <td><strong>{review.book?.title || "Unknown book"}</strong></td>
-                    <td>{review.book?.owner?.username || "—"}</td>
-                    <td>{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</td>
-                    <td className="user-detail-comment">{review.comment || "—"}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="admin-button admin-button-danger"
-                        onClick={() => {
-                          onDeleteReview(review._id);
-                          setReviews((prev) => prev.filter((r) => r._id !== review._id));
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </td>
+            <div className="user-detail-table-wrap">
+              <table className="admin-table admin-table-mobile user-detail-table user-detail-table-reviews">
+                <thead>
+                  <tr>
+                    <th>Book</th>
+                    <th>Book Owner</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {reviews.map((review) => (
+                    <tr key={review._id}>
+                      <td data-label="Book"><strong>{review.book?.title || "Unknown book"}</strong></td>
+                      <td data-label="Book Owner">{review.book?.owner?.username || "—"}</td>
+                      <td data-label="Rating">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</td>
+                      <td data-label="Comment" className="user-detail-comment">{review.comment || "—"}</td>
+                      <td data-label="Action">
+                        <button
+                          type="button"
+                          className="admin-button admin-button-danger"
+                          onClick={() => {
+                            onDeleteReview(review._id);
+                            setReviews((prev) => prev.filter((r) => r._id !== review._id));
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )
         )}
       </div>

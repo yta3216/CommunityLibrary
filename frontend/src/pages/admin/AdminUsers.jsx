@@ -213,7 +213,7 @@ export default function AdminUsers() {
       </section>
 
       <div className="admin-table-wrap">
-        <table className="admin-table">
+        <table className="admin-table admin-table-mobile">
           <thead>
             <tr>
               <th></th>
@@ -229,7 +229,7 @@ export default function AdminUsers() {
           <tbody>
             {filteredUserRows.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-muted-xs admin-card-note">
+                <td colSpan={8} className="text-muted-xs admin-card-note admin-table-empty">
                   No users match this filter.
                 </td>
               </tr>
@@ -242,34 +242,34 @@ export default function AdminUsers() {
                   className={`admin-user-row${isExpanded ? " expanded" : ""}`}
                   onClick={() => handleToggleExpand(user.id)}
                 >
-                  <td className="admin-expand-cell">
+                  <td className="admin-expand-cell" data-label="">
                     <span className="admin-expand-icon">
                         {isExpanded ? "▾" : "▸"}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="User">
                       <strong>{user.displayUsername}</strong>
                       {currentUser?._id === user.id && (
                         <span className="admin-pill admin-pill-you"> You</span>
                       )}
                       <div className="text-muted-xs admin-card-note">{user.email}</div>
                   </td>
-                  <td>
+                  <td data-label="Role">
                     <span className={`admin-pill ${user.role === "admin" ? "admin-pill-admin" : "admin-pill-user"}`}>
                       {String(user.role).toUpperCase()}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span className={`admin-pill ${user.status === "suspended" ? "admin-pill-suspended" : "admin-pill-active"}`}>
                       {String(user.status).toUpperCase()}
                     </span>
                   </td>
-                  <td><strong>{user.borrowedBooks.length}</strong></td>
-                  <td>
+                  <td data-label="Borrowed"><strong>{user.borrowedBooks.length}</strong></td>
+                  <td data-label="Listings">
                     <strong>{user.ownedBooks.length}</strong>
                   </td>
-                  <td><strong>{user.reviewCount}</strong></td>
-                  <td onClick={(e) => e.stopPropagation()}>
+                  <td data-label="Reviews"><strong>{user.reviewCount}</strong></td>
+                  <td data-label="Actions" onClick={(e) => e.stopPropagation()}>
                     <div className="admin-actions">
                       <button
                         type="button"
