@@ -45,7 +45,9 @@ describe("Auth API Tests", () => {
     });
 
     expect(res.statusCode).toBe(201);
-    expect(res.body.message).toBe("registered");
+    expect(res.body.token).toBeTruthy();
+    expect(res.body.user).toBeTruthy();
+    expect(res.body.user.username).toBe("testuser");
   });
 
   // Failure case: returns 400 when required fields are missing.
@@ -57,7 +59,7 @@ describe("Auth API Tests", () => {
 
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
-      "username, email, password, profileImageUrl are required"
+      "username, email, password, and profileImageUrl are required"
     );
   });
 
@@ -111,7 +113,9 @@ describe("Auth API Tests", () => {
     });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.message).toBe("logged in");
+    expect(res.body.token).toBeTruthy();
+    expect(res.body.user).toBeTruthy();
+    expect(res.body.user.username).toBe("john");
   });
 
   // Failure case: returns 401 when password is incorrect.
@@ -150,9 +154,7 @@ describe("Auth API Tests", () => {
     });
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.message).toBe(
-      "identifier (email or username) and password are required"
-    );
+    expect(res.body.message).toBe("identifier and password are required");
   });
 
   // Failure case: suspended users are blocked with 403.
@@ -176,6 +178,6 @@ describe("Auth API Tests", () => {
     });
 
     expect(res.statusCode).toBe(403);
-    expect(res.body.message).toBe("account is suspended");
+    expect(res.body.message).toBe("your account has been suspended");
   });
 });
