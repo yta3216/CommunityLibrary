@@ -5,6 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { useAuth, AuthProvider } from "./context/AuthContext";
+import { useSSE } from "./hooks/useSSE";
 
 import UnregisteredHome from "./pages/UnregisteredHome";
 import Login from "./components/Form/Login";
@@ -30,8 +31,13 @@ const getHomeRouteForRole = (role) => {
 };
 
 const RequireAuth = ({ children }) => {
-  const { isAuthLoading, isAuthenticated } = useAuth();
+  const { isAuthLoading, isAuthenticated, user, signOut } = useAuth();
 
+  useSSE(user?._id ? [`user:${user._id}`] : [], {
+    "user:updated": ({ status }) => {
+      if (status === "suspended") signOut();
+    },
+  });
   if (isAuthLoading) {
     return null;
   }

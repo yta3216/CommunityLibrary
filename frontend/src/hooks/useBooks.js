@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createBook as createBookRequest, getBooks, getPopularBooks } from "../api/books";
 import { isListingAvailable } from "../utils/bookAvailability";
+import { useSSE } from "./useSSE";
 
 const DEBOUNCE_DELAY = 300;
 
@@ -62,6 +63,18 @@ export default function useBooks(searchTerm, { fetchPopular = false } = {}) {
             window.clearTimeout(timerId);
         };
     }, [searchTerm, fetchPopular]);
+
+    useSSE(["books"], {
+        "book:created": (book) => setBooks((prev) => [book, ...prev]),
+        "book:updated": (updated) =>{
+            setBooks((prev) => prev.map((b) => (b._id === updated._id ? updated : b)));
+            setPopularBooks((prev) => prev.map((b) => (b._id === updated._id ? updated : b)));
+        },
+        "book:deleted": ({ bookId }) => {
+            setBooks((prev) => prev.filter((b) => b._id !== bookId));
+            setPopularBooks((prev) => prev.filter((b) => b._id !== bookId));
+        },
+    });
 
     const availableBooks = useMemo(() => books.filter((book) => isListingAvailable(book)), [books]);
 

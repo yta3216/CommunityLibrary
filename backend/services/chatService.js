@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Chat = require('../models/Chat');
 const Book = require('../models/Book');
+const sse = require('./sseService')
 
 const CHAT_POPULATE = [
     {
@@ -82,6 +83,15 @@ const toChatDto = (chatDoc, currentUserId) => {
 
 const populateChatById = (chatId) => Chat.findById(chatId).populate(CHAT_POPULATE);
 
+function emitChatToParticipants(populatedChat) {
+    const ownerId = toIdString(populatedChat.owner);
+    const requesterId = toIdString(populatedChat.requester);
+    sse.emitChatUpdated(
+        ownerId, toChatDto(populatedChat, ownerId),
+        requesterId, toChatDto(populatedChat, requesterId),
+    );
+}
+
 async function listChats(userId) {
     const chats = await Chat.find({
         $or: [{ owner: userId }, { requester: userId }],
@@ -157,6 +167,7 @@ async function sendFirstMessage({ bookId, requesterId, text }) {
     }
 
     const populated = await populateChatById(chat._id);
+    emitChatToParticipants(populated);
     return { chat: toChatDto(populated, requesterId), isCreated };
 }
 
@@ -179,6 +190,7 @@ async function sendMessage(chatId, senderId, text) {
     await chat.save();
 
     const populated = await populateChatById(chat._id);
+    emitChatToParticipants(populated);
     return toChatDto(populated, senderId);
 }
 
@@ -217,6 +229,8 @@ async function lendBook(chatId, actorId) {
     await chat.book.save();
 
     const populated = await populateChatById(chat._id);
+    emitChatToParticipants(populated);
+    await sse.emitBookUpdated(chat.book._id);
     return toChatDto(populated, actorId);
 }
 
@@ -246,6 +260,8 @@ async function returnBook(chatId, actorId) {
     await chat.book.save();
 
     const populated = await populateChatById(chat._id);
+    emitChatToParticipants(populated);
+    await sse.emitBookUpdated(chat.book._id);
     return toChatDto(populated, actorId);
 }
 

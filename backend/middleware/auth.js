@@ -60,9 +60,21 @@ const requireRole = (role) => {
   };
 };
 
+const injectTokenFromQuery = (req, res, next) => {
+  const alreadyHasHeader = Boolean(req.headers.authorization);
+  const queryToken = String(req.query.token || "").trim();
+
+  if (!alreadyHasHeader && queryToken) {
+    req.headers.authorization = `Bearer ${queryToken}`;
+  }
+
+  return next();
+};
+
 // export helpers/middleware so other files can import and use them
 module.exports = {
   authRequired,
   requireRole,
   signToken,
+  injectTokenFromQuery
 };

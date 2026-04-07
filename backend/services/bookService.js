@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Book = require('../models/Book');
 const User = require('../models/User');
 const Chat = require('../models/Chat');
+const sse = require('./sseService');
 const BOOK_POPULATE = [
     { path: 'owner', select: '_id username email role status description' },
     { path: 'holder', select: '_id username email role status description' },
@@ -30,7 +31,12 @@ async function createBook({ isbn, title, author, genre, description }, ownerId) 
     if (!owner) throw new Error('authenticated user not found', 404);
 
     const created = await Book.create({ ...fields, owner: owner._id, holder: owner._id, ownerLocked: false });
-    return Book.findById(created._id).populate(BOOK_POPULATE);
+    const book = await Book.findById(created._id).populate(BOOK_POPULATE);
+    
+    const bookListing = await Book.findById(created._id).populate(LIST_POPULATE);
+    await sse.emitBookCreated(bookListing._id);
+
+    return book;
 }
 
 async function listBooks(query) {
@@ -174,7 +180,9 @@ async function updateBook(bookId, actor, fields) {
     if (description !== undefined) book.description = normalizeStr(description);
 
     await book.save();
-    return Book.findById(book._id).populate(BOOK_POPULATE);
+    const updated = await Book.findById(book._id).populate(BOOK_POPULATE);
+    await sse.emitBookUpdated(book._id);
+    return updated;
 }
 
 async function deleteBook(bookId, actor) {
@@ -190,6 +198,8 @@ async function deleteBook(bookId, actor) {
     if (!isOwner && !isAdmin) throw new Error('forbidden', 403);
 
     await Book.findByIdAndDelete(bookId);
+
+    sse.emitBookDeleted(bookId);
 }
 
 async function returnBook(bookId, actorId) {
@@ -213,7 +223,9 @@ async function returnBook(bookId, actorId) {
     book.holder = book.owner;
     book.ownerLocked = false;
     await book.save();
-    return Book.findById(book._id).populate(BOOK_POPULATE);
+    const updated = await Book.findById(book._id).populate(BOOK_POPULATE);
+    await sse.emitBookUpdated(book._id);
+    return updated;
 }
 
 async function toggleBookStatus(bookId, adminId) {
@@ -235,9 +247,11 @@ async function toggleBookStatus(bookId, adminId) {
     }
 
     await book.save();
-    return Book.findById(book._id)
+    const updated = await Book.findById(book._id)
         .populate('owner', '_id username')
         .populate('holder', '_id username');
+    await sse.emitBookUpdated(book._id);
+    return updated;
 }
 
 async function setAvailability(bookId, ownerId, makeAvailable) {
@@ -256,7 +270,9 @@ async function setAvailability(bookId, ownerId, makeAvailable) {
 
     book.ownerLocked = !makeAvailable;
     await book.save();
-    return Book.findById(book._id).populate(BOOK_POPULATE);
+    const updated = await Book.findById(book._id).populate(BOOK_POPULATE);
+    await sse.emitBookUpdated(book._id);
+    return updated;
 }
  
 module.exports = {
