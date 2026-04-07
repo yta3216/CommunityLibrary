@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 const Book = require('../models/Book');
 const Review = require('../models/Review');
+const sse = require('./sseService');
 
 const sanitizeUser = (userDoc) => {
     const user = userDoc.toObject ? userDoc.toObject() : { ...userDoc };
@@ -117,6 +118,7 @@ async function cycleRole(targetId) {
 
     user.role = user.role === 'admin' ? 'user' : 'admin';
     await user.save();
+    sse.emitUserUpdated(user);
     return sanitizeUser(user);
 }
 
@@ -129,6 +131,7 @@ async function toggleStatus(targetId) {
 
     user.status = user.status === 'active' ? 'suspended' : 'active';
     await user.save();
+    sse.emitUserUpdated(user);
     return sanitizeUser(user);
 }
 

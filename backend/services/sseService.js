@@ -14,6 +14,24 @@ function toListPayload(book) {
     };
 }
 
+function emitUserUpdated(user) {
+    const payload = {
+        id: String(user._id),
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+    };
+
+    sse.emit(`user:${user._id}`, 'user:updated', payload);
+}
+
+async function emitBookCreated(bookId) {
+    const book = await Book.findById(bookId).populate(LIST_POPULATE);
+    if (!book) return;
+    sse.emit('books', 'book:created', toListPayload(book));
+}
+
 async function emitBookUpdated(bookId) {
     const book = await Book.findById(bookId).populate(LIST_POPULATE);
     if (!book) return;
@@ -26,12 +44,6 @@ function emitBookDeleted(bookId) {
     const id = String(bookId);
     sse.emit('books', 'book:deleted', { id });
     sse.emit(`book:${bookId}`, 'book:deleted', { id });
-}
-
-async function emitBookCreated(bookId) {
-    const book = await Book.findById(bookId).populate(LIST_POPULATE);
-    if (!book) return;
-    sse.emit('books', 'book:created', toListPayload(book));
 }
 
 function emitReviewCreated(bookId, review, avgReviews, numberOfReviews) {
@@ -64,4 +76,5 @@ module.exports = {
     emitReviewCreated,
     emitReviewDeleted,
     emitChatUpdated,
+    emitUserUpdated,
 };

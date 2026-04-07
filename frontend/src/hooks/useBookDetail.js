@@ -7,30 +7,29 @@ export function useBookDetail(bookId) {
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
 
-    const fetchBook = useCallback(async (isInitial = false) => {
+    useEffect(() => {
         if (!bookId) return;
-        if (isInitial) {
-            setIsLoading(true);
-            setErrorMessage("");
-        }
+        let isMounted = true;
 
-        try {
-            const data = await getBook(bookId);
-            setBook(data);
-        } catch (error) {
-            if (isInitial) {
-                setErrorMessage(error?.message || "Could not load book details.");
+        const fetchBook = async () => {
+            try {
+                const data = await getBook(bookId);
+                if (isMounted) setBook(data);
+            } catch (error) {
+                if (isMounted) setErrorMessage(error?.message || "Could not load book details.");
+            } finally {
+                if (isMounted) setIsLoading(false);
             }
-        } finally {
-            if (isInitial) setIsLoading(false);
-        }
+        };
+
+        fetchBook();
+
+        return () => { isMounted = false; };
     }, [bookId]);
 
-    useEffect(() => { fetchBook(true); }, [fetchBook]);
-
     useSSE(bookId ? [`book:${bookId}`] : [], {
-        "book:updated": () => fetchBook(false),
-        "book:deleted": () => { setBook(null), setErrorMessage("This book listing has been deleted.") },
+        "book:updated": () => getBook(bookId).then(setBook).catch(() => { }),
+        "book:deleted": () => { setBook(null); setErrorMessage("This listing has been removed."); },
     });
 
     return { book, updateBook: setBook, isLoading, errorMessage };

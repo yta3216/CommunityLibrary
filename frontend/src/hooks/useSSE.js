@@ -8,7 +8,6 @@ const SSE_EVENTS = [
     "review:created",
     "review:deleted",
     "chat:updated",
-    "user:suspended",
     "user:updated",
 ];
 

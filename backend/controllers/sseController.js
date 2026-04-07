@@ -1,6 +1,6 @@
 const { subscribe, unsubscribe } = require("../sseManager");
 
-const ALLOWED_PREFIXES = ["books", "book:", "chats"];
+const ALLOWED_PREFIXES = ["books", "book:", "chats", "user:"];
 
 function isAllowedRoom(room) {
     return ALLOWED_PREFIXES.some((p) => room === p || room.startsWith(p));
@@ -9,6 +9,10 @@ function isAllowedRoom(room) {
 function resolveRooms(requestedRooms, userId) {
     return requestedRooms
         .filter(isAllowedRoom)
+        .filter((r) => {
+            if (r.startsWith("user:")) return r === `user:${userId}`;
+            return true;
+        })
         .map((r) => (r === "chats" ? `chat:${userId}` : r));
 }
 
@@ -30,6 +34,7 @@ const connect = (req, res) => {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
+    res.setHeader("Access-Control-Allow-Origin", process.env.CLIENT_ORIGIN || "http://localhost:3000");
     res.flushHeaders();
 
     for (const room of resolved) subscribe(room, res);

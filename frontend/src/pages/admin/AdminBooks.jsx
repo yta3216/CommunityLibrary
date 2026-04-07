@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { deleteBook, getBooks, toggleBookStatus, updateBook} from "../../api/books";
+import { deleteBook, getBooks, toggleBookStatus, updateBook } from "../../api/books";
+import { useSSE } from "../../hooks/useSSE";
 import BookForm from "../../components/BookForm";
 import AdminLayout from "./AdminLayout";
 import "./AdminPages.css";
@@ -24,10 +25,20 @@ export default function AdminBooks() {
       setIsLoading(false);
     }
   }, []);
- 
+
   useEffect(() => {
     fetchBooks();
   }, [fetchBooks]);
+
+  useSSE(["books"], {
+    "book:created": (book) => setBooks((prev) => [book, ...prev]),
+    "book:updated": (updated) => {
+      setBooks((prev) => prev.map((b) => (b._id === updated._id ? updated : b)));
+    },
+    "book:deleted": ({ bookId }) => {
+      setBooks((prev) => prev.filter((b) => b._id !== bookId));
+    },
+  });
 
   const rows = useMemo(() => {
     return books.map((book) => {
@@ -113,7 +124,7 @@ export default function AdminBooks() {
   const handleDeleteBook = async (bookId, title) => {
     const confirmed = window.confirm(`Permanently delete "${title}"? This cannot be undone.`);
     if (!confirmed) return;
- 
+
     setIsActing(true);
 
     try {
@@ -122,7 +133,7 @@ export default function AdminBooks() {
       alert("Book deleted.");
     } catch (error) {
       alert(error.message || "Could not reach server.");
-    }finally{
+    } finally {
       setIsActing(false);
     }
   };
@@ -136,7 +147,7 @@ export default function AdminBooks() {
         <div className="admin-row">
           <div>
             <h2 className="heading-md">Listings</h2>
-            <p className="text-muted-xs admin-card-note">{isLoading ? "Loading books..." :`${filteredRows.length} book(s) shown`}</p>
+            <p className="text-muted-xs admin-card-note">{isLoading ? "Loading books..." : `${filteredRows.length} book(s) shown`}</p>
           </div>
           <div className="admin-actions">
             <button type="button" className="admin-button" onClick={() => setIsCreateOpen(true)}>
@@ -201,14 +212,14 @@ export default function AdminBooks() {
                         onClick={() => handleOpenEdit(book.id)}
                       >
                         Edit
-                    </button>
+                      </button>
                       <button
                         type="button"
                         className={`admin-button ${book.status === "available" ? "admin-button-warning" : "admin-button-success"}`}
                         disabled={isActing}
                         onClick={() => handleToggleBook(book.id, book.status)}
                       >
-                        {book.status === "available"? "Mark Unavailable": "Mark Available"}
+                        {book.status === "available" ? "Mark Unavailable" : "Mark Available"}
                       </button>
                       <button
                         type="button"
@@ -234,7 +245,7 @@ export default function AdminBooks() {
           modalTitle="Add Listing"
         />
       ) : null}
- 
+
       {editingBook ? (
         <BookForm
           key={editingBook._id}

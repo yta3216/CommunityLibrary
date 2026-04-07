@@ -86,7 +86,7 @@ const populateChatById = (chatId) => Chat.findById(chatId).populate(CHAT_POPULAT
 function emitChatToParticipants(populatedChat) {
     const ownerId = toIdString(populatedChat.owner);
     const requesterId = toIdString(populatedChat.requester);
-    sseService.emitChatUpdated(
+    sse.emitChatUpdated(
         ownerId, toChatDto(populatedChat, ownerId),
         requesterId, toChatDto(populatedChat, requesterId),
     );

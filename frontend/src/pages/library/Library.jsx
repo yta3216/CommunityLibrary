@@ -8,8 +8,10 @@ import AvgRatingChart from "../../components/charts/AvgRatingChart";
 import StatusBreakdownChart from "../../components/charts/StatusBreakdownChart";
 import { getMyBooks } from "../../api/users";
 import { deleteBook, updateBook, setBookAvailability } from "../../api/books";
+import { deleteReview } from "../../api/reviews";
 import { getChats } from "../../api/chats";
 import { apiRequest } from "../../api/client";
+import { useSSE } from "../../hooks/useSSE";
 import "../admin/AdminPages.css";
 import "./Library.css"
 
@@ -58,6 +60,26 @@ export default function Library() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  useSSE(["books"], {
+    "book:updated": (updated) => {
+      setOwnedBooks((prev) => prev.map((b) => (b._id === updated._id ? updated : b)));
+      setBorrowedBooks((prev) => prev.map((b) => (b._id === updated._id ? updated : b)));
+    },
+    "book:deleted": ({ bookId }) => {
+      setOwnedBooks((prev) => prev.filter((b) => b._id !== bookId));
+      setBorrowedBooks((prev) => prev.filter((b) => b._id !== bookId));
+    },
+  });
+
+  useSSE(["chats"], {
+    "chat:updated": (chat) => {
+      setAllChats((prev) => {
+        const without = prev.filter((c) => String(c.id) !== String(chat.id));
+        return [chat, ...without];
+      });
+    },
+  });
+
   const getChatIdForBook = useCallback((bookId) => {
     if (!bookId || allChats.length === 0) return null;
     const match = allChats.find((c) => String(c.bookId) === String(bookId));
@@ -93,6 +115,16 @@ export default function Library() {
       alert(_err?.message || "Could not update availability.");
     } finally {
       setIsActing(false);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm("Delete this review? This cannot be undone.")) return;
+    try {
+      await deleteReview(reviewId);
+      alert("Review deleted.");
+    } catch (_error) {
+      alert(_error?.message || "Could not delete review.");
     }
   };
 
@@ -378,6 +410,7 @@ export default function Library() {
                                 <th>Rating</th>
                                 <th>Comment</th>
                                 <th>Date</th>
+                                <th>Actions</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -404,6 +437,15 @@ export default function Library() {
                                         year: "numeric", month: "short", day: "numeric",
                                       })
                                       : "—"}
+                                  </td>
+                                  <td data-label="Actions">
+                                    <button
+                                      type="button"
+                                      className="admin-button admin-button-danger"
+                                      onClick={() => handleDeleteReview(review._id)}
+                                    >
+                                      Delete
+                                    </button>
                                   </td>
                                 </tr>
                               ))}

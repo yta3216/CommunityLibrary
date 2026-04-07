@@ -27,7 +27,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/books", booksRouter);
 app.use("/api/chats", chatsRouter);
 app.use("/api/reviews", reviewsRouter);
-app.use("/api/live", sseRouter);
+app.use("/api/events", sseRouter);
 
 // central error handler so service-layer validation returns a clean response
 app.use((err, _req, res, _next) => {

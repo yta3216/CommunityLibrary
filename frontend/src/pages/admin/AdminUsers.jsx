@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { deleteUser, getUsers, toggleUserStatus, cycleUserRole } from "../../api/users";
-import { getBooks, deleteBook} from "../../api/books";
+import { getBooks, deleteBook } from "../../api/books";
 import { deleteReview } from "../../api/reviews";
 import UserDetailPanel from "./UserDetailPanel";
 import AdminLayout from "./AdminLayout";
 import "./AdminPages.css";
 import { useAuth } from "../../context/AuthContext";
+import { useSSE } from "../../hooks/useSSE";
 
 export default function AdminUsers() {
-  const {user: currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,10 +30,20 @@ export default function AdminUsers() {
       setIsLoading(false);
     }
   }, []);
- 
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useSSE(["books"], {
+    "book:created": (book) => setBooks((prev) => [book, ...prev]),
+    "book:updated": (updated) => {
+      setBooks((prev) => prev.map((b) => (b._id === updated._id ? updated : b)));
+    },
+    "book:deleted": ({ bookId }) => {
+      setBooks((prev) => prev.filter((b) => b._id !== bookId));
+    },
+  });
 
   const handleToggleExpand = (userId) => {
     setExpandedUserId((prev) => (prev === userId ? null : userId));
@@ -168,9 +179,9 @@ export default function AdminUsers() {
       const matchesUserSearch =
         normalizedQuery.length === 0
           ? true
-          : String(user.username).toLowerCase().includes(normalizedQuery)||
-            String(user.email).toLowerCase().includes(normalizedQuery) ||
-            user.bookTitles.some((title) => title.includes(normalizedQuery));
+          : String(user.username).toLowerCase().includes(normalizedQuery) ||
+          String(user.email).toLowerCase().includes(normalizedQuery) ||
+          user.bookTitles.some((title) => title.includes(normalizedQuery));
 
       return matchesUserType && matchesUserSearch;
     });
@@ -237,13 +248,13 @@ export default function AdminUsers() {
               filteredUserRows.flatMap((user) => {
                 const isExpanded = expandedUserId === user.id;
                 return [
-                <tr
-                  key={user.id}
-                  className={`admin-user-row${isExpanded ? " expanded" : ""}`}
-                  onClick={() => handleToggleExpand(user.id)}
-                >
-                  <td className="admin-expand-cell" data-label="">
-                    <span className="admin-expand-icon">
+                  <tr
+                    key={user.id}
+                    className={`admin-user-row${isExpanded ? " expanded" : ""}`}
+                    onClick={() => handleToggleExpand(user.id)}
+                  >
+                    <td className="admin-expand-cell" data-label="">
+                      <span className="admin-expand-icon">
                         {isExpanded ? "▾" : "▸"}
                       </span>
                     </td>
@@ -253,51 +264,51 @@ export default function AdminUsers() {
                         <span className="admin-pill admin-pill-you"> You</span>
                       )}
                       <div className="text-muted-xs admin-card-note">{user.email}</div>
-                  </td>
-                  <td data-label="Role">
-                    <span className={`admin-pill ${user.role === "admin" ? "admin-pill-admin" : "admin-pill-user"}`}>
-                      {String(user.role).toUpperCase()}
-                    </span>
-                  </td>
-                  <td data-label="Status">
-                    <span className={`admin-pill ${user.status === "suspended" ? "admin-pill-suspended" : "admin-pill-active"}`}>
-                      {String(user.status).toUpperCase()}
-                    </span>
-                  </td>
-                  <td data-label="Borrowed"><strong>{user.borrowedBooks.length}</strong></td>
-                  <td data-label="Listings">
-                    <strong>{user.ownedBooks.length}</strong>
-                  </td>
-                  <td data-label="Reviews"><strong>{user.reviewCount}</strong></td>
-                  <td data-label="Actions" onClick={(e) => e.stopPropagation()}>
-                    <div className="admin-actions">
-                      <button
-                        type="button"
-                        className={`admin-button ${user.role === "admin" ? "admin-button-blue" : "admin-button-purple"}`}
-                        disabled={isActing}
-                        onClick={() => handleCycleRole(user.id, user.role)}
-                      >
-                        {user.role === "admin" ? "Make User" : "Make Admin"}
-                      </button>
-                      <button
-                        type="button"
-                        className={`admin-button ${user.status === "active" ? "admin-button-warning" : "admin-button-success"}`}
-                        disabled={isActing}
-                        onClick={() => handleToggleStatus(user.id, user.status)}
-                      >
-                        {user.status === "active" ? "Suspend" : "Activate"}
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-button admin-button-danger"
-                        disabled={isActing || currentUser?._id === user.id}
-                        onClick={() => handleDeleteUser(user.id, user.displayUsername)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>,
+                    </td>
+                    <td data-label="Role">
+                      <span className={`admin-pill ${user.role === "admin" ? "admin-pill-admin" : "admin-pill-user"}`}>
+                        {String(user.role).toUpperCase()}
+                      </span>
+                    </td>
+                    <td data-label="Status">
+                      <span className={`admin-pill ${user.status === "suspended" ? "admin-pill-suspended" : "admin-pill-active"}`}>
+                        {String(user.status).toUpperCase()}
+                      </span>
+                    </td>
+                    <td data-label="Borrowed"><strong>{user.borrowedBooks.length}</strong></td>
+                    <td data-label="Listings">
+                      <strong>{user.ownedBooks.length}</strong>
+                    </td>
+                    <td data-label="Reviews"><strong>{user.reviewCount}</strong></td>
+                    <td data-label="Actions" onClick={(e) => e.stopPropagation()}>
+                      <div className="admin-actions">
+                        <button
+                          type="button"
+                          className={`admin-button ${user.role === "admin" ? "admin-button-blue" : "admin-button-purple"}`}
+                          disabled={isActing}
+                          onClick={() => handleCycleRole(user.id, user.role)}
+                        >
+                          {user.role === "admin" ? "Make User" : "Make Admin"}
+                        </button>
+                        <button
+                          type="button"
+                          className={`admin-button ${user.status === "active" ? "admin-button-warning" : "admin-button-success"}`}
+                          disabled={isActing}
+                          onClick={() => handleToggleStatus(user.id, user.status)}
+                        >
+                          {user.status === "active" ? "Suspend" : "Activate"}
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-button admin-button-danger"
+                          disabled={isActing || currentUser?._id === user.id}
+                          onClick={() => handleDeleteUser(user.id, user.displayUsername)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>,
 
                   isExpanded && (
                     <tr key={`${user.id}-detail`} className="admin-detail-row">

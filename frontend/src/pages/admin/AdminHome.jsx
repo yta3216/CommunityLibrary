@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getBooks } from "../../api/books";
 import { getUsers } from "../../api/users";
+import { useSSE } from "../../hooks/useSSE";
 import AdminLayout from "./AdminLayout";
 import BooksStatusChart from "./charts/BooksStatusChart";
 import GenreBreakdownChart from "./charts/GenreBreakdownChart";
@@ -25,20 +26,30 @@ export default function AdminHome() {
       setIsLoading(false);
     }
   }, []);
- 
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useSSE(["books"], {
+    "book:created": (book) => setBooks((prev) => [book, ...prev]),
+    "book:updated": (updated) => {
+      setBooks((prev) => prev.map((b) => (b._id === updated._id ? updated : b)));
+    },
+    "book:deleted": ({ bookId }) => {
+      setBooks((prev) => prev.filter((b) => b._id !== bookId));
+    },
+  });
 
   const metrics = useMemo(() => {
     const availableBooks = books.filter(
       (book) => String(book.status || "").toLowerCase() === "available"
     ).length;
- 
+
     const suspendedUsers = users.filter(
       (user) => String(user.status || "").toLowerCase() === "suspended"
     ).length;
- 
+
     return {
       totalListings: books.length,
       availableBooks,
@@ -47,13 +58,13 @@ export default function AdminHome() {
       suspendedUsers,
     };
   }, [books, users]);
- 
+
   const recentBooks = useMemo(() => {
     return [...books]
       .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
       .slice(0, 5);
   }, [books]);
-  
+
   return (
     <AdminLayout>
       <h1 className="heading-lg">Admin Dashboard</h1>
@@ -87,14 +98,14 @@ export default function AdminHome() {
         </div>
       </section>
 
-        {!isLoading && (
+      {!isLoading && (
         <section className="admin-grid-3">
           <BooksStatusChart books={books} />
           <GenreBreakdownChart books={books} />
           <UserStatusChart users={users} />
         </section>
       )}
-      
+
       <section className="admin-grid-2">
         <div className="admin-card">
           <h2 className="heading-md">Quick Actions</h2>
