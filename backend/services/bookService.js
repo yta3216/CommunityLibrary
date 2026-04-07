@@ -2,34 +2,13 @@ const mongoose = require('mongoose');
 const Book = require('../models/Book');
 const User = require('../models/User');
 const Chat = require('../models/Chat');
-const sse = require('../sseManager');
+const sse = require('./sseService');
 const BOOK_POPULATE = [
     { path: 'owner', select: '_id username email role status description' },
     { path: 'holder', select: '_id username email role status description' },
 ];
-const LIST_POPULATE = [
-    { path: 'owner',  select: '_id username email role' },
-    { path: 'holder', select: '_id username email role' },
-]
-
 
 const normalizeStr = (v) => String(v || '').trim();
-
-function listingToPayload(listing) {
-    return {
-        ...listing.toObject(),
-        avgReviews: Number(listing.avgReviews || 0),
-        numberOfReviews: Number(listing.numberOfReviews || 0),
-    }
-}
-
-async function emitBookUpdate(bookId) {
-    const listing = await Book.findById(bookId).populate(LIST_POPULATE);
-    if (!listing) return;
-    const payload = listingToPayload(listing);
-    sse.emit('books', 'book:updated', payload);
-    sse.emit(`book:${bookId}`, 'book:updated', { id: String(bookId) });
-}
 
 async function createBook({ isbn, title, author, genre, description }, ownerId) {
     const fields = {
@@ -55,7 +34,7 @@ async function createBook({ isbn, title, author, genre, description }, ownerId) 
     const book = await Book.findById(created._id).populate(BOOK_POPULATE);
     
     const bookListing = await Book.findById(created._id).populate(LIST_POPULATE);
-    sse.emit('books', 'book:created', listingToPayload(bookListing));
+    sse.emitBookCreated(bookListing._id);
 
     return book;
 }
@@ -202,7 +181,7 @@ async function updateBook(bookId, actor, fields) {
 
     await book.save();
     const updated = await Book.findById(book._id).populate(BOOK_POPULATE);
-    await emitBookUpdate(book._id);
+    sse.emitBookUpdated(book._id);
     return updated;
 }
 
@@ -220,9 +199,7 @@ async function deleteBook(bookId, actor) {
 
     await Book.findByIdAndDelete(bookId);
 
-    const id = String(bookId);
-    sse.emit('books', 'book:deleted', { id });
-    sse.emit(`book:${bookId}`, 'book:deleted', { id });
+    sse.emitBookDeleted(bookId);
 }
 
 async function returnBook(bookId, actorId) {
@@ -247,7 +224,7 @@ async function returnBook(bookId, actorId) {
     book.ownerLocked = false;
     await book.save();
     const updated = await Book.findById(book._id).populate(BOOK_POPULATE);
-    await emitBookUpdate(book._id);
+    sse.emitBookUpdated(book._id);
     return updated;
 }
 
@@ -273,7 +250,7 @@ async function toggleBookStatus(bookId, adminId) {
     const updated = await Book.findById(book._id)
         .populate('owner', '_id username')
         .populate('holder', '_id username');
-    await emitBookUpdate(book._id);
+    sse.emitBookUpdated(book._id);
     return updated;
 }
 
@@ -294,7 +271,7 @@ async function setAvailability(bookId, ownerId, makeAvailable) {
     book.ownerLocked = !makeAvailable;
     await book.save();
     const updated = await Book.findById(book._id).populate(BOOK_POPULATE);
-    await emitBookUpdate(book._id);
+    sse.emitBookUpdated(book._id);
     return updated;
 }
  
