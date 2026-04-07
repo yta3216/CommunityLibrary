@@ -34,6 +34,7 @@ const LoggedInHome = () => {
         owner={book.owner?.username || "Unknown"}
         genre={book.genre || "Unknown"}
         rating={typeof book.avgReviews === "number" ? Math.round(book.avgReviews) : 0}
+        createdAt={book.createdAt}
         onClick={() => navigate(`/book?id=${book._id}`)}
       />
     ));
