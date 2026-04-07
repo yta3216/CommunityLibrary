@@ -5,11 +5,11 @@ export function getBook(bookId) {
 }
 
 export function getBooks(query = "") {
-  return apiRequest(`/api/books${toQueryString({ q: query })}`);
+  return apiRequest(`/api/books${toQueryString(query)}`);
 }
 
 export function getPopularBooks(query = "") {
-  return apiRequest(`/api/books/popular${toQueryString({ q: query })}`);
+  return apiRequest(`/api/books/popular${toQueryString(query)}`);
 }
 
 export function createBook(payload) {

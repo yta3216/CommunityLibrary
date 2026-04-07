@@ -19,7 +19,8 @@ function BookDetail() {
   const { user: currentUser } = useAuth();
 
   const selectedBookId = searchParams.get("id");
-  const { book, updateBook, isLoading, errorMessage } = useBookDetail(selectedBookId);
+  const { book, updateBook, isLoading, errorMessage } =
+    useBookDetail(selectedBookId);
 
   const [isBorrowComposerOpen, setIsBorrowComposerOpen] = useState(false);
   const [borrowDraft, setBorrowDraft] = useState("");
@@ -116,7 +117,9 @@ function BookDetail() {
         <div className="book-detail-content">
           <h1 className="heading-lg">{book.title}</h1>
           <h3 className="text-muted book-detail-author">{book.author}</h3>
-          <h3 className="text-muted book-detail-owner">Owned by: {book.ownerName}</h3>
+          <h3 className="text-muted book-detail-owner">
+            Owned by: {book.ownerName}
+          </h3>
 
           <BookCover synopsis={book.description} />
 
@@ -140,7 +143,9 @@ function BookDetail() {
 
           {isBorrowComposerOpen ? (
             <div className="book-detail-borrow-composer">
-              <h4 className="heading-md book-detail-borrow-title">Start Borrow Request</h4>
+              <h4 className="heading-md book-detail-borrow-title">
+                Start Borrow Request
+              </h4>
               <MessageComposer
                 value={borrowDraft}
                 onChange={setBorrowDraft}
@@ -154,8 +159,12 @@ function BookDetail() {
           ) : null}
 
           {borrowError ? <p className="text-error">{borrowError}</p> : null}
-          {bookActionError ? <p className="text-error">{bookActionError}</p> : null}
-          {borrowFeedback ? <p className="text-success">{borrowFeedback}</p> : null}
+          {bookActionError ? (
+            <p className="text-error">{bookActionError}</p>
+          ) : null}
+          {borrowFeedback ? (
+            <p className="text-success">{borrowFeedback}</p>
+          ) : null}
 
           <ReviewSection
             bookId={book.id}
@@ -171,12 +180,13 @@ function BookDetail() {
 
   return (
     <div>
-      <Navbar />
+      <Navbar
+        onSearchClick={() => navigate("/home")}
+        onSearchFocus={() => navigate("/home")}
+      />
       <div className="sidebar-layout">
         <Sidebar />
-        <div className="content">
-          {renderContent()}
-        </div>
+        <div className="content">{renderContent()}</div>
       </div>
     </div>
   );
