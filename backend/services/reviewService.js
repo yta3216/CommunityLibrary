@@ -89,7 +89,7 @@ async function deleteReview(reviewId) {
         book.avgReviews = nextAverage;
         await book.save();
 
-        sse.emitReviewDeleted(book._id, reviewId, nextAverage, nextCount);
+        sse.emitReviewDeleted(book._id, review, nextAverage, nextCount);
         await sse.emitBookUpdated(book._id);
     }
 }

@@ -45,6 +45,15 @@ export default function AdminUsers() {
     },
   });
 
+  useSSE(expandedUserId ? [`user:${expandedUserId}`] : [], {
+    "review:created": () => {
+      setUsers((prev) => prev.map((u) => u._id === expandedUserId ? { ...u, reviewCount: (u.reviewCount || 0) + 1 } : u));
+    },
+    "review:deleted": () => {
+      setUsers((prev) => prev.map((u) => u._id === expandedUserId ? { ...u, reviewCount: (u.reviewCount || 0) - 1 } : u));
+    },
+  });
+
   const handleToggleExpand = (userId) => {
     setExpandedUserId((prev) => (prev === userId ? null : userId));
   };
@@ -122,7 +131,7 @@ export default function AdminUsers() {
     }
   };
 
-  const handleDeleteReview = async (reviewId) => {
+  const handleDeleteReview = async (reviewId, userId) => {
     if (!window.confirm("Delete this review? This cannot be undone.")) return;
     try {
       await deleteReview(reviewId);

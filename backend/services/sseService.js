@@ -53,6 +53,10 @@ function emitReviewCreated(bookId, review, avgReviews, numberOfReviews) {
         avgReviews,
         numberOfReviews,
     });
+    const reviewerId = review.reviewer?._id || review.reviewer;
+    if (reviewerId) {
+        sse.emit(`user:${reviewerId}`, 'review:created', { bookId: String(bookId) });
+    }
 }
 
 function emitReviewDeleted(bookId, reviewId, avgReviews, numberOfReviews) {
@@ -62,6 +66,10 @@ function emitReviewDeleted(bookId, reviewId, avgReviews, numberOfReviews) {
         avgReviews,
         numberOfReviews,
     });
+    const reviewerId = review.reviewer?._id || review.reviewer;
+    if (reviewerId) {
+        sse.emit(`user:${reviewerId}`, 'review:deleted', { bookId: String(bookId) });
+    }
 }
 
 function emitChatUpdated(ownerId, ownerDto, requesterId, requesterDto) {
