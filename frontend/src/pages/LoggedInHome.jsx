@@ -12,7 +12,7 @@ const LoggedInHome = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  const { availableBooks, popularBooks, isLoading, errorMessage, createBook } = useBooks(searchQuery, { fetchPopular: true });
+  const { availableBooks, popularBooks, recentBooks, isLoading, errorMessage, createBook } = useBooks(searchQuery, { fetchPopular: true });
 
   const handleCreateBook = async (values) => {
     await createBook(values);
@@ -66,6 +66,9 @@ const LoggedInHome = () => {
             <>
               <h2 className="heading-lg">Most Popular</h2>
               <div className="card-row">{renderCardRow(popularBooks)}</div>
+
+              <h2 className="heading-lg">Recent Listings</h2>
+              <div className="card-row">{renderCardRow(recentBooks)}</div>
 
               <h2 className="heading-lg">All Books</h2>
               <div className="card-row">{renderCardRow(availableBooks)}</div>
