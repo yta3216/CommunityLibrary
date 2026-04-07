@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Breadcrumbs from "../../components/Breadcrumbs/Breadcrumbs";
@@ -15,8 +15,11 @@ const DESCRIPTION_MAX_LENGTH = 300;
 const EditProfile = () => {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
+  const imageInputRef = useRef(null);
   const [username, setUsername] = useState("");
   const [description, setDescription] = useState("");
+  const [profileImageUrl, setProfileImageUrl] = useState("");
+  const [isImageDragging, setIsImageDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -25,8 +28,74 @@ const EditProfile = () => {
   useEffect(() => {
     setUsername(user?.username || "");
     setDescription(user?.description || "");
+    setProfileImageUrl(user?.profileImageUrl || "");
     setIsLoading(false);
   }, [user]);
+
+  const isValidImageValue = (value) => {
+    try {
+      const trimmedValue = value.trim();
+
+      if (trimmedValue.startsWith("data:image/")) {
+        return true;
+      }
+
+      const parsedUrl = new URL(trimmedValue);
+      return ["http:", "https:"].includes(parsedUrl.protocol);
+    } catch (_error) {
+      return false;
+    }
+  };
+
+  const readFileAsDataUrl = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("Could not read image file."));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const applySelectedFile = async (file) => {
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setErrorMessage("Please select an image file.");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setErrorMessage("Image must be 2MB or smaller.");
+      return;
+    }
+
+    try {
+      setErrorMessage("");
+      const dataUrl = await readFileAsDataUrl(file);
+      setProfileImageUrl(dataUrl);
+    } catch (_error) {
+      setErrorMessage("Could not load the selected image.");
+    }
+  };
+
+  const handleImageInputChange = async (event) => {
+    const file = event.target.files?.[0];
+    await applySelectedFile(file);
+    event.target.value = "";
+  };
+
+  const handleImageDrop = async (event) => {
+    event.preventDefault();
+    setIsImageDragging(false);
+    const file = event.dataTransfer.files?.[0];
+    await applySelectedFile(file);
+  };
+
+  const triggerImagePicker = () => {
+    imageInputRef.current?.click();
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -53,21 +122,30 @@ const EditProfile = () => {
       return;
     }
 
+    if (profileImageUrl && !isValidImageValue(profileImageUrl)) {
+      setErrorMessage("Please choose a valid image file.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const result = await updateCurrentUser({
         username: trimmedUsername,
         description: trimmedDescription,
+        profileImageUrl: profileImageUrl.trim(),
       });
 
       setUsername(result.username || trimmedUsername);
       setDescription(result.description || "");
+      setProfileImageUrl(result.profileImageUrl || profileImageUrl.trim());
       setSuccessMessage("Profile updated successfully.");
       updateUser(result);
       setTimeout(() => navigate("/profile"), 700);
     } catch (_error) {
-      setErrorMessage(_error?.message || "Could not update your profile right now.");
+      setErrorMessage(
+        _error?.message || "Could not update your profile right now.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -91,14 +169,48 @@ const EditProfile = () => {
             <form className="edit-profile-form" onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Profile Picture</label>
-                <img
-                  src={avatar_placeholder}
-                  alt="Profile"
-                  className="profile-pic-large"
+                <div
+                  className={`image-dropzone ${isImageDragging ? "dragging" : ""}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={triggerImagePicker}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      triggerImagePicker();
+                    }
+                  }}
+                  onDragEnter={(event) => {
+                    event.preventDefault();
+                    setIsImageDragging(true);
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    setIsImageDragging(true);
+                  }}
+                  onDragLeave={() => setIsImageDragging(false)}
+                  onDrop={handleImageDrop}
+                >
+                  <img
+                    src={profileImageUrl.trim() || avatar_placeholder}
+                    alt="Profile"
+                    className="profile-pic-large"
+                  />
+                  <p className="image-dropzone-text">
+                    Click to choose an image or drag and drop it here
+                  </p>
+                  <p className="image-dropzone-hint">
+                    PNG, JPG, GIF. Up to 2MB.
+                  </p>
+                </div>
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden-file-input"
+                  onChange={handleImageInputChange}
+                  disabled={isLoading || isSubmitting}
                 />
-                <p className="helper-text">
-                  Profile picture support will be added later.
-                </p>
               </div>
               <div className="form-group">
                 <label>Username</label>
@@ -122,7 +234,9 @@ const EditProfile = () => {
                   disabled={isLoading || isSubmitting}
                 />
               </div>
-              <p className="helper-text">For password changes, contact admin.</p>
+              <p className="helper-text">
+                For password changes, contact admin.
+              </p>
               {errorMessage ? (
                 <p className="form-message error">{errorMessage}</p>
               ) : null}

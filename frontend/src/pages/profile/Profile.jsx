@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import avatar_placeholder from "../../resources/avatar_placeholder.png";
 import Navbar from "../../components/Navbar/Navbar";
 import Breadcrumbs from "../../components/Breadcrumbs/Breadcrumbs";
 import avatar_placeholder from "../../resources/avatar_placeholder.png";
@@ -36,15 +37,29 @@ const Profile = () => {
                 <p className="text-muted-sm">{user?.description || "Add a profile description."}</p>
               </div>
               <div className="profile-meta">
-                <img src={avatar_placeholder} alt="Profile" className="profile-pic-large" />
-                <p className="text-muted-xs status-badge">Status: {user?.status || "active"}</p>
+                <img
+                  src={user?.profileImageUrl || avatar_placeholder}
+                  alt="Profile"
+                  className="profile-pic-large"
+                />
+                <p className="text-muted-xs status-badge">
+                  Status: {user?.status || "active"}
+                </p>
               </div>
             </section>
 
             <div className="profile-actions">
-              <Link to="/messages" className="button-secondary">My Messages</Link>
-              <Link to="/profile/edit" className="button-secondary">Edit Profile</Link>
-              <button type="button" className="button-danger" onClick={handleLogout}>
+              <Link to="/messages" className="button-secondary">
+                My Messages
+              </Link>
+              <Link to="/profile/edit" className="button-secondary">
+                Edit Profile
+              </Link>
+              <button
+                type="button"
+                className="button-danger"
+                onClick={handleLogout}
+              >
                 Logout
               </button>
             </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import Breadcrumbs from "../components/Breadcrumbs/Breadcrumbs";
 import ChatListSection from "../components/Messages/ChatListSection";
@@ -10,11 +10,24 @@ import "./Messages.css";
 import Sidebar from "../components/Sidebar/Sidebar";
 
 function Messages() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const requestedChatId = searchParams.get("chatId") || "";
   const [composerText, setComposerText] = useState("");
 
-  const { chats, activeChatId, setActiveChatId, activeChat, isLoading, errorMessage, isSending, isActionPending, sendMessage, lendOwnedBook, returnBook } = useChats(requestedChatId);
+  const {
+    chats,
+    activeChatId,
+    setActiveChatId,
+    activeChat,
+    isLoading,
+    errorMessage,
+    isSending,
+    isActionPending,
+    sendMessage,
+    lendOwnedBook,
+    returnBook,
+  } = useChats(requestedChatId);
 
   const handleSend = async () => {
     const ok = await sendMessage(composerText);
@@ -23,7 +36,10 @@ function Messages() {
 
   return (
     <div>
-      <Navbar />
+      <Navbar
+        onSearchClick={() => navigate("/home")}
+        onSearchFocus={() => navigate("/home")}
+      />
       <div className="sidebar-layout">
         <Sidebar />
         <div className="content">
@@ -35,7 +51,9 @@ function Messages() {
             ]}
           />
           <div className="messages-page">
-            {isLoading ? <p className="text-muted-sm">Loading messages...</p> : null}
+            {isLoading ? (
+              <p className="text-muted-sm">Loading messages...</p>
+            ) : null}
 
             <div className="messages-layout">
               <section className="messages-list-column">
@@ -60,9 +78,13 @@ function Messages() {
                   <>
                     <div className="messages-thread-header">
                       <div>
-                        <h2 className="messages-thread-title">{activeChat.bookTitle}</h2>
+                        <h2 className="messages-thread-title">
+                          {activeChat.bookTitle}
+                        </h2>
                         <p className="text-muted-xs">
-                          {activeChat.bookStatus === "available" ? "Available" : "Not Available"}
+                          {activeChat.bookStatus === "available"
+                            ? "Available"
+                            : "Not Available"}
                         </p>
                       </div>
 
@@ -106,7 +128,9 @@ function Messages() {
                     />
                   </>
                 ) : (
-                  <p className="text-muted-sm">Select a conversation to start messaging.</p>
+                  <p className="text-muted-sm">
+                    Select a conversation to start messaging.
+                  </p>
                 )}
               </section>
             </div>

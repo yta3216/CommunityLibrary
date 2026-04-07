@@ -1,23 +1,91 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import avatar_placeholder from "../../resources/avatar_placeholder.png";
 import { registerUser } from "../../api/auth";
 import "./RegisterAndLogin.css";
 
-//validation consts... the same as backend. only adding this because it is a requirement
 const USERNAME_REGEX = /^[A-Za-z0-9]{3,20}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_MIN_LENGTH = 5;
 
 export default function Register() {
   const navigate = useNavigate();
+  const imageInputRef = useRef(null);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [profileImageUrl, setProfileImageUrl] = useState("");
+  const [isImageDragging, setIsImageDragging] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  const isValidImageValue = (value) => {
+    try {
+      const trimmedValue = value.trim();
+
+      if (trimmedValue.startsWith("data:image/")) {
+        return true;
+      }
+
+      const parsedUrl = new URL(trimmedValue);
+      return ["http:", "https:"].includes(parsedUrl.protocol);
+    } catch (_error) {
+      return false;
+    }
+  };
+
+  const readFileAsDataUrl = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("Could not read image file."));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const applySelectedFile = async (file) => {
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setErrorMessage("Please select an image file.");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setErrorMessage("Image must be 2MB or smaller.");
+      return;
+    }
+
+    try {
+      setErrorMessage("");
+      const dataUrl = await readFileAsDataUrl(file);
+      setProfileImageUrl(dataUrl);
+    } catch (_error) {
+      setErrorMessage("Could not load the selected image.");
+    }
+  };
+
+  const handleImageInputChange = async (event) => {
+    const file = event.target.files?.[0];
+    await applySelectedFile(file);
+    event.target.value = "";
+  };
+
+  const handleImageDrop = async (event) => {
+    event.preventDefault();
+    setIsImageDragging(false);
+    const file = event.dataTransfer.files?.[0];
+    await applySelectedFile(file);
+  };
+
+  const triggerImagePicker = () => {
+    imageInputRef.current?.click();
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -25,10 +93,17 @@ export default function Register() {
     setErrorMessage("");
     setSuccessMessage("");
 
-    if (!username || !email || !password || !confirmPassword) {
+    if (
+      !username ||
+      !email ||
+      !password ||
+      !confirmPassword ||
+      !profileImageUrl
+    ) {
       setErrorMessage("Please fill all required fields.");
       return;
     }
+
     const normalizedUsername = username.trim();
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -54,12 +129,18 @@ export default function Register() {
       return;
     }
 
+    if (!isValidImageValue(profileImageUrl)) {
+      setErrorMessage("Please choose a valid image file.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await registerUser({
         username: normalizedUsername,
         email: normalizedEmail,
         password,
+        profileImageUrl: profileImageUrl.trim(),
       });
       setSuccessMessage("Registration successful. Redirecting to login...");
       setTimeout(() => navigate("/login"), 900);
@@ -100,6 +181,46 @@ export default function Register() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="text-input"
+          />
+
+          <div
+            className={`image-dropzone ${isImageDragging ? "dragging" : ""}`}
+            role="button"
+            tabIndex={0}
+            onClick={triggerImagePicker}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                triggerImagePicker();
+              }
+            }}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setIsImageDragging(true);
+            }}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setIsImageDragging(true);
+            }}
+            onDragLeave={() => setIsImageDragging(false)}
+            onDrop={handleImageDrop}
+          >
+            <img
+              src={profileImageUrl.trim() || avatar_placeholder}
+              alt="Profile preview"
+              className="register-preview-image"
+            />
+            <p className="image-dropzone-text">
+              Click to choose an image or drag and drop it here
+            </p>
+            <p className="image-dropzone-hint">PNG, JPG, GIF. Up to 2MB.</p>
+          </div>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden-file-input"
+            onChange={handleImageInputChange}
           />
 
           <label htmlFor="register-password" className="input-label">
