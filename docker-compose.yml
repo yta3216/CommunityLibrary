@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: 4000
+      MONGO_URI: "mongodb://yta_admin:dMy32FGTewBAFN@ac-0gns3ij-shard-00-00.4vfcs1g.mongodb.net:27017,ac-0gns3ij-shard-00-01.4vfcs1g.mongodb.net:27017,ac-0gns3ij-shard-00-02.4vfcs1g.mongodb.net:27017/communitylibrary?ssl=true&replicaSet=atlas-k5qbxa-shard-0&authSource=admin&retryWrites=true&w=majority&appName=Cluster0"
+      JWT_SECRET: "alDczxe1qwsa2esa"
+      CLIENT_ORIGIN: "http://localhost:4000"

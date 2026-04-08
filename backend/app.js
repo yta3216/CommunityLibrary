@@ -1,6 +1,7 @@
 // load backend dependencies for server and middleware setup
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 // import grouped route modules
 const authRouter = require("./routes/authRouter");
@@ -28,6 +29,13 @@ app.use("/api/books", booksRouter);
 app.use("/api/chats", chatsRouter);
 app.use("/api/reviews", reviewsRouter);
 app.use("/api/events", sseRouter);
+
+const publicDir = path.join(__dirname, "public");
+app.use(express.static(publicDir));
+
+app.get(/^(?!\/api).*/, (_req, res) => {
+  res.sendFile(path.join(publicDir, "index.html"));
+});
 
 // central error handler so service-layer validation returns a clean response
 app.use((err, _req, res, _next) => {

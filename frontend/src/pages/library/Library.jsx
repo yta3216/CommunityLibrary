@@ -410,7 +410,6 @@ export default function Library() {
                                 <th>Rating</th>
                                 <th>Comment</th>
                                 <th>Date</th>
-                                <th>Actions</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -437,15 +436,6 @@ export default function Library() {
                                         year: "numeric", month: "short", day: "numeric",
                                       })
                                       : "—"}
-                                  </td>
-                                  <td data-label="Actions">
-                                    <button
-                                      type="button"
-                                      className="admin-button admin-button-danger"
-                                      onClick={() => handleDeleteReview(review._id)}
-                                    >
-                                      Delete
-                                    </button>
                                   </td>
                                 </tr>
                               ))}

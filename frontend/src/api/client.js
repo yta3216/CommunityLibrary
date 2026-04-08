@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5050";
+  process.env.REACT_APP_API_BASE_URL ?? "http://localhost:5050";
 
 const TOKEN_STORAGE_KEY = "token";
 
