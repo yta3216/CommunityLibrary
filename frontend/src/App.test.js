@@ -1,8 +1,22 @@
-import { render, screen } from '@testing-library/react';
-import Main from './Main';
+import { render, screen } from "@testing-library/react";
+import App from "./App";
 
-test('renders learn react link', () => {
-  render(<Main />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+jest.mock(
+  "recharts",
+  () => {
+    const MockComponent = () => null;
+    return new Proxy(
+      {},
+      {
+        get: () => MockComponent,
+      },
+    );
+  },
+  { virtual: true },
+);
+
+test("renders public home headings", () => {
+  render(<App />);
+  expect(screen.getByText("Most Popular")).toBeInTheDocument();
+  expect(screen.getByText("New Additions")).toBeInTheDocument();
 });
