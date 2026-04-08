@@ -54,7 +54,9 @@ describe("Register component", () => {
   const renderRegister = () => {
     // render Register inside MemoryRouter because the component uses routing
     return render(
-      <MemoryRouter>
+      <MemoryRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <Register />
       </MemoryRouter>,
     );
