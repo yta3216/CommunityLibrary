@@ -7,6 +7,16 @@ const BOOK_POPULATE = [
     { path: 'owner', select: '_id username email role status description' },
     { path: 'holder', select: '_id username email role status description' },
 ];
+const LIST_POPULATE = [
+    { path: 'owner', select: '_id username email role' },
+    { path: 'holder', select: '_id username email role' },
+];
+
+const createError = (message, status) => {
+    const error = new Error(message);
+    error.status = status;
+    return error;
+};
 
 const normalizeStr = (v) => String(v || '').trim();
 
@@ -20,15 +30,15 @@ async function createBook({ isbn, title, author, genre, description }, ownerId) 
     };
 
     if (!fields.isbn || !fields.title || !fields.author || !fields.genre || !fields.description) {
-        throw new Error('isbn, title, author, genre, and description are required', 400);
+        throw createError('isbn, title, author, genre, and description are required', 400);
     }
 
     if (!mongoose.Types.ObjectId.isValid(ownerId)) {
-        throw new Error('invalid authenticated user', 401);
+        throw createError('invalid authenticated user', 401);
     }
 
     const owner = await User.findById(ownerId);
-    if (!owner) throw new Error('authenticated user not found', 404);
+    if (!owner) throw createError('authenticated user not found', 404);
 
     const created = await Book.create({ ...fields, owner: owner._id, holder: owner._id, ownerLocked: false });
     const book = await Book.findById(created._id).populate(BOOK_POPULATE);
@@ -83,14 +93,14 @@ async function getPopularBooks(query) {
 
 async function getBookDetail(bookId, currentUserId) {
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
-        throw new Error('invalid book id', 400);
+        throw createError('invalid book id', 400);
     }
 
     const book = await Book.findById(bookId)
         .populate('owner', 'username')
         .populate('holder', 'username');
 
-    if (!book) throw new Error('book not found', 404);
+    if (!book) throw createError('book not found', 404);
 
     const ownerId = book.owner._id.toString();
     const holderId = book.holder._id.toString();
@@ -155,22 +165,22 @@ async function getBookDetail(bookId, currentUserId) {
 
 async function updateBook(bookId, actor, fields) {
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
-        throw new Error('invalid book id', 400);
+        throw createError('invalid book id', 400);
     }
  
     const book = await Book.findById(bookId);
-    if (!book) throw new Error('book not found', 404);
+    if (!book) throw createError('book not found', 404);
  
     const actorId = typeof actor === 'object' ? actor.id : actor;
     const isAdmin = typeof actor === 'object' && actor.role === 'admin';
-    if (!isAdmin && book.owner.toString() !== actorId) throw new Error('forbidden', 403);
+    if (!isAdmin && book.owner.toString() !== actorId) throw createError('forbidden', 403);
  
     const { isbn, title, author, genre, description } = fields;
  
     if (isbn !== undefined) {
         const normalized = normalizeStr(isbn);
         const parsed = Number(normalized);
-        if (!normalized || Number.isNaN(parsed)) throw new Error('valid isbn is required', 400);
+        if (!normalized || Number.isNaN(parsed)) throw createError('valid isbn is required', 400);
         book.isbn = parsed;
     }
 
@@ -187,15 +197,15 @@ async function updateBook(bookId, actor, fields) {
 
 async function deleteBook(bookId, actor) {
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
-        throw new Error('invalid book id', 400);
+        throw createError('invalid book id', 400);
     }
 
     const book = await Book.findById(bookId);
-    if (!book) throw new Error('book not found', 404);
+    if (!book) throw createError('book not found', 404);
 
     const isOwner = book.owner.toString() === actor.id;
     const isAdmin = actor.role === 'admin';
-    if (!isOwner && !isAdmin) throw new Error('forbidden', 403);
+    if (!isOwner && !isAdmin) throw createError('forbidden', 403);
 
     await Book.findByIdAndDelete(bookId);
 
@@ -204,11 +214,11 @@ async function deleteBook(bookId, actor) {
 
 async function returnBook(bookId, actorId) {
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
-        throw new Error('invalid book id', 400);
+        throw createError('invalid book id', 400);
     }
 
     const book = await Book.findById(bookId);
-    if (!book) throw new Error('book not found', 404);
+    if (!book) throw createError('book not found', 404);
 
     const ownerId = book.owner.toString();
     const holderId = book.holder.toString();
@@ -217,7 +227,7 @@ async function returnBook(bookId, actorId) {
     const ownerCanMarkAvailable = actorId === ownerId && holderId !== ownerId;
 
     if (!requesterCanReturn && !ownerCanMarkAvailable) {
-        throw new Error('you cannot return this book from the current state', 400);
+        throw createError('you cannot return this book from the current state', 400);
     }
 
     book.holder = book.owner;
@@ -230,15 +240,15 @@ async function returnBook(bookId, actorId) {
 
 async function toggleBookStatus(bookId, adminId) {
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
-        throw new Error('invalid book id', 400);
+        throw createError('invalid book id', 400);
     }
 
     const book = await Book.findById(bookId);
-    if (!book) throw new Error('book not found', 404);
+    if (!book) throw createError('book not found', 404);
 
     if (book.status === 'available') {
         if (adminId === book.owner.toString()) {
-            throw new Error('admin cannot toggle availability of their own book', 409);
+            throw createError('admin cannot toggle availability of their own book', 409);
         }
         book.holder = adminId;
     } else {
@@ -256,16 +266,16 @@ async function toggleBookStatus(bookId, adminId) {
 
 async function setAvailability(bookId, ownerId, makeAvailable) {
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
-        throw new Error('invalid book id', 400);
+        throw createError('invalid book id', 400);
     }
 
     const book = await Book.findById(bookId);
-    if (!book) throw new Error('book not found', 404);
-    if (book.owner.toString() !== ownerId) throw new Error('forbidden', 403);
+    if (!book) throw createError('book not found', 404);
+    if (book.owner.toString() !== ownerId) throw createError('forbidden', 403);
 
     const isLentOut = book.holder.toString() !== ownerId;
     if (isLentOut) {
-        throw new Error('cannot change availability while book is lent out', 409);
+        throw createError('cannot change availability while book is lent out', 409);
     }
 
     book.ownerLocked = !makeAvailable;
