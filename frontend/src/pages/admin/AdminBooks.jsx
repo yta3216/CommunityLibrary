@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { deleteBook, getBooks, toggleBookStatus, updateBook } from "../../api/books";
 import { useSSE } from "../../hooks/useSSE";
 import BookForm from "../../components/BookForm";
+import Alert from "../../components/Alert/Alert";
+import ConfirmDialog from "../../components/ConfirmDialog/ConfirmDialog";
 import AdminLayout from "./AdminLayout";
 import "./AdminPages.css";
 
@@ -13,6 +15,16 @@ export default function AdminBooks() {
   const [searchQuery, setSearchQuery] = useState("");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [editingBook, setEditingBook] = useState(null);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("error");
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmText: "Confirm",
+    isDangerous: false,
+    onConfirm: null,
+  });
 
   const fetchBooks = useCallback(async () => {
     try {
@@ -20,7 +32,8 @@ export default function AdminBooks() {
       const data = await getBooks();
       setBooks(Array.isArray(data) ? data : []);
     } catch (_error) {
-      alert(_error?.message || "Could not reach server.");
+      setAlertMessage(_error?.message || "Could not reach server.");
+      setAlertType("error");
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +99,8 @@ export default function AdminBooks() {
       setBooks((prev) => [result, ...prev]);
       setIsCreateOpen(false);
     } catch (_error) {
-      alert(_error?.message || "Could not create book.");
+      setAlertMessage(_error?.message || "Could not create book.");
+      setAlertType("error");
     }
   };
 
@@ -101,45 +115,76 @@ export default function AdminBooks() {
       setBooks((prev) => prev.map((book) => (book._id === editingBook._id ? result : book)));
       setEditingBook(null);
     } catch (_error) {
-      alert(_error?.message || "Could not update book.");
+      setAlertMessage(_error?.message || "Could not update book.");
+      setAlertType("error");
     }
   };
 
   const handleToggleBook = async (bookId, currentStatus) => {
-    const action = currentStatus === "available" ? "mark as unavailable" : "mark as available";
-    const confirmed = window.confirm(`Are you sure you want to ${action} this book?`);
-    if (!confirmed) return;
-
-    setIsActing(true);
-    try {
-      const result = await toggleBookStatus(bookId);
-      setBooks((prev) => prev.map((book) => (book._id === bookId ? result : book)));
-    } catch (_error) {
-      alert(_error?.message || "Could not reach server.");
-    } finally {
-      setIsActing(false);
-    }
+    const action = currentStatus === "available" ? "unavailable" : "available";
+    setConfirmDialog({
+      isOpen: true,
+      title: "Mark Book",
+      message: `Are you sure you want to mark this book as ${action}?`,
+      confirmText: "Yes, proceed",
+      isDangerous: false,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        setIsActing(true);
+        try {
+          const result = await toggleBookStatus(bookId);
+          setBooks((prev) => prev.map((book) => (book._id === bookId ? result : book)));
+        } catch (_error) {
+          setAlertMessage(_error?.message || "Could not reach server.");
+          setAlertType("error");
+        } finally {
+          setIsActing(false);
+        }
+      },
+    });
   };
 
   const handleDeleteBook = async (bookId, title) => {
-    const confirmed = window.confirm(`Permanently delete "${title}"? This cannot be undone.`);
-    if (!confirmed) return;
-
-    setIsActing(true);
-
-    try {
-      await deleteBook(bookId);
-      setBooks((prev) => prev.filter((book) => book._id !== bookId));
-      alert("Book deleted.");
-    } catch (error) {
-      alert(error.message || "Could not reach server.");
-    } finally {
-      setIsActing(false);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Book",
+      message: `Permanently delete "${title}"? This cannot be undone.`,
+      confirmText: "Delete",
+      isDangerous: true,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        setIsActing(true);
+        try {
+          await deleteBook(bookId);
+          setBooks((prev) => prev.filter((book) => book._id !== bookId));
+          setAlertMessage("Book deleted.");
+          setAlertType("success");
+        } catch (error) {
+          setAlertMessage(error.message || "Could not reach server.");
+          setAlertType("error");
+        } finally {
+          setIsActing(false);
+        }
+      },
+    });
   };
 
   return (
     <AdminLayout>
+      <Alert
+        message={alertMessage}
+        type={alertType}
+        onDismiss={() => setAlertMessage("")}
+      />
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.confirmText}
+        isDangerous={confirmDialog.isDangerous}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+      />
       <h1 className="heading-lg">Manage Books</h1>
       <p className="text-muted-sm admin-subtitle">Admin view of listings, ownership, and availability.</p>
 

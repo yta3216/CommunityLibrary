@@ -3,6 +3,8 @@ import { deleteUser, getUsers, toggleUserStatus, cycleUserRole } from "../../api
 import { getBooks, deleteBook } from "../../api/books";
 import { deleteReview } from "../../api/reviews";
 import UserDetailPanel from "./UserDetailPanel";
+import Alert from "../../components/Alert/Alert";
+import ConfirmDialog from "../../components/ConfirmDialog/ConfirmDialog";
 import AdminLayout from "./AdminLayout";
 import "./AdminPages.css";
 import { useAuth } from "../../context/AuthContext";
@@ -17,6 +19,16 @@ export default function AdminUsers() {
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [userSearch, setUserSearch] = useState("");
   const [expandedUserId, setExpandedUserId] = useState(null);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("error");
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmText: "Confirm",
+    isDangerous: false,
+    onConfirm: null,
+  });
 
   const fetchData = useCallback(async () => {
     try {
@@ -25,7 +37,8 @@ export default function AdminUsers() {
       setUsers(Array.isArray(usersData) ? usersData : []);
       setBooks(Array.isArray(booksData) ? booksData : []);
     } catch (_error) {
-      alert(_error?.message || "Could not reach server.");
+      setAlertMessage(_error?.message || "Could not reach server.");
+      setAlertType("error");
     } finally {
       setIsLoading(false);
     }
@@ -60,85 +73,136 @@ export default function AdminUsers() {
 
   const handleCycleRole = async (userId, currentRole) => {
     const nextRole = currentRole === "admin" ? "user" : "admin";
-    if (!window.confirm(`Change this user's role to "${nextRole}"?`)) return;
-    setIsActing(true);
-    try {
-      const result = await cycleUserRole(userId);
-
-      setUsers((prev) =>
-        prev.map((user) => (user._id === userId ? result : user)),
-      );
-      alert("User role updated.");
-    } catch (_error) {
-      alert(_error?.message || "Could not reach server.");
-    } finally {
-      setIsActing(false);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Change User Role",
+      message: `Change this user's role to "${nextRole}"?`,
+      confirmText: "Change",
+      isDangerous: false,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        setIsActing(true);
+        try {
+          const result = await cycleUserRole(userId);
+          setUsers((prev) =>
+            prev.map((user) => (user._id === userId ? result : user)),
+          );
+          setAlertMessage("User role updated.");
+          setAlertType("success");
+        } catch (_error) {
+          setAlertMessage(_error?.message || "Could not reach server.");
+          setAlertType("error");
+        } finally {
+          setIsActing(false);
+        }
+      },
+    });
   };
 
   const handleToggleStatus = async (userId, currentStatus) => {
     const action = currentStatus === "active" ? "suspend" : "activate";
-    if (!window.confirm(`Are you sure you want to ${action} this user?`)) return;
-    setIsActing(true);
-    try {
-      const result = await toggleUserStatus(userId);
-
-      setUsers((prev) =>
-        prev.map((user) => (user._id === userId ? result : user)),
-      );
-      alert("User status updated.");
-    } catch (_error) {
-      alert(_error?.message || "Could not reach server.");
-    } finally {
-      setIsActing(false);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Update User Status",
+      message: `Are you sure you want to ${action} this user?`,
+      confirmText: action === "suspend" ? "Suspend" : "Activate",
+      isDangerous: action === "suspend",
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        setIsActing(true);
+        try {
+          const result = await toggleUserStatus(userId);
+          setUsers((prev) =>
+            prev.map((user) => (user._id === userId ? result : user)),
+          );
+          setAlertMessage("User status updated.");
+          setAlertType("success");
+        } catch (_error) {
+          setAlertMessage(_error?.message || "Could not reach server.");
+          setAlertType("error");
+        } finally {
+          setIsActing(false);
+        }
+      },
+    });
   };
 
   const handleDeleteUser = async (userId, username) => {
-    if (!window.confirm(`Delete "${username}"? This will also permanently delete all their book listings. This cannot be undone.`)) return;
-
-    setIsActing(true);
-    try {
-      await deleteUser(userId);
-
-      setUsers((prev) => prev.filter((user) => user._id !== userId));
-      setBooks((prev) =>
-        prev.filter((book) => {
-          const ownerId =
-            typeof book.owner === "object" ? book.owner?._id : book.owner;
-          const holderId =
-            typeof book.holder === "object" ? book.holder?._id : book.holder;
-          return ownerId !== userId && holderId !== userId;
-        }),
-      );
-      if (expandedUserId === userId) setExpandedUserId(null);
-      alert("User deleted.");
-    } catch (_error) {
-      alert(_error?.message || "Could not reach server.");
-    } finally {
-      setIsActing(false);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete User",
+      message: `Delete "${username}"? This will also permanently delete all their book listings. This cannot be undone.`,
+      confirmText: "Delete",
+      isDangerous: true,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        setIsActing(true);
+        try {
+          await deleteUser(userId);
+          setUsers((prev) => prev.filter((user) => user._id !== userId));
+          setBooks((prev) =>
+            prev.filter((book) => {
+              const ownerId =
+                typeof book.owner === "object" ? book.owner?._id : book.owner;
+              const holderId =
+                typeof book.holder === "object" ? book.holder?._id : book.holder;
+              return ownerId !== userId && holderId !== userId;
+            }),
+          );
+          if (expandedUserId === userId) setExpandedUserId(null);
+          setAlertMessage("User deleted.");
+          setAlertType("success");
+        } catch (_error) {
+          setAlertMessage(_error?.message || "Could not reach server.");
+          setAlertType("error");
+        } finally {
+          setIsActing(false);
+        }
+      },
+    });
   };
 
   const handleDeleteBook = async (bookId, title) => {
-    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
-    try {
-      await deleteBook(bookId);
-      setBooks((prev) => prev.filter((b) => b._id !== bookId));
-      alert("Book deleted.");
-    } catch (_error) {
-      alert(_error?.message || "Could not delete book.");
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Book",
+      message: `Delete "${title}"? This cannot be undone.`,
+      confirmText: "Delete",
+      isDangerous: true,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        try {
+          await deleteBook(bookId);
+          setBooks((prev) => prev.filter((b) => b._id !== bookId));
+          setAlertMessage("Book deleted.");
+          setAlertType("success");
+        } catch (_error) {
+          setAlertMessage(_error?.message || "Could not delete book.");
+          setAlertType("error");
+        }
+      },
+    });
   };
 
   const handleDeleteReview = async (reviewId, userId) => {
-    if (!window.confirm("Delete this review? This cannot be undone.")) return;
-    try {
-      await deleteReview(reviewId);
-      alert("Review deleted.");
-    } catch (_error) {
-      alert(_error?.message || "Could not delete review.");
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Review",
+      message: "Delete this review? This cannot be undone.",
+      confirmText: "Delete",
+      isDangerous: true,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        try {
+          await deleteReview(reviewId);
+          setAlertMessage("Review deleted.");
+          setAlertType("success");
+        } catch (_error) {
+          setAlertMessage(_error?.message || "Could not delete review.");
+          setAlertType("error");
+        }
+      },
+    });
   };
 
   const userRows = useMemo(() => {
@@ -198,6 +262,20 @@ export default function AdminUsers() {
 
   return (
     <AdminLayout>
+      <Alert
+        message={alertMessage}
+        type={alertType}
+        onDismiss={() => setAlertMessage("")}
+      />
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.confirmText}
+        isDangerous={confirmDialog.isDangerous}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+      />
       <h1 className="heading-lg">Manage Users</h1>
       <p className="text-muted-sm admin-subtitle">
         Search, suspend, promote, or remove users. Click a row to see their activity.

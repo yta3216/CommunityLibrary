@@ -1,14 +1,15 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../resources/logo.png";
 import "./AdminPages.css";
 
 export default function AdminLayout({ children }) {
     const { user: currentUser, signOut } = useAuth();
+    const navigate = useNavigate();
 
     const handleLogout = () => {
         signOut();
-        window.location.assign("/login");
+        navigate("/login", { replace: true });
     };
 
     return (
@@ -22,12 +23,20 @@ export default function AdminLayout({ children }) {
                     />
                     <nav className="admin-nav">
                         <NavLink
-                            to="/admin/home"
+                            to="/home"
                             className={({ isActive }) =>
                                 `admin-nav-link${isActive ? " active" : ""}`
                             }
                         >
                             Home
+                        </NavLink>
+                        <NavLink
+                            to="/admin/home"
+                            className={({ isActive }) =>
+                                `admin-nav-link${isActive ? " active" : ""}`
+                            }
+                        >
+                            Admin Home
                         </NavLink>
                         <NavLink
                             to="/admin/books"

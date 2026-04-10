@@ -26,6 +26,8 @@ PLEASE USE THESE! DON'T EMBED STYLES DIRECTLY IN THE COMPONENTS!
   --color-text-brand-strong: #2b5e5b;
   --color-success: #027a48;
   --color-error: #b42318;
+  --color-error-hover: #c82333;
+  --color-warning: #b54708;
   --color-border: #d0d5dd;
   --color-border-soft: #e4e7ec;
   --color-border-muted: #d9dce2;
@@ -304,8 +306,7 @@ code {
   transition: var(--transition-duration) ease-in-out;
 }
 .button-danger:hover {
-  background-color: var(--color-bg-secondary);
-  color: var(--color-error);
+  background-color: var(--color-error-hover);
 }
 
 /* Utilities: Modal */

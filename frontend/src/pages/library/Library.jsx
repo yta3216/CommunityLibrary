@@ -4,11 +4,12 @@ import Navbar from "../../components/Navbar/Navbar";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Breadcrumbs from "../../components/Breadcrumbs/Breadcrumbs";
 import BookForm from "../../components/BookForm";
+import Alert from "../../components/Alert/Alert";
+import ConfirmDialog from "../../components/ConfirmDialog/ConfirmDialog";
 import AvgRatingChart from "../../components/charts/AvgRatingChart";
 import StatusBreakdownChart from "../../components/charts/StatusBreakdownChart";
 import { getMyBooks } from "../../api/users";
 import { deleteBook, updateBook, setBookAvailability } from "../../api/books";
-import { deleteReview } from "../../api/reviews";
 import { getChats } from "../../api/chats";
 import { apiRequest } from "../../api/client";
 import { useSSE } from "../../hooks/useSSE";
@@ -31,6 +32,16 @@ export default function Library() {
   const [isLoading, setIsLoading] = useState(true);
   const [editingBook, setEditingBook] = useState(null);
   const [isActing, setIsActing] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("error");
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmText: "Confirm",
+    isDangerous: false,
+    onConfirm: null,
+  });
 
   const fetchAll = useCallback(async () => {
     setIsLoading(true);
@@ -92,18 +103,29 @@ export default function Library() {
       setOwnedBooks((prev) => prev.map((b) => (b._id === result._id ? result : b)));
       setEditingBook(null);
     } catch (_err) {
-      alert(_err?.message || "Could not update book.");
+      setAlertMessage(_err?.message || "Could not update book.");
+      setAlertType("error");
     }
   };
 
   const handleDelete = async (book) => {
-    if (!window.confirm(`Delete "${book.title}"? This cannot be undone.`)) return;
-    try {
-      await deleteBook(book._id);
-      setOwnedBooks((prev) => prev.filter((b) => b._id !== book._id));
-    } catch (_err) {
-      alert(_err?.message || "Could not delete book.");
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Book",
+      message: `Delete "${book.title}"? This cannot be undone.`,
+      confirmText: "Delete",
+      isDangerous: true,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        try {
+          await deleteBook(book._id);
+          setOwnedBooks((prev) => prev.filter((b) => b._id !== book._id));
+        } catch (_err) {
+          setAlertMessage(_err?.message || "Could not delete book.");
+          setAlertType("error");
+        }
+      },
+    });
   };
 
   const handleSetAvailability = async (book, makeAvailable) => {
@@ -112,19 +134,10 @@ export default function Library() {
       const result = await setBookAvailability(book._id, makeAvailable);
       setOwnedBooks((prev) => prev.map((b) => (b._id === result._id ? result : b)));
     } catch (_err) {
-      alert(_err?.message || "Could not update availability.");
+      setAlertMessage(_err?.message || "Could not update availability.");
+      setAlertType("error");
     } finally {
       setIsActing(false);
-    }
-  };
-
-  const handleDeleteReview = async (reviewId) => {
-    if (!window.confirm("Delete this review? This cannot be undone.")) return;
-    try {
-      await deleteReview(reviewId);
-      alert("Review deleted.");
-    } catch (_error) {
-      alert(_error?.message || "Could not delete review.");
     }
   };
 
@@ -145,6 +158,20 @@ export default function Library() {
       <div className="sidebar-layout">
         <Sidebar />
         <div className="content">
+          <Alert
+            message={alertMessage}
+            type={alertType}
+            onDismiss={() => setAlertMessage("")}
+          />
+          <ConfirmDialog
+            isOpen={confirmDialog.isOpen}
+            title={confirmDialog.title}
+            message={confirmDialog.message}
+            confirmText={confirmDialog.confirmText}
+            isDangerous={confirmDialog.isDangerous}
+            onConfirm={confirmDialog.onConfirm}
+            onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+          />
           <Breadcrumbs
             items={[{ label: "Home", to: "/home" }, { label: "My Library" }]}
           />

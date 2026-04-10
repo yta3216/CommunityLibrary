@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getBooks } from "../../api/books";
 import { getUsers } from "../../api/users";
 import { useSSE } from "../../hooks/useSSE";
+import Alert from "../../components/Alert/Alert";
 import AdminLayout from "./AdminLayout";
 import BooksStatusChart from "./charts/BooksStatusChart";
 import GenreBreakdownChart from "./charts/GenreBreakdownChart";
@@ -13,6 +14,8 @@ export default function AdminHome() {
   const [users, setUsers] = useState([]);
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("error");
 
   const fetchData = useCallback(async () => {
     try {
@@ -21,7 +24,8 @@ export default function AdminHome() {
       setUsers(Array.isArray(usersData) ? usersData : []);
       setBooks(Array.isArray(booksData) ? booksData : []);
     } catch (_error) {
-      alert(_error?.message || "Could not reach server.");
+      setAlertMessage(_error?.message || "Could not reach server.");
+      setAlertType("error");
     } finally {
       setIsLoading(false);
     }
@@ -67,6 +71,11 @@ export default function AdminHome() {
 
   return (
     <AdminLayout>
+      <Alert
+        message={alertMessage}
+        type={alertType}
+        onDismiss={() => setAlertMessage("")}
+      />
       <h1 className="heading-lg">Admin Dashboard</h1>
       <p className="text-muted-sm admin-subtitle">
         Manage listings, users, and current availability in one place.

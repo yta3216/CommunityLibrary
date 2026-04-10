@@ -12,7 +12,7 @@ const Profile = () => {
 
   const handleLogout = () => {
     signOut();
-    window.location.assign("/");
+    navigate("/", { replace: true });
   };
 
   return (
