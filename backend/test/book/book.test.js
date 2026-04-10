@@ -158,4 +158,43 @@ describe("Book API Tests", () => {
     expect(res.statusCode).toBe(403);
     expect(res.body.message).toBe("forbidden");
   });
+
+  test("POST /api/books creates a new book for authenticated user", async () => {
+    const owner = await registerUser({ username: "createowner", email: "createowner@example.com" });
+
+    const payload = {
+      isbn: "978410109999",
+      title: "The Pragmatic Programmer",
+      author: "Andy Hunt",
+      genre: "Software Engineering",
+      description: "Practical software craftsmanship guidance.",
+    };
+
+    const res = await request(app)
+      .post("/api/books")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send(payload);
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body).toHaveProperty("_id");
+    expect(res.body).toHaveProperty("title", payload.title);
+    expect(res.body).toHaveProperty("author", payload.author);
+    expect(res.body).toHaveProperty("owner._id", owner.user._id);
+    expect(res.body).toHaveProperty("holder._id", owner.user._id);
+  });
+
+  test("POST /api/books returns 401 when request is unauthenticated", async () => {
+    const payload = {
+      isbn: "978410108888",
+      title: "Patterns of Enterprise Application Architecture",
+      author: "Martin Fowler",
+      genre: "Software",
+      description: "Catalog of enterprise patterns.",
+    };
+
+    const res = await request(app).post("/api/books").send(payload);
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body.message).toBe("authorization token is required");
+  });
 });

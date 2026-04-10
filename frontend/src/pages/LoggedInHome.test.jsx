@@ -53,7 +53,7 @@ describe("LoggedInHome page", () => {
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       >
         <LoggedInHome />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByText("All Available Books")).toBeInTheDocument();
@@ -76,9 +76,11 @@ describe("LoggedInHome page", () => {
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       >
         <LoggedInHome />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    expect(screen.getAllByText("Could not load books right now.").length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText("Could not load books right now.").length,
+    ).toBeGreaterThan(0);
   });
 });

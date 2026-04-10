@@ -15,11 +15,21 @@ jest.mock("../context/AuthContext", () => ({
 
 jest.mock("../components/Navbar/Navbar", () => () => <div>Navbar</div>);
 jest.mock("../components/Sidebar/Sidebar", () => () => <div>Sidebar</div>);
-jest.mock("../components/Breadcrumbs/Breadcrumbs", () => () => <div>Breadcrumbs</div>);
-jest.mock("../components/BookDetail/BookCover", () => () => <div>BookCover</div>);
-jest.mock("../components/BookDetail/BookTags", () => () => <div>BookActions</div>);
-jest.mock("../components/BookDetail/ReviewSection", () => () => <div>ReviewSection</div>);
-jest.mock("../components/Messages/MessageComposer", () => () => <div>MessageComposer</div>);
+jest.mock("../components/Breadcrumbs/Breadcrumbs", () => () => (
+  <div>Breadcrumbs</div>
+));
+jest.mock("../components/BookDetail/BookCover", () => () => (
+  <div>BookCover</div>
+));
+jest.mock("../components/BookDetail/BookTags", () => () => (
+  <div>BookActions</div>
+));
+jest.mock("../components/BookDetail/ReviewSection", () => () => (
+  <div>ReviewSection</div>
+));
+jest.mock("../components/Messages/MessageComposer", () => () => (
+  <div>MessageComposer</div>
+));
 
 jest.mock("react-router-dom", () => {
   const actual = jest.requireActual("react-router-dom");
@@ -63,7 +73,7 @@ describe("BookDetail page", () => {
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       >
         <BookDetail />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByText("Clean Code")).toBeInTheDocument();
@@ -84,9 +94,11 @@ describe("BookDetail page", () => {
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       >
         <BookDetail />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    expect(screen.getByText("This listing has been removed.")).toBeInTheDocument();
+    expect(
+      screen.getByText("This listing has been removed."),
+    ).toBeInTheDocument();
   });
 });
