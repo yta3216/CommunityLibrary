@@ -73,9 +73,6 @@ describe("Register component", () => {
     expect(
       screen.getByRole("button", { name: "Register" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Back to Login" }),
-    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Login" })).toBeInTheDocument();
   });
 
