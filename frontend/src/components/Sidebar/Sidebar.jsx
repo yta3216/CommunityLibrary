@@ -29,7 +29,7 @@ const Sidebar = () => {
             </li>
             {user.role === "admin" && (
               <li>
-                <Link to="/admin/home">Admin Dashboard</Link>
+                <Link to="/admin/home">Admin</Link>
               </li>
             )}
             <li>
