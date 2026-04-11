@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./RegisterAndLogin.css";
 
@@ -13,6 +13,7 @@ const getHomeRouteForRole = (role) => {
 
 export default function Login() {
   const { signIn } = useAuth();
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -60,8 +61,7 @@ export default function Login() {
       const result = await signIn(identifierValue, passwordValue);
       const targetRoute = getHomeRouteForRole(result?.user?.role);
 
-      // force a hard navigation so App auth bootstrap re-runs with the new token
-      window.location.assign(targetRoute);
+      navigate(targetRoute, { replace: true });
     } catch (_error) {
       const detail = _error?.data?.detail ? ` (${_error.data.detail})` : "";
       setErrorMessage((_error?.message || "Failed to login.") + detail);

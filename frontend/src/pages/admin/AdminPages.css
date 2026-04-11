@@ -255,7 +255,7 @@
 }
 
 .admin-button-danger:hover {
-  background-color: var(--color-surface-muted);
+  background-color: var(--color-error-hover);
 }
 
 /* Expandable user rows */

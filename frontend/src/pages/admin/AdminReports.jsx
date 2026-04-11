@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getUsers } from "../../api/users";
 import { getBooks } from "../../api/books";
 import { getAllReviews } from "../../api/reviews";
+import Alert from "../../components/Alert/Alert";
 import AdminLayout from "./AdminLayout";
 import SignupsChart from "./charts/SignupsChart";
 import ReviewsChart from "./charts/ReviewsChart";
@@ -20,6 +21,8 @@ export default function AdminReports() {
   const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDays, setSelectedDays] = useState(30);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("error");
 
   const fetchData = useCallback(async () => {
     try {
@@ -33,7 +36,8 @@ export default function AdminReports() {
       setBooks(Array.isArray(booksData) ? booksData : []);
       setReviews(Array.isArray(reviewsData) ? reviewsData : []);
     } catch (_error) {
-      alert(_error?.message || "Could not load report data.");
+      setAlertMessage(_error?.message || "Could not load report data.");
+      setAlertType("error");
     } finally {
       setIsLoading(false);
     }
@@ -58,6 +62,11 @@ export default function AdminReports() {
 
   return (
     <AdminLayout>
+      <Alert
+        message={alertMessage}
+        type={alertType}
+        onDismiss={() => setAlertMessage("")}
+      />
       <h1 className="heading-lg">Usage Reports</h1>
       <p className="text-muted-sm admin-subtitle">
         Activity overview for the selected time period.

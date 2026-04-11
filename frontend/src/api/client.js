@@ -94,9 +94,10 @@ export async function apiRequest(path, options = {}) {
       data?.message === "your account has been suspended"
     ) {
       clearStoredToken();
-      alert("Your account has been suspended. You have been logged out.");
-      window.location.assign("/login");
-      return;
+      const error = new Error("Your account has been suspended. You have been logged out.");
+      error.status = response.status;
+      error.data = data;
+      throw error;
     }
     
     const error = new Error(
@@ -117,6 +118,6 @@ export function toQueryString(q = "") {
 
 export function createEventSource(rooms) {
   const token = getStoredToken();
-  const url = buildUrl("/api/events") + `?token=${encodeURIComponent(token)}` + `&rooms=${encodeURIComponent(rooms.join(","))}`;
+  const url = buildUrl("/api/events") + `?token=${encodeURIComponent(token)}&rooms=${encodeURIComponent(rooms.join(","))}`;
   return new EventSource(url);
 }

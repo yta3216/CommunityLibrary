@@ -1,14 +1,12 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./Sidebar.css";
 
 const Sidebar = () => {
-  const { signOut, isAuthenticated } = useAuth();
+  const { signOut, isAuthenticated, user } = useAuth();
 
   const handleLogout = () => {
     signOut();
-    window.location.assign("/");
   };
 
   return (
@@ -29,6 +27,11 @@ const Sidebar = () => {
             <li>
               <Link to="/messages">Messages</Link>
             </li>
+            {user.role === "admin" && (
+              <li>
+                <Link to="/admin/home">Admin Dashboard</Link>
+              </li>
+            )}
             <li>
               <Link to="/" onClick={handleLogout}>
                 Logout
