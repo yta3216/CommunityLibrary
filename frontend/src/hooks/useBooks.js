@@ -4,6 +4,21 @@ import { isListingAvailable } from "../utils/bookAvailability";
 import { useSSE } from "./useSSE";
 
 const DEBOUNCE_DELAY = 300;
+const getBookId = (book) => String(book?._id || book?.id || "");
+
+const upsertBook = (prev, incoming) => {
+    const incomingId = getBookId(incoming);
+    if (!incomingId) return prev;
+
+    const existingIndex = prev.findIndex((book) => getBookId(book) === incomingId);
+    if (existingIndex === -1) {
+        return [incoming, ...prev];
+    }
+
+    const next = [...prev];
+    next[existingIndex] = incoming;
+    return next;
+};
 
 export default function useBooks(searchTerm, { fetchPopular = false } = {}) {
     const [books, setBooks] = useState([]);
@@ -65,14 +80,20 @@ export default function useBooks(searchTerm, { fetchPopular = false } = {}) {
     }, [searchTerm, fetchPopular]);
 
     useSSE(["books"], {
-        "book:created": (book) => setBooks((prev) => [book, ...prev]),
+        "book:created": (book) => setBooks((prev) => upsertBook(prev, book)),
         "book:updated": (updated) =>{
-            setBooks((prev) => prev.map((b) => (b._id === updated._id ? updated : b)));
-            setPopularBooks((prev) => prev.map((b) => (b._id === updated._id ? updated : b)));
+            const updatedId = getBookId(updated);
+            if (!updatedId) return;
+
+            setBooks((prev) => prev.map((book) => (getBookId(book) === updatedId ? updated : book)));
+            setPopularBooks((prev) => prev.map((book) => (getBookId(book) === updatedId ? updated : book)));
         },
-        "book:deleted": ({ bookId }) => {
-            setBooks((prev) => prev.filter((b) => b._id !== bookId));
-            setPopularBooks((prev) => prev.filter((b) => b._id !== bookId));
+        "book:deleted": (payload) => {
+            const deletedId = String(payload?.bookId || payload?.id || "");
+            if (!deletedId) return;
+
+            setBooks((prev) => prev.filter((book) => getBookId(book) !== deletedId));
+            setPopularBooks((prev) => prev.filter((book) => getBookId(book) !== deletedId));
         },
     });
 
@@ -94,7 +115,7 @@ export default function useBooks(searchTerm, { fetchPopular = false } = {}) {
  
     const createBook = useCallback(async (values) => {
         const result = await createBookRequest(values);
-        setBooks((prev) => [result, ...prev]);
+        setBooks((prev) => upsertBook(prev, result));
         return result;
     }, []);
 
